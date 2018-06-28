@@ -8,6 +8,36 @@ namespace Opportunity.ChakraBridge.UWP
     [DebuggerDisplay("{ToBoolean()}")]
     public sealed class JsBoolean : JsValue
     {
+        /// <summary>
+        ///     Gets the value of <c>true</c> in the current script context.
+        /// </summary>
+        /// <remarks>
+        ///     Requires an active script context.
+        /// </remarks>
+        public static JsBoolean True
+        {
+            get
+            {
+                Native.JsGetTrueValue(out var value).ThrowIfError();
+                return new JsBoolean(value);
+            }
+        }
+
+        /// <summary>
+        ///     Gets the value of <c>false</c> in the current script context.
+        /// </summary>
+        /// <remarks>
+        ///     Requires an active script context.
+        /// </remarks>
+        public static JsBoolean False
+        {
+            get
+            {
+                Native.JsGetFalseValue(out var value).ThrowIfError();
+                return new JsBoolean(value);
+            }
+        }
+
         internal JsBoolean(JsValueRef reference) : base(reference)
         {
         }

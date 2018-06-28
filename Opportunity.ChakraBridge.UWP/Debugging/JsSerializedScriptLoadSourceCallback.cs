@@ -11,5 +11,5 @@
     /// <returns>
     ///     true if the operation succeeded, false otherwise.
     /// </returns>
-    internal delegate bool JsSerializedScriptLoadSourceCallback(IntPtr sourceContext, out string scriptBuffer);
+    public delegate bool JsSerializedScriptLoadSourceCallback(IntPtr sourceContext, out string scriptBuffer);
 }

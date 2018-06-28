@@ -134,11 +134,11 @@
         [DllImport(DllName)]
         internal static extern JsErrorCode JsConvertValueToString(JsValueRef value, out JsValueRef stringValue);
 
-        [DllImport(DllName)]
-        internal static extern JsErrorCode JsVariantToValue([MarshalAs(UnmanagedType.Struct)] ref object var, out JsValueRef value);
+        //[DllImport(DllName)]
+        //internal static extern JsErrorCode JsVariantToValue([MarshalAs(UnmanagedType.Struct)] ref object var, out JsValueRef value);
 
-        [DllImport(DllName)]
-        internal static extern JsErrorCode JsValueToVariant(JsValueRef obj, [MarshalAs(UnmanagedType.Struct)] out object var);
+        //[DllImport(DllName)]
+        //internal static extern JsErrorCode JsValueToVariant(JsValueRef obj, [MarshalAs(UnmanagedType.Struct)] out object var);
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsGetGlobalObject(out JsValueRef globalObject);
@@ -261,7 +261,7 @@
         internal static extern JsErrorCode JsIsRuntimeExecutionDisabled(JsRuntimeHandle runtime, out bool isDisabled);
 
         [DllImport(DllName)]
-        internal static extern JsErrorCode JsSetObjectBeforeCollectCallback(JsValueRef reference, IntPtr callbackState, JsObjectBeforeCollectCallback beforeCollectCallback);
+        internal static extern JsErrorCode JsSetObjectBeforeCollectCallback(JsValueRef reference, IntPtr callbackState, JsObjectBeforeCollectCallbackPtr beforeCollectCallback);
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsCreateNamedFunction(JsValueRef name, JsNativeFunctionPtr nativeFunction, IntPtr callbackState, out JsValueRef function);

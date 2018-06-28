@@ -23,7 +23,7 @@
     ///     continue to exist until Dispose is called.
     ///     </para>
     /// </remarks>
-    public sealed class JsRuntime : IDisposable
+    public sealed partial class JsRuntime : IDisposable
     {
         internal static Dictionary<JsRuntimeHandle, JsRuntime> RuntimeDictionary = new Dictionary<JsRuntimeHandle, JsRuntime>();
 
@@ -78,28 +78,6 @@
         }
 
         /// <summary>
-        ///     Disposes a runtime.
-        /// </summary>
-        /// <remarks>
-        ///     Once a runtime has been disposed, all resources owned by it are invalid and cannot be used.
-        ///     If the runtime is active (i.e. it is set to be current on a particular thread), it cannot 
-        ///     be disposed.
-        /// </remarks>
-        public void Dispose()
-        {
-            if (!IsValid)
-                return;
-            lock (RuntimeDictionary)
-            {
-                if (!IsValid)
-                    return;
-                Native.JsDisposeRuntime(this.handle).ThrowIfError();
-                RuntimeDictionary.Remove(this.handle);
-                this.handle = JsRuntimeHandle.Invalid;
-            }
-        }
-
-        /// <summary>
         /// The handle.
         /// </summary>
         private JsRuntimeHandle handle;
@@ -116,12 +94,12 @@
         ///     Memory usage can be always be retrieved, regardless of whether or not the runtime is active
         ///     on another thread.
         /// </remarks>
-        public UIntPtr MemoryUsage
+        public ulong MemoryUsage
         {
             get
             {
                 Native.JsGetRuntimeMemoryUsage(this.handle, out var memoryUsage).ThrowIfError();
-                return memoryUsage;
+                return memoryUsage.ToUInt64();
             }
         }
 
@@ -132,14 +110,14 @@
         ///     The memory limit of a runtime can be always be retrieved, regardless of whether or not the 
         ///     runtime is active on another thread.
         /// </remarks>
-        public UIntPtr MemoryLimit
+        public ulong MemoryLimit
         {
             get
             {
                 Native.JsGetRuntimeMemoryLimit(this.handle, out var memoryLimit).ThrowIfError();
-                return memoryLimit;
+                return memoryLimit.ToUInt64();
             }
-            set => Native.JsSetRuntimeMemoryLimit(this.handle, value).ThrowIfError();
+            set => Native.JsSetRuntimeMemoryLimit(this.handle, new UIntPtr(value)).ThrowIfError();
         }
 
         /// <summary>
@@ -236,5 +214,48 @@
             Native.JsCreateContext(this.handle, out var reference).ThrowIfError();
             return reference;
         }
+
+        #region IDisposable Support
+
+        void Dispose(bool disposing)
+        {
+            if (!IsValid)
+                return;
+            lock (RuntimeDictionary)
+            {
+                if (!IsValid)
+                    return;
+                if (JsContext.Current.RuntimeHandle.Value == this.handle.Value)
+                    JsContext.Current = default;
+                Native.JsDisposeRuntime(this.handle).ThrowIfError();
+                RuntimeDictionary.Remove(this.handle);
+                this.handle = JsRuntimeHandle.Invalid;
+            }
+        }
+
+        /// <summary>
+        /// Disposes a runtime.
+        /// </summary>
+        ~JsRuntime()
+        {
+            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+            Dispose(false);
+        }
+
+
+        /// <summary>
+        ///     Disposes a runtime.
+        /// </summary>
+        /// <remarks>
+        ///     Once a runtime has been disposed, all resources owned by it are invalid and cannot be used.
+        ///     If the runtime is active (i.e. it is set to be current on a particular thread), it cannot 
+        ///     be disposed.
+        /// </remarks>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Opportunity.ChakraBridge.UWP
 {
+    /// <summary>
+    ///     A JavaScript error object.
+    /// </summary>
     public class JsError : JsObject
     {
         internal JsError(JsValueRef reference) : base(reference)

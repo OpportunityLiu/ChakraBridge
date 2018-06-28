@@ -1,6 +1,7 @@
 ﻿namespace Opportunity.ChakraBridge.UWP
 {
     using System;
+    using System.Diagnostics;
     using Windows.Storage.Streams;
 
     /// <summary>
@@ -32,25 +33,6 @@
                 Native.JsGetGlobalObject(out var value).ThrowIfError();
                 return new JsObject(value);
             }
-        }
-
-        /// <summary>
-        ///     Gets an invalid context.
-        /// </summary>
-        public static JsContext Invalid { get; } = new JsContext(default);
-
-        /// <summary>
-        ///     The reference.
-        /// </summary>
-        private readonly IntPtr reference;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="JsContext"/> struct. 
-        /// </summary>
-        /// <param name="reference">The reference.</param>
-        internal JsContext(IntPtr reference)
-        {
-            this.reference = reference;
         }
 
         /// <summary>
@@ -93,23 +75,6 @@
                 return hasException;
             }
         }
-
-        /// <summary>
-        ///     Gets the runtime that the context belongs to.
-        /// </summary>
-        public JsRuntime Runtime
-        {
-            get
-            {
-                Native.JsGetRuntime(this, out var handle).ThrowIfError();
-                return JsRuntime.RuntimeDictionary[handle];
-            }
-        }
-
-        /// <summary>
-        ///     Gets a value indicating whether the context is a valid context or not.
-        /// </summary>
-        public bool IsValid => this.reference != IntPtr.Zero;
 
         /// <summary>
         ///     Tells the runtime to do any idle processing it need to do.
@@ -183,6 +148,17 @@
         }
 
         /// <summary>
+        /// Project a WinRT namespace. 
+        /// </summary>
+        /// <param name="namespaceName">The WinRT namespace to be projected. </param>
+        public static void ProjectWinRTNamespace(string namespaceName)
+        {
+            if (namespaceName == null)
+                throw new ArgumentNullException(nameof(namespaceName));
+            Native.JsProjectWinRTNamespace(namespaceName).ThrowIfError();
+        }
+
+        /// <summary>
         ///     Adds a reference to a script context.
         /// </summary>
         /// <remarks>
@@ -207,11 +183,5 @@
             Native.JsContextRelease(this, out var count).ThrowIfError();
             return count;
         }
-
-        /// <summary>
-        ///     Starts debugging in the current context. 
-        /// </summary>
-        public static void StartDebugging()
-            => Native.JsStartDebugging().ThrowIfError();
     }
 }

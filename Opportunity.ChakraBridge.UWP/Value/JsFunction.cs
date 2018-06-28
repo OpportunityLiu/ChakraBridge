@@ -29,6 +29,9 @@
     /// <returns>The result of the call, if any.</returns>
     public delegate JsValue JsNativeFunction(JsFunction callee, bool isConstructCall, IList<JsValue> arguments);
 
+    /// <summary>
+    ///     A JavaScript function object.
+    /// </summary>
     public class JsFunction : JsObject
     {
         internal JsFunction(JsValueRef reference)
@@ -47,10 +50,39 @@
             : base(CreateFunction(function))
         { }
 
+        /// <summary>
+        ///     Creates a new JavaScript function.
+        /// </summary>
+        /// <remarks>
+        ///     Requires an active script context.
+        /// </remarks>
+        /// <param name="name">The name of this function that will be used for diagnostics and stringification purposes. </param>
+        /// <param name="function">The method to call when the function is invoked.</param>
+        public JsFunction(JsNativeFunction function, JsString name)
+            : base(CreateNamedFunction(function, name))
+        { }
+
+        private static JsValueRef CreateNamedFunction(JsNativeFunction function, JsString name)
+        {
+            if (function == null)
+                throw new ArgumentNullException(nameof(function));
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            var tb = JsContext.Current.Runtime.FuncTable;
+            var i = tb.GetNextPos();
+            Native.JsCreateNamedFunction(name.Reference, JsNativeFunctionCallback, i, out var reference).ThrowIfError();
+            tb.Add(i, function);
+            return reference;
+        }
+
         private static JsValueRef CreateFunction(JsNativeFunction function)
         {
-            Native.JsCreateFunction(JsNativeFunctionCallback, (IntPtr)FuncTable.Count, out var reference).ThrowIfError();
-            FuncTable.Add(function);
+            if (function == null)
+                throw new ArgumentNullException(nameof(function));
+            var tb = JsContext.Current.Runtime.FuncTable;
+            var i = tb.GetNextPos();
+            Native.JsCreateFunction(JsNativeFunctionCallback, i, out var reference).ThrowIfError();
+            tb.Add(i, function);
             return reference;
         }
 
@@ -58,7 +90,8 @@
         {
             try
             {
-                var func = FuncTable[callbackData.ToInt32()];
+                var tb = JsContext.Current.Runtime.FuncTable;
+                var func = tb.Get(callbackData);
                 return func.Invoke(new JsFunction(callee), isConstructCall, arguments.Select(a => CreateTyped(a)).ToList()).Reference;
             }
             catch (Exception)
@@ -67,8 +100,6 @@
                 throw;
             }
         }
-
-        private static readonly List<JsNativeFunction> FuncTable = new List<JsNativeFunction>(32);
 
         private JsValueRef[] getArgs(JsValue[] arguments)
         {

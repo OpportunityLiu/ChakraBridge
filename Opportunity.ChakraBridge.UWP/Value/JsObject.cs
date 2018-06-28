@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Opportunity.ChakraBridge.UWP
 {
-
     /// <summary>
-    ///     A JavaScript object value.
+    ///     A JavaScript object.
     /// </summary>
-    public class JsObject : JsValue, IDictionary<JsPropertyId, JsValue>
+    public partial class JsObject : JsValue
     {
         internal JsObject(JsValueRef reference) : base(reference)
         {
@@ -27,19 +25,10 @@ namespace Opportunity.ChakraBridge.UWP
         {
         }
 
-        /// <summary>
-        ///     Creates a new <c>Object</c> that stores some external data.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="data">External data that the object will represent. May be null.</param>
-        /// <param name="finalizer">
-        ///     A callback for when the object is finalized. May be null.
-        /// </param>
-        public JsObject(IntPtr data, JsObjectFinalizeCallback finalizer)
-            : this(CreateExternalObject(data, finalizer))
+        private static JsValueRef CreateObject()
         {
+            Native.JsCreateObject(out var reference).ThrowIfError();
+            return reference;
         }
 
         public override JsObject ToJsObject() => this;
@@ -87,53 +76,12 @@ namespace Opportunity.ChakraBridge.UWP
         }
 
         /// <summary>
-        ///     Gets a value indicating whether an object is an external object.
+        /// Gets the list of all symbol properties on the object. 
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        public bool HasExternalData
+        public JsArray GetOwnPropertySymbols()
         {
-            get
-            {
-                Native.JsHasExternalData(this.Reference, out var hasExternalData).ThrowIfError();
-                return hasExternalData;
-            }
-        }
-
-        /// <summary>
-        ///     Gets or sets the data in an external object.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        public IntPtr ExternalData
-        {
-            get
-            {
-                Native.JsGetExternalData(this.Reference, out var data).ThrowIfError();
-                return data;
-            }
-            set => Native.JsSetExternalData(this.Reference, value).ThrowIfError();
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        bool ICollection<KeyValuePair<JsPropertyId, JsValue>>.IsReadOnly => false;
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        ICollection<JsPropertyId> IDictionary<JsPropertyId, JsValue>.Keys
-            => Enumerable.Select<JsValue, JsPropertyId>(GetOwnPropertyNames(), v => v.ToString()).ToArray();
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        ICollection<JsValue> IDictionary<JsPropertyId, JsValue>.Values => this.Select(kv => kv.Value).ToArray();
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        int ICollection<KeyValuePair<JsPropertyId, JsValue>>.Count => GetOwnPropertyNames()["length"].ToInt32();
-
-        public JsValue this[JsPropertyId key]
-        {
-            get => GetProperty(key);
-            set => SetProperty(key, value, true);
+            Native.JsGetOwnPropertySymbols(this.Reference, out var propertySymbols).ThrowIfError();
+            return new JsArray(propertySymbols);
         }
 
         /// <summary>
@@ -288,67 +236,67 @@ namespace Opportunity.ChakraBridge.UWP
             Native.JsDeleteIndexedProperty(this.Reference, index.Reference).ThrowIfError();
         }
 
-        private static JsValueRef CreateExternalObject(IntPtr data, JsObjectFinalizeCallback finalizer)
+        /// <summary>
+        /// Performs JavaScript "instanceof" operator test. 
+        /// </summary>
+        /// <param name="constructor">The constructor function to test against. </param>
+        /// <returns>Whether the "object instanceof constructor" is <see langword="true"/>. </returns>
+        public bool InstanceOf(JsFunction constructor)
         {
-            Native.JsCreateExternalObject(data, finalizer, out var reference).ThrowIfError();
-            return reference;
+            Native.JsInstanceOf(this.Reference, constructor.Reference, out var r).ThrowIfError();
+            return r;
         }
 
-        private static JsValueRef CreateObject()
+        /// <summary>
+        /// Sets a callback function that is called by the runtime before garbage collection of an object. 
+        /// </summary>
+        /// <param name="callback">The callback function being set. Use <see langword="null"/> to clear previously registered callback. </param>
+        public void SetObjectBeforeCollectCallback(JsObjectBeforeCollectCallback callback)
         {
-            Native.JsCreateObject(out var reference).ThrowIfError();
-            return reference;
+            if (callback == null)
+            {
+                Native.JsSetObjectBeforeCollectCallback(this.Reference, default, null).ThrowIfError();
+                return;
+            }
+            var tb = JsContext.Current.Runtime.ObjectBeforeCollectTable;
+            var i = tb.GetNextPos();
+            Native.JsSetObjectBeforeCollectCallback(this.Reference, i, ObjectBeforeCollectCallback).ThrowIfError();
+            tb.Add(i, callback);
         }
 
-        void IDictionary<JsPropertyId, JsValue>.Add(JsPropertyId key, JsValue value)
-            => SetProperty(key, value, true);
-        bool IDictionary<JsPropertyId, JsValue>.ContainsKey(JsPropertyId key)
-            => HasProperty(key);
-        bool IDictionary<JsPropertyId, JsValue>.Remove(JsPropertyId key)
-            => DeleteProperty(key, true);
-        bool IDictionary<JsPropertyId, JsValue>.TryGetValue(JsPropertyId key, out JsValue value)
-        {
-            value = this[key];
-            return true;
-        }
-        void ICollection<KeyValuePair<JsPropertyId, JsValue>>.Add(KeyValuePair<JsPropertyId, JsValue> item)
-            => SetProperty(item.Key, item.Value, true);
-        void ICollection<KeyValuePair<JsPropertyId, JsValue>>.Clear()
-        {
-            foreach (var item in GetOwnPropertyNames())
-            {
-                this.DeleteIndexedProperty(item);
-            }
-        }
-        bool ICollection<KeyValuePair<JsPropertyId, JsValue>>.Contains(KeyValuePair<JsPropertyId, JsValue> item)
-            => this[item.Key].StrictEquals(item.Value);
-        void ICollection<KeyValuePair<JsPropertyId, JsValue>>.CopyTo(KeyValuePair<JsPropertyId, JsValue>[] array, int arrayIndex)
-        {
-            foreach (var item in GetOwnPropertyNames())
-            {
-                array[arrayIndex++] = new KeyValuePair<JsPropertyId, JsValue>(item.ToString(), this.GetIndexedProperty(item));
-                this.DeleteIndexedProperty(item);
-            }
-        }
-        bool ICollection<KeyValuePair<JsPropertyId, JsValue>>.Remove(KeyValuePair<JsPropertyId, JsValue> item)
-            => throw new NotImplementedException();
-        IEnumerator<KeyValuePair<JsPropertyId, JsValue>> IEnumerable<KeyValuePair<JsPropertyId, JsValue>>.GetEnumerator()
-        {
-            foreach (var item in GetOwnPropertyNames())
-            {
-                yield return new KeyValuePair<JsPropertyId, JsValue>(item.ToString(), this.GetIndexedProperty(item));
-            }
-        }
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<KeyValuePair<JsPropertyId, JsValue>>)this).GetEnumerator();
 
-        private List<KeyValuePair<JsPropertyId, JsValue>> Properties => this.ToList();
+        /// <summary>
+        ///     A callback called before collecting an object.
+        /// </summary>
+        /// <remarks>
+        ///     Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
+        /// </remarks>
+        /// <param name="reference">The object to be collected.</param>
+        /// <param name="callbackState">The state passed to <c>JsSetObjectBeforeCollectCallback</c>.</param>
+        private static void ObjectBeforeCollectCallback(JsValueRef reference, IntPtr callbackState)
+        {
+            var tb = JsContext.Current.Runtime.ObjectBeforeCollectTable;
+            var cb = tb.RemoveAt(callbackState);
+            cb((JsObject)CreateTyped(reference));
+        }
     }
 
     /// <summary>
-    ///     A finalization callback.
+    ///     A callback called before collecting an object.
     /// </summary>
-    /// <param name="data">
-    ///     The external data that was passed in when creating the object being finalized.
-    /// </param>
-    public delegate void JsObjectFinalizeCallback(IntPtr data);
+    /// <remarks>
+    ///     Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
+    /// </remarks>
+    /// <param name="reference">The object to be collected.</param>
+    /// <param name="callbackState">The state passed to <c>JsSetObjectBeforeCollectCallback</c>.</param>
+    internal delegate void JsObjectBeforeCollectCallbackPtr(JsValueRef reference, IntPtr callbackState);
+
+    /// <summary>
+    ///     A callback called before collecting an object.
+    /// </summary>
+    /// <remarks>
+    ///     Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
+    /// </remarks>
+    /// <param name="obj">The object to be collected.</param>
+    public delegate void JsObjectBeforeCollectCallback(JsObject obj);
 }

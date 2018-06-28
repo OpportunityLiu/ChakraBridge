@@ -4,6 +4,9 @@ using System.Diagnostics;
 
 namespace Opportunity.ChakraBridge.UWP
 {
+    /// <summary>
+    ///     A JavaScript array value.
+    /// </summary>
     [DebuggerDisplay("[{ToString(),nq}]")]
     public class JsArray : JsObject, IList<JsValue>
     {

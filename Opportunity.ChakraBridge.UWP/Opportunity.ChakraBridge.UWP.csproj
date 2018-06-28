@@ -147,22 +147,26 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Context\JsContext.Value.cs" />
     <Compile Include="Context\JsContext.Script.cs" />
     <Compile Include="Context\JsContext.Scope.cs" />
+    <Compile Include="Debugging\JsContext.Debugger.cs" />
     <Compile Include="Exception\JsExceptionExtension.cs" />
     <Compile Include="Context\JsContext.cs" />
     <Compile Include="Exception\JsEngineException.cs" />
     <Compile Include="Exception\JsErrorCode.cs" />
     <Compile Include="Exception\JsException.cs" />
     <Compile Include="Exception\JsFatalException.cs" />
-    <Compile Include="Hosting\JsMemoryEventType.cs" />
-    <Compile Include="Hosting\JsObjectBeforeCollectCallback.cs" />
+    <Compile Include="Rumtime\JsFuncTable.cs" />
+    <Compile Include="Rumtime\JsMemoryEventType.cs" />
     <Compile Include="Hosting\JsProjectionEnqueueCallback.cs" />
     <Compile Include="Hosting\JsPromiseContinuationCallback.cs" />
-    <Compile Include="Hosting\JsSourceContext.cs" />
+    <Compile Include="Debugging\JsSourceContext.cs" />
+    <Compile Include="Rumtime\JsRuntime.DelegateTable.cs" />
     <Compile Include="Value\JsArray.cs" />
     <Compile Include="Value\JsBoolean.cs" />
     <Compile Include="Value\JsError.cs" />
+    <Compile Include="Value\JsExtenalObject.cs" />
     <Compile Include="Value\JsFunction.cs" />
     <Compile Include="Value\JsNull.cs" />
     <Compile Include="Value\JsNumber.cs" />
@@ -173,9 +177,10 @@
     <Compile Include="Rumtime\JsRuntimeAttributes.cs" />
     <Compile Include="Rumtime\JsRuntimeHandle.cs" />
     <Compile Include="Exception\JsScriptException.cs" />
-    <Compile Include="Hosting\JsSerializedScriptLoadSourceCallback.cs" />
-    <Compile Include="Hosting\JsSerializedScriptUnloadCallback.cs" />
+    <Compile Include="Debugging\JsSerializedScriptLoadSourceCallback.cs" />
+    <Compile Include="Debugging\JsSerializedScriptUnloadCallback.cs" />
     <Compile Include="Rumtime\Callbacks.cs" />
+    <Compile Include="Value\JsObject.Dictionary.cs" />
     <Compile Include="Value\JsString.cs" />
     <Compile Include="Value\JsSymbol.cs" />
     <Compile Include="Value\JsTypedArrayType.cs" />

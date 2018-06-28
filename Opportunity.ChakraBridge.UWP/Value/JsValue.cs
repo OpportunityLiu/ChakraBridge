@@ -30,7 +30,11 @@
             case JsValueType.Boolean:
                 return new JsBoolean(reference);
             case JsValueType.Object:
-                return new JsObject(reference);
+                Native.JsHasExternalData(reference, out var hasExternalData).ThrowIfError();
+                if (hasExternalData)
+                    return new JsExtenalObject(reference);
+                else
+                    return new JsObject(reference);
             case JsValueType.Function:
                 return new JsFunction(reference);
             case JsValueType.Error:
@@ -303,5 +307,14 @@
         public override bool Equals(object obj) => obj is JsValue v && this.Reference.Value == v.Reference.Value;
 
         public override int GetHashCode() => this.Reference.GetHashCode();
+
+        public JsContext Context
+        {
+            get
+            {
+                Native.JsGetContextOfObject(this.Reference, out var c).ThrowIfError();
+                return c;
+            }
+        }
     }
 }
