@@ -1,6 +1,7 @@
 ﻿namespace Opportunity.ChakraBridge.UWP
 {
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     ///     A property identifier.
@@ -9,6 +10,7 @@
     ///     Property identifiers are used to refer to properties of JavaScript objects instead of using
     ///     strings.
     /// </remarks>
+    [DebuggerDisplay(@"{getDisp(),nq}")]
     public readonly struct JsPropertyId : IEquatable<JsPropertyId>
     {
         /// <summary>
@@ -20,7 +22,7 @@
         ///     Initializes a new instance of the <see cref="JsPropertyId"/> struct. 
         /// </summary>
         /// <param name="id">The ID.</param>
-        public JsPropertyId(IntPtr id)
+        private JsPropertyId(IntPtr id)
         {
             this.id = id;
         }
@@ -38,12 +40,22 @@
         ///     Requires an active script context.
         ///     </para>
         /// </remarks>
-        public string Name
+        public string Name => getName();
+
+        /// <summary>
+        ///     Gets the type of the property ID.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///     Requires an active script context.
+        ///     </para>
+        /// </remarks>
+        public JsPropertyIdType Type
         {
             get
             {
-                Native.JsGetPropertyNameFromId(this, out var name).ThrowIfError();
-                return name;
+                Native.JsGetPropertyIdType(this, out var type);
+                return type;
             }
         }
 
@@ -67,6 +79,23 @@
             Native.JsGetPropertyIdFromName(name, out var id).ThrowIfError();
             return id;
         }
+
+        /// <summary>
+        ///     Gets the property ID associated with the name. 
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///     Property IDs are specific to a context and cannot be used across contexts.
+        ///     </para>
+        ///     <para>
+        ///     Requires an active script context.
+        ///     </para>
+        /// </remarks>
+        /// <param name="name">
+        ///     The name of the property ID to get or create. The name may consist of only digits.
+        /// </param>
+        /// <returns>The property ID in this runtime for the given name.</returns>
+        public static implicit operator JsPropertyId(string name) => FromString(name);
 
         /// <summary>
         ///     The equality operator for property IDs.
@@ -119,7 +148,22 @@
         /// <returns>The name of the property ID.</returns>
         public override string ToString()
         {
+            if (this.id == default)
+                return "JS_INVALID_PROPERTYID";
             return Name;
+        }
+
+        private unsafe string getName()
+        {
+            Native.JsGetPropertyNameFromId(this, out var name).ThrowIfError();
+            return new string(name);
+        }
+
+        private string getDisp()
+        {
+            if (this.id == default)
+                return "JS_INVALID_PROPERTYID";
+            return $"[{Name}]";
         }
     }
 }

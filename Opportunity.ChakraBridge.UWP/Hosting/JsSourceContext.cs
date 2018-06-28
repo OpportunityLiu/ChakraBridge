@@ -5,7 +5,7 @@
     /// <summary>
     ///     A cookie that identifies a script for debugging purposes.
     /// </summary>
-    internal readonly struct JsSourceContext : IEquatable<JsSourceContext>
+    public readonly struct JsSourceContext : IEquatable<JsSourceContext>
     {
         /// <summary>
         /// The context.

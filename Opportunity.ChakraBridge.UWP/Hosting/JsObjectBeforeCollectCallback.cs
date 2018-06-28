@@ -10,5 +10,5 @@
     /// </remarks>
     /// <param name="reference">The object to be collected.</param>
     /// <param name="callbackState">The state passed to <c>JsSetObjectBeforeCollectCallback</c>.</param>
-    internal delegate void JsObjectBeforeCollectCallback(JsValueReference reference, IntPtr callbackState);
+    internal delegate void JsObjectBeforeCollectCallback(JsValueRef reference, IntPtr callbackState);
 }

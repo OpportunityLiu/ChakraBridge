@@ -100,6 +100,10 @@ namespace Opportunity.ChakraBridge.UWP
                     {
                         throw JsScriptException.CreateFromContext(error, "Script threw an exception.");
                     }
+                    catch (JsScriptException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         throw new JsScriptException(error, "Script threw an exception.", ex);
@@ -112,6 +116,10 @@ namespace Opportunity.ChakraBridge.UWP
                     {
                         throw JsScriptException.CreateFromContext(error, "Compile error.");
                     }
+                    catch (JsScriptException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         throw new JsScriptException(error, "Compile error.", ex);
@@ -119,10 +127,10 @@ namespace Opportunity.ChakraBridge.UWP
                 }
 
                 case JsErrorCode.ScriptTerminated:
-                    throw new JsScriptException(error, JsValueReference.Invalid, "Script was terminated.");
+                    throw new JsScriptException(error, null, "Script was terminated.");
 
                 case JsErrorCode.ScriptEvalDisabled:
-                    throw new JsScriptException(error, JsValueReference.Invalid, "Eval of strings is disabled in this runtime.");
+                    throw new JsScriptException(error, null, "Eval of strings is disabled in this runtime.");
 
                 case JsErrorCode.Fatal:
                     throw new JsFatalException(error);

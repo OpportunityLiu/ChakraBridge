@@ -13,5 +13,5 @@
     /// </remarks>
     /// <param name="task">The task, represented as a JavaScript function.</param>
     /// <param name="callbackState">The data argument to be passed to the callback.</param>
-    internal delegate void JsPromiseContinuationCallback(JsValueReference task, IntPtr callbackState);
+    internal delegate void JsPromiseContinuationCallback(JsValueRef task, IntPtr callbackState);
 }

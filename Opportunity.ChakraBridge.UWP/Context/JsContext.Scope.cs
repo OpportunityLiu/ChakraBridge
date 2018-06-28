@@ -2,7 +2,7 @@
 {
     using System;
 
-    public partial struct JsContext
+    partial struct JsContext
     {
         /// <summary>
         ///     A scope automatically sets a context to current and resets the original context

@@ -6,7 +6,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     ///     An exception that occurred in the workings of the JavaScript engine itself.
     /// </summary>
-    internal sealed class JsEngineException : JsException
+    public sealed class JsEngineException : JsException
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="JsEngineException"/> class. 

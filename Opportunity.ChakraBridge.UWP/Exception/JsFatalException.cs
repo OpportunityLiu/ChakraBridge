@@ -6,7 +6,7 @@
     /// <summary>
     ///     A fatal exception occurred.
     /// </summary>
-    internal sealed class JsFatalException : JsException
+    public sealed class JsFatalException : JsException
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="JsFatalException"/> class. 

@@ -6,7 +6,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     ///     An exception returned from the Chakra engine.
     /// </summary>
-    internal class JsException : Exception
+    public class JsException : Exception
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="JsException"/> class. 
