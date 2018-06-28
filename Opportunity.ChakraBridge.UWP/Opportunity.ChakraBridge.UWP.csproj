@@ -27,6 +27,10 @@
     <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\Debug\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -36,6 +40,10 @@
     <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\Release\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <PlatformTarget>x86</PlatformTarget>
@@ -47,6 +55,10 @@
     <PlatformTarget>x86</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\x86\Debug\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <PlatformTarget>x86</PlatformTarget>
@@ -58,6 +70,10 @@
     <PlatformTarget>x86</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\x86\Release\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <PlatformTarget>ARM</PlatformTarget>
@@ -69,6 +85,10 @@
     <PlatformTarget>ARM</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\ARM\Debug\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <PlatformTarget>ARM</PlatformTarget>
@@ -80,6 +100,10 @@
     <PlatformTarget>ARM</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\ARM\Release\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <PlatformTarget>x64</PlatformTarget>
@@ -91,6 +115,10 @@
     <PlatformTarget>x64</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\x64\Debug\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <PlatformTarget>x64</PlatformTarget>
@@ -102,12 +130,45 @@
     <PlatformTarget>x64</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
+    <LangVersion>latest</LangVersion>
+    <ProduceReferenceWinmd>false</ProduceReferenceWinmd>
+    <DocumentationFile>bin\x64\Release\Opportunity.ChakraBridge.UWP.XML</DocumentationFile>
+    <GenerateLibraryLayout>false</GenerateLibraryLayout>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="Context\JsContext.Scope.cs" />
+    <Compile Include="Exception\JsExceptionExtension.cs" />
+    <Compile Include="Context\JsContext.cs" />
+    <Compile Include="Exception\JsEngineException.cs" />
+    <Compile Include="Exception\JsErrorCode.cs" />
+    <Compile Include="Exception\JsException.cs" />
+    <Compile Include="Exception\JsFatalException.cs" />
+    <Compile Include="Hosting\JsMemoryEventType.cs" />
+    <Compile Include="Hosting\JsNativeFunction.cs" />
+    <Compile Include="Hosting\JsObjectBeforeCollectCallback.cs" />
+    <Compile Include="Hosting\JsObjectFinalizeCallback.cs" />
+    <Compile Include="Hosting\JsProjectionEnqueueCallback.cs" />
+    <Compile Include="Hosting\JsPromiseContinuationCallback.cs" />
+    <Compile Include="Value\JsPropertyId.cs" />
+    <Compile Include="Value\JsPropertyIdType.cs" />
+    <Compile Include="Rumtime\JsRuntime.cs" />
+    <Compile Include="Rumtime\JsRuntimeAttributes.cs" />
+    <Compile Include="Rumtime\JsRuntimeHandle.cs" />
+    <Compile Include="Rumtime\JsRuntimeVersion.cs" />
+    <Compile Include="Exception\JsScriptException.cs" />
+    <Compile Include="Hosting\JsSerializedScriptLoadSourceCallback.cs" />
+    <Compile Include="Hosting\JsSerializedScriptUnloadCallback.cs" />
+    <Compile Include="Hosting\JsSourceContext.cs" />
+    <Compile Include="Rumtime\Callbacks.cs" />
+    <Compile Include="Value\JsTypedArrayType.cs" />
+    <Compile Include="Exception\JsUsageException.cs" />
+    <Compile Include="Value\JsValue.cs" />
+    <Compile Include="Value\JsValueType.cs" />
+    <Compile Include="Native.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

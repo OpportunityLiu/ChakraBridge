@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Opportunity.ChakraBridge.UWP
 {
-    public sealed class Class1
+    internal sealed class Class1
     {
     }
 }
