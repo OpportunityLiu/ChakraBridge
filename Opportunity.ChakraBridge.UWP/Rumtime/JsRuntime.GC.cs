@@ -34,11 +34,14 @@ namespace Opportunity.ChakraBridge.UWP
             rte(runtime, default);
         }
 
+        /// <summary>
+        /// Raises before gabage collection.
+        /// </summary>
         public event JsCollectingGarbageEventHandler CollectingGarbage;
     }
 
     /// <summary>
-    /// A callback called before collection.
+    /// Event handler of <see cref="JsRuntime.CollectingGarbage"/>.
     /// </summary>
     public delegate void JsCollectingGarbageEventHandler(JsRuntime sender, object args);
 

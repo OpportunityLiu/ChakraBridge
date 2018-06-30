@@ -28,7 +28,7 @@ for(var i = 0; i < names.Length; i++)
 #>
 
     /// <summary>
-    /// A Javascript <#=name#> array.
+    /// A Javascript <#=name#>Array.
     /// </summary>
     public unsafe sealed class Js<#=name#>Array : JsTypedArray, IList<<#=type#>>
     {
@@ -38,6 +38,7 @@ for(var i = 0; i < names.Length; i++)
         /// Create new instance of <see cref="Js<#=name#>Array"/>.
         /// </summary>
         /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [Overload("CreateEmpty")]
         public static new Js<#=name#>Array Create()
             => (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, JsValueRef.Invalid, 0, 0));
 
@@ -47,6 +48,7 @@ for(var i = 0; i < names.Length; i++)
         /// <param name="length">Length of array.</param>
         /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
         [DefaultOverload]
+        [Overload("CreateWithLength")]
         public static Js<#=name#>Array Create(int length)
         {
             if (length < 0)
@@ -59,6 +61,7 @@ for(var i = 0; i < names.Length; i++)
         /// </summary>
         /// <param name="typedArray">The array to copy values into the new array.</param>
         /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [Overload("CreateWithTypedArray")]
         public static Js<#=name#>Array Create(JsTypedArray typedArray)
         {
             if (typedArray == null)
@@ -71,6 +74,7 @@ for(var i = 0; i < names.Length; i++)
         /// </summary>
         /// <param name="obj">The <see cref="JsObject"/> to convert to array.</param>
         /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [Overload("CreateWithObject")]
         public static Js<#=name#>Array Create(JsObject obj)
         {
             if (obj == null)
@@ -93,7 +97,8 @@ for(var i = 0; i < names.Length; i++)
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<<#=type#>>.IsReadOnly => false;
-
+        
+        /// <inheritdoc/>
         public <#=type#> this[int index]
         {
             get
@@ -109,7 +114,8 @@ for(var i = 0; i < names.Length; i++)
                 Pointer[index] = value;
             }
         }
-
+        
+        /// <inheritdoc/>
         public int IndexOf(<#=type#> item)
         {
             var start = Pointer;
@@ -121,11 +127,9 @@ for(var i = 0; i < names.Length; i++)
             }
             return -1;
         }
-        public void Insert(int index, <#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
-        public void RemoveAt(int index) => throw new InvalidOperationException("The array is fixed size.");
-        public void Add(<#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
-        public void Clear() => throw new InvalidOperationException("The array is fixed size.");
+        /// <inheritdoc/>
         public bool Contains(<#=type#> item) => IndexOf(item) >= 0;
+        /// <inheritdoc/>
         public void CopyTo(<#=type#>[] array, int arrayIndex)
         {
             if (array is null)
@@ -137,7 +141,10 @@ for(var i = 0; i < names.Length; i++)
                 System.Buffer.MemoryCopy(this.Buffer, dst, (array.Length - arrayIndex) * BytesPerElement, this.BufferLength);
             }
         }
-        public bool Remove(<#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
+        /// <summary>
+        /// Copy data of this array to a new array.
+        /// </summary>
+        /// <returns>A copy of this array.</returns>
         public <#=type#>[] ToArray()
         {
             if (Count == 0)
@@ -146,8 +153,25 @@ for(var i = 0; i < names.Length; i++)
             CopyTo(r, 0);
             return r;
         }
+        /// <inheritdoc/>
         public IEnumerator<<#=type#>> GetEnumerator() => ((IEnumerable<<#=type#>>)ToArray()).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        
+        /// <summary>Invalid operation.</summary>
+        /// <exception href="InvalidOperationException">The array is fixed size.</exception>
+        public void Insert(int index, <#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
+        /// <summary>Invalid operation.</summary>
+        /// <exception href="InvalidOperationException">The array is fixed size.</exception>
+        public void RemoveAt(int index) => throw new InvalidOperationException("The array is fixed size.");
+        /// <summary>Invalid operation.</summary>
+        /// <exception href="InvalidOperationException">The array is fixed size.</exception>
+        public void Add(<#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
+        /// <summary>Invalid operation.</summary>
+        /// <exception href="InvalidOperationException">The array is fixed size.</exception>
+        public void Clear() => throw new InvalidOperationException("The array is fixed size.");
+        /// <summary>Invalid operation.</summary>
+        /// <exception href="InvalidOperationException">The array is fixed size.</exception>
+        public bool Remove(<#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
     }
 <#
 }

@@ -56,11 +56,16 @@
         /// </summary>
         public bool IsValid => this.Reference.IsRuntimeValid;
 
+        /// <inheritdoc/>
         [DefaultOverload]
+        [Overload("EqulasTo")]
         public bool Equals(JsContext other) => other is JsContext o && this.Reference == o.Reference;
 
+        /// <inheritdoc/>
+        [Overload("Equlas")]
         public override bool Equals(object obj) => obj is JsContext other && Equals(other);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => this.Reference.GetHashCode();
 
         //public unsafe void* Data

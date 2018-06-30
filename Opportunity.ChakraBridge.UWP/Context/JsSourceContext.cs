@@ -38,6 +38,9 @@
         public readonly ulong Value;
     }
 
+    /// <summary>
+    /// Extension methods for <see cref="JsSourceContext"/>.
+    /// </summary>
     public static class JsSourceContextExtension
     {
         private static string GetDisp(ulong value)
@@ -46,7 +49,6 @@
         /// <summary>
         /// Gets an empty source context.
         /// </summary>
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public static JsSourceContext None => FromUInt64(Native.JS_SOURCE_CONTEXT_NONE.ToUInt64());
 
 

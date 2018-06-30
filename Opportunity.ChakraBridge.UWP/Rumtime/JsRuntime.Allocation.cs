@@ -31,6 +31,9 @@ namespace Opportunity.ChakraBridge.UWP
             return !args.IsRejected;
         }
 
+        /// <summary>
+        /// Raises when the charka engine allocating or freeing memories.
+        /// </summary>
         public event JsMemoryEventHandler MemoryEvent;
     }
 
@@ -47,6 +50,11 @@ namespace Opportunity.ChakraBridge.UWP
     /// </returns>
     internal delegate bool JsMemoryAllocationCallbackPtr(IntPtr callbackState, JsMemoryEventType allocationEvent, UIntPtr allocationSize);
 
+    /// <summary>
+    /// Event handler for <see cref="JsRuntime.MemoryEvent"/>.
+    /// </summary>
+    /// <param name="sender">The <see cref="JsRuntime"/> raises the event.</param>
+    /// <param name="args">Args of the event.</param>
     public delegate void JsMemoryEventHandler(JsRuntime sender, JsMemoryEventArgs args);
 
     /// <summary>
@@ -70,6 +78,9 @@ namespace Opportunity.ChakraBridge.UWP
         Failure = 2
     }
 
+    /// <summary>
+    /// Event args of <see cref="JsRuntime.MemoryEvent"/>.
+    /// </summary>
     public sealed class JsMemoryEventArgs
     {
         /// <summary>

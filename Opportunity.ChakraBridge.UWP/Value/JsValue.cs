@@ -163,6 +163,7 @@
         /// <param name="other">Another object to compare.</param>
         /// <returns><see langword="true"/> if <paramref name="other"/> is <see cref="JsValue"/> that has the same reference with this object.</returns>
         [DefaultOverload]
+        [Overload("EqualsTo")]
         public bool Equals(JsValue other) => other is JsValue v && this.Reference == v.Reference;
 
         /// <summary>
@@ -170,6 +171,7 @@
         /// </summary>
         /// <param name="obj">Another object to compare.</param>
         /// <returns><see langword="true"/> if <paramref name="obj"/> is <see cref="JsValue"/> that has the same reference with this object.</returns>
+        [Overload("Equals")]
         public override sealed bool Equals(object obj) => obj is JsValue v && this.Reference == v.Reference;
 
         /// <summary>

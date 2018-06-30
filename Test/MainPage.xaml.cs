@@ -45,13 +45,12 @@ namespace Test
                 c.ProjectWinRTNamespace("Windows.Web");
 
                 JsValue.GlobalObject.Set("CD", JsFunction.Create(PostCallback));
-                // Get content from an Uri.
-                //var ta = JsTypedArray<byte>.Create(1000);
-                //for (int i = 0; i < ta.Count; i++)
-                //{
-                //    ta[i] = (byte)i;
-                //}
-                //var taarray = ((IBuffer)ta).ToArray();
+                var ta = JsUint16Array.Create(1000);
+                for (int i = 0; i < ta.Count; i++)
+                {
+                    ta[i] = (byte)i;
+                }
+                var taarray = ((IBuffer)ta).ToArray();
                 var n = JsSourceContextExtension.None;
                 var r = (JsFunction)c.RunScript(@"a = function aa(){this.args = arguments;}");
                 var test = r.New(new JsBoolean[] { JsValue.True, JsValue.False });

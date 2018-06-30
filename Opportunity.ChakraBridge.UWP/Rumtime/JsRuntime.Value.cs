@@ -36,6 +36,7 @@
         /// </summary>
         internal JsRuntimeHandle Handle;
 
+        /// <inheritdoc/>
         [DefaultOverload]
         [Overload("EqualsTo")]
         public bool Equals(JsRuntime other)
@@ -46,9 +47,11 @@
             return h == other?.Handle;
         }
 
+        /// <inheritdoc/>
         [Overload("Equals")]
         public override bool Equals(object obj) => obj is JsRuntime other && Equals(other);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => this.Handle.GetHashCode();
     }
 }
