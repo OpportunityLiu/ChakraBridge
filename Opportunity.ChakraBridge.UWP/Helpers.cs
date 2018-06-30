@@ -8,7 +8,7 @@ using static Opportunity.ChakraBridge.UWP.Native;
 
 namespace Opportunity.ChakraBridge.UWP
 {
-    internal static class JsExceptionExtension
+    internal static class Helpers
     {
 #if DEBUG
         /// <summary>
@@ -150,5 +150,116 @@ namespace Opportunity.ChakraBridge.UWP
             }
         }
 
+        public static string GetDebugDisp(this IntPtr value, IntPtr nullptrValue, string nullptrRepresent)
+        {
+            if (value == nullptrValue)
+                return nullptrRepresent;
+            return value.ToString("X" + IntPtr.Size * 2);
+        }
+
+        public static JsTypedArrayType GetArrayType<T>()
+            where T : struct, IEquatable<T>, IComparable<T>, IConvertible, IFormattable
+        {
+            switch (default(T).GetTypeCode())
+            {
+            case TypeCode.Byte:
+                return JsTypedArrayType.Uint8;
+            case TypeCode.Double:
+                return JsTypedArrayType.Float64;
+            case TypeCode.Int16:
+                return JsTypedArrayType.Int16;
+            case TypeCode.Int32:
+                return JsTypedArrayType.Int32;
+            case TypeCode.SByte:
+                return JsTypedArrayType.Int8;
+            case TypeCode.Single:
+                return JsTypedArrayType.Float32;
+            case TypeCode.UInt16:
+                return JsTypedArrayType.Uint16;
+            case TypeCode.UInt32:
+                return JsTypedArrayType.Uint32;
+            }
+            throw new InvalidOperationException("Unsupported type.");
+        }
+
+        public static string GetPropertyString(this JsObject obj, JsPropertyId id)
+        {
+            var s = RawProperty.GetProperty(obj.Reference, id);
+            try
+            {
+                return RawString.ToString(s);
+            }
+            catch
+            {
+                var s2 = RawOperator.ToJsString(s);
+                return RawString.ToString(s2);
+            }
+        }
+
+        public static void SetPropertyString(this JsObject obj, JsPropertyId id, string value)
+        {
+            var pvalue = value is null ? RawValue.Undefined : RawString.FromString(value);
+            RawProperty.SetProperty(obj.Reference, id, pvalue, true);
+        }
+
+        public static bool GetPropertyBoolean(this JsObject obj, JsPropertyId id)
+        {
+            var s = RawProperty.GetProperty(obj.Reference, id);
+            try
+            {
+                return RawBoolean.ToBoolean(s);
+            }
+            catch
+            {
+                var s2 = RawOperator.ToJsBoolean(s);
+                return RawBoolean.ToBoolean(s2);
+            }
+        }
+
+        public static void SetPropertyBoolean(this JsObject obj, JsPropertyId id, bool value)
+        {
+            var pvalue = RawBoolean.FromBoolean(value);
+            RawProperty.SetProperty(obj.Reference, id, pvalue, true);
+        }
+
+        public static int GetPropertyInt32(this JsObject obj, JsPropertyId id)
+        {
+            var s = RawProperty.GetProperty(obj.Reference, id);
+            try
+            {
+                return RawNumber.ToInt32(s);
+            }
+            catch
+            {
+                var s2 = RawOperator.ToJsNumber(s);
+                return RawNumber.ToInt32(s2);
+            }
+        }
+
+        public static void SetPropertyInt32(this JsObject obj, JsPropertyId id, int value)
+        {
+            var pvalue = RawNumber.FromInt32(value);
+            RawProperty.SetProperty(obj.Reference, id, pvalue, true);
+        }
+
+        public static double GetPropertyDouble(this JsObject obj, JsPropertyId id)
+        {
+            var s = RawProperty.GetProperty(obj.Reference, id);
+            try
+            {
+                return RawNumber.ToDouble(s);
+            }
+            catch
+            {
+                var s2 = RawOperator.ToJsNumber(s);
+                return RawNumber.ToDouble(s2);
+            }
+        }
+
+        public static void SetPropertyDouble(this JsObject obj, JsPropertyId id, double value)
+        {
+            var pvalue = RawNumber.FromDouble(value);
+            RawProperty.SetProperty(obj.Reference, id, pvalue, true);
+        }
     }
 }

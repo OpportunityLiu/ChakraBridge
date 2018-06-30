@@ -1,11 +1,14 @@
 ﻿using Opportunity.ChakraBridge.UWP;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -26,24 +29,51 @@ namespace Test
         public MainPage()
         {
             this.InitializeComponent();
+        }
 
-            var scr = @"I=~[];I={___:++I,$$$$:(![]+"""")[I],__$:++I,$_$_:(![]+"""")[I],_$_:++I,$_$$:({}+"""")[I],$$_$:(I[I]+"""")[I],_$$:++I,$$$_:(!""""+"""")[I],$__:++I,$_$:++I,$$__:({}+"""")[I],$$_:++I,$$$:++I,$___:++I,$__$:++I};I.$_=(I.$_=I+"""")[I.$_$]+(I._$=I.$_[I.__$])+(I.$$=(I.$+"""")[I.__$])+((!I)+"""")[I._$$]+(I.__=I.$_[I.$$_])+(I.$=(!""""+"""")[I.__$])+(I._=(!""""+"""")[I._$_])+I.$_[I.$_$]+I.__+I._$+I.$;I.$$=I.$+(!""""+"""")[I._$$]+I.__+I._+I.$+I.$$;I.$=(I.___)[I.$_][I.$_];I.$(I.$(I.$$+""\""""+""$.\\""+I.__$+I.$$_+I.___+I._$+""\\""+I.__$+I.$$_+I._$$+I.__+""('/""+I.$_$_+""\\""+I.__$+I.$_$+I._$_+I.$_$_+""\\""+I.__$+I.$$$+I.___+""/""+I.$$__+I._$+""\\""+I.__$+I.$_$+I.$$_+I.__+I.$$$_+""\\""+I.__$+I.$_$+I.$$_+I.__+""/',{\\""+I.__$+I.$$_+I._$$+""\\""+I.__$+I.$_$+I.__$+I.$$_$+""\\""+I.$$$+I._$_+I.__$+I.__$+I.__$+I.__$+I.$__+"",\\""+I.__$+I.$$$+I._$_+""\\""+I.__$+I.$_$+I.__$+I.$$_$+""\\""+I.$$$+I._$_+I._$_+I.$_$+I.__$+I.$$$+I._$_+I.$__+I.$__+I.$__$+"",""+I.$$__+""\\""+I.__$+I.$_$+I.__$+I.$$_$+""\\""+I.$$$+I._$_+I.$_$+""},""+I.$$$$+I._+""\\""+I.__$+I.$_$+I.$$_+I.$$__+I.__+""\\""+I.__$+I.$_$+I.__$+I._$+""\\""+I.__$+I.$_$+I.$$_+""(""+I.$$_$+I.$_$_+I.__+I.$_$_+""){$('#""+I.$$__+I._$+""\\""+I.__$+I.$_$+I.$$_+I.__+I.$$$_+""\\""+I.__$+I.$_$+I.$$_+I.__+""').\\""+I.__$+I.$_$+I.___+I.__+""\\""+I.__$+I.$_$+I.$_$+(![]+"""")[I._$_]+""(""+I.$$_$+I.$_$_+I.__+I.$_$_+"")\\""+I.$$$+I._$$+""})\\""+I.$$$+I._$$+""\"""")())();";
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
 
-            var c = JsContext.Current;
             using (var runtime = JsRuntime.Create())
             {
-                c = JsContext.Current = runtime.CreateContext();
-                var d = JsContext.SerializeScript(scr);
-                var o = new JsExtenalObject(default, null);
-                var i = JsPropertyId.FromString("你好abc");
-                var s = (JsSymbol)JsContext.RunScript("Symbol('sym')");
-                JsContext.GlobalObject["$"] = o;
-                o["post"] = new JsFunction(PostCallback);
-                var k = ((IDictionary<JsPropertyId, JsValue>)o).Keys;
-                var a = ((JsArray)JsContext.RunScript("[1,2,3]"));
-                var dr = JsContext.Debugger.RunScript(null, d, JsSourceContext.None, null);
-                var r = JsContext.RunScript("d = {a:1,b:''}").ToJsObject();
+                runtime.MemoryEvent += this.Runtime_MemoryEvent;
+                runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
+                var c = runtime.CreateContext();
+                JsContext.Current = c;
+                c.ProjectWinRTNamespace("Windows.Foundation");
+                c.ProjectWinRTNamespace("Windows.Web");
+
+                JsValue.GlobalObject.Set("CD", JsFunction.Create(PostCallback));
+                // Get content from an Uri.
+                //var ta = JsTypedArray<byte>.Create(1000);
+                //for (int i = 0; i < ta.Count; i++)
+                //{
+                //    ta[i] = (byte)i;
+                //}
+                //var taarray = ((IBuffer)ta).ToArray();
+                var n = JsSourceContextExtension.None;
+                var r = (JsFunction)c.RunScript(@"a = function aa(){this.args = arguments;}");
+                var test = r.New(new JsBoolean[] { JsValue.True, JsValue.False });
+                r.ObjectCollectingCallback = ObjectCollectingCallback;
+                var eee = JsError.CreateError(JsValue.False);
             }
+        }
+
+        private void ObjectCollectingCallback(JsObject obj)
+        {
+
+        }
+
+        private void Runtime_CollectingGarbage(JsRuntime sender, object args)
+        {
+            Debug.WriteLine("GC");
+        }
+
+        private void Runtime_MemoryEvent(JsRuntime sender, JsMemoryEventArgs args)
+        {
+            Debug.WriteLine($"{args.EventType} {args.AllocationSize} bytes");
+            //args.IsRejected = true;
         }
 
         private JsValue PostCallback(JsFunction callee, bool isConstructCall, IList<JsValue> arguments)

@@ -6,10 +6,10 @@
     using System.Runtime.InteropServices;
 
     /// <summary>
-    ///     A function callback.
+    /// A function callback.
     /// </summary>
     /// <param name="callee">
-    ///     A <c>Function</c> object that represents the function being invoked.
+    /// A <c>Function</c> object that represents the function being invoked.
     /// </param>
     /// <param name="isConstructCall">Indicates whether this is a regular call or a 'new' call.</param>
     /// <param name="arguments">The arguments to the call.</param>
@@ -19,10 +19,10 @@
     internal delegate JsValueRef JsNativeFunctionPtr(JsValueRef callee, [MarshalAs(UnmanagedType.U1)] bool isConstructCall, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] JsValueRef[] arguments, ushort argumentCount, IntPtr callbackData);
 
     /// <summary>
-    ///     A function callback.
+    /// A function callback.
     /// </summary>
     /// <param name="callee">
-    ///     A <c>Function</c> object that represents the function being invoked.
+    /// A <c>Function</c> object that represents the function being invoked.
     /// </param>
     /// <param name="isConstructCall">Indicates whether this is a regular call or a 'new' call.</param>
     /// <param name="arguments">The arguments to the call.</param>
@@ -30,7 +30,7 @@
     public delegate JsValue JsNativeFunction(JsFunction callee, bool isConstructCall, IList<JsValue> arguments);
 
     /// <summary>
-    ///     A JavaScript function object.
+    /// A JavaScript function object.
     /// </summary>
     public class JsFunction : JsObject
     {
@@ -40,108 +40,56 @@
         }
 
         /// <summary>
-        ///     Creates a new JavaScript function.
+        /// Creates a new JavaScript function.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
         /// <param name="function">The method to call when the function is invoked.</param>
-        public JsFunction(JsNativeFunction function)
-            : base(CreateFunction(function))
-        { }
+        /// <returns>A new JavaScript function.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+        public static JsFunction Create(JsNativeFunction function) => new JsFunction(RawFuction.Create(function));
 
         /// <summary>
-        ///     Creates a new JavaScript function.
+        /// Creates a new JavaScript function.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="name">The name of this function that will be used for diagnostics and stringification purposes. </param>
         /// <param name="function">The method to call when the function is invoked.</param>
-        public JsFunction(JsNativeFunction function, JsString name)
-            : base(CreateNamedFunction(function, name))
-        { }
-
-        private static JsValueRef CreateNamedFunction(JsNativeFunction function, JsString name)
-        {
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-            var tb = JsContext.Current.Runtime.FuncTable;
-            var i = tb.GetNextPos();
-            Native.JsCreateNamedFunction(name.Reference, JsNativeFunctionCallback, i, out var reference).ThrowIfError();
-            tb.Add(i, function);
-            return reference;
-        }
-
-        private static JsValueRef CreateFunction(JsNativeFunction function)
-        {
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
-            var tb = JsContext.Current.Runtime.FuncTable;
-            var i = tb.GetNextPos();
-            Native.JsCreateFunction(JsNativeFunctionCallback, i, out var reference).ThrowIfError();
-            tb.Add(i, function);
-            return reference;
-        }
-
-        internal static JsValueRef JsNativeFunctionCallback(JsValueRef callee, [MarshalAs(UnmanagedType.U1)] bool isConstructCall, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] JsValueRef[] arguments, ushort argumentCount, IntPtr callbackData)
-        {
-            try
-            {
-                var tb = JsContext.Current.Runtime.FuncTable;
-                var func = tb.Get(callbackData);
-                return func.Invoke(new JsFunction(callee), isConstructCall, arguments.Select(a => CreateTyped(a)).ToList()).Reference;
-            }
-            catch (Exception)
-            {
-                //TODO: Set Context error
-                throw;
-            }
-        }
+        /// <param name="name">The name of this function that will be used for diagnostics and stringification purposes. </param>
+        /// <returns>A new JavaScript function.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+        public static JsFunction Create(JsNativeFunction function, JsString name)
+            => name is null ? Create(function) : new JsFunction(RawFuction.Create(function, name.Reference));
 
         private JsValueRef[] getArgs(JsValue[] arguments)
         {
-            arguments = arguments ?? Array.Empty<JsValue>();
-            if (arguments.Length > ushort.MaxValue)
+            if (arguments is null || arguments.Length == 0)
+                return Array.Empty<JsValueRef>();
+            if (arguments.Length > ushort.MaxValue - 1)
                 throw new ArgumentOutOfRangeException("Too many arguments");
-            var args = arguments.Length == 0 ? Array.Empty<JsValueRef>() : new JsValueRef[arguments.Length];
+            var args = new JsValueRef[arguments.Length];
             for (var i = 0; i < arguments.Length; i++)
             {
-                args[i] = arguments[i].Reference;
+                args[i] = arguments[i]?.Reference ?? JsValueRef.Invalid;
             }
             return args;
         }
 
         /// <summary>
-        ///     Invokes a function.
+        /// Invokes a function.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="caller">The caller of function.</param>
         /// <param name="arguments">The arguments to the call.</param>
         /// <returns>The <c>Value</c> returned from the function invocation, if any.</returns>
-        public JsValue Invoke(params JsValue[] arguments)
-        {
-            var args = getArgs(arguments);
-            Native.JsCallFunction(this.Reference, args, (ushort)args.Length, out var returnReference).ThrowIfError();
-            return CreateTyped(returnReference);
-        }
+        public JsValue Invoke(JsValue caller, params JsValue[] arguments)
+            => CreateTyped(RawFuction.Invoke(this.Reference, caller?.Reference ?? JsValueRef.Invalid, getArgs(arguments)));
 
         /// <summary>
-        ///     Invokes a function as a constructor.
+        /// Invokes a function as a constructor.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <param name="arguments">The arguments to the call.</param>
         /// <returns>The <c>Value</c> returned from the function invocation.</returns>
-        public JsValue ConstructObject(params JsValue[] arguments)
-        {
-            var args = getArgs(arguments);
-            Native.JsConstructObject(this.Reference, args, (ushort)args.Length, out var returnReference).ThrowIfError();
-            return CreateTyped(returnReference);
-        }
+        public JsValue New(params JsValue[] arguments)
+            => CreateTyped(RawFuction.New(this.Reference, getArgs(arguments)));
     }
 }

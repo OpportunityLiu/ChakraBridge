@@ -1,42 +1,47 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
-    ///     A JavaScript array value.
+    /// A JavaScript array value.
     /// </summary>
     [DebuggerDisplay("[{ToString(),nq}]")]
     public class JsArray : JsObject, IList<JsValue>
     {
+        internal JsArray(JsValueRef reference) : base(reference) { }
+
         /// <summary>
-        ///     Creates a JavaScript array object.
+        /// Creates a JavaScript array object.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <param name="length">The initial length of the array.</param>
-        /// <returns>The new array object.</returns>
-        public static JsArray Create(uint length)
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <returns>A JavaScript array object.</returns>
+        public static JsArray Create(int length) => new JsArray(RawArray.Create(length));
+
+        public JsValue this[int index]
         {
-            Native.JsCreateArray(length, out var reference).ThrowIfError();
-            return new JsArray(reference);
+            get => CreateTyped(RawProperty.GetIndexedProperty(this.Reference, RawNumber.FromInt32(index)));
+            set => RawProperty.SetIndexedProperty(this.Reference, RawNumber.FromInt32(index), value?.Reference ?? RawValue.Null);
         }
 
-        internal JsArray(JsValueRef reference) : base(reference)
-        {
-        }
-
-        public JsValue this[int index] { get => GetIndexedProperty((JsNumber)index); set => SetIndexedProperty((JsNumber)index, value); }
-
-        public int Count => this["length"].ToInt32();
+        public int Count => RawNumber.ToInt32(RawProperty.GetProperty(this.Reference, "length"));
 
         bool ICollection<JsValue>.IsReadOnly => false;
 
-        public void Add(JsValue item) => this["push"].ToJsFunction().Invoke(this, item);
-        public void Clear() => this["length"] = (JsNumber)0;
+        public void Add(JsValue item)
+        {
+            var push = RawProperty.GetProperty(this.Reference, "push");
+            RawFuction.Invoke(push, this.Reference, item?.Reference ?? RawValue.Null);
+        }
+
+        public void Clear() => RawProperty.SetProperty(this.Reference, "length", RawNumber.FromInt32(0), true);
+
         public bool Contains(JsValue item) => IndexOf(item) >= 0;
+
         public void CopyTo(JsValue[] array, int arrayIndex)
         {
             var c = Count;
@@ -53,8 +58,17 @@ namespace Opportunity.ChakraBridge.UWP
                 yield return this[i];
             }
         }
-        public int IndexOf(JsValue item) => this["indexOf"].ToJsFunction().Invoke(this, item).ToInt32();
-        public void Insert(int index, JsValue item) => this["splice"].ToJsFunction().Invoke(this, (JsNumber)index, (JsNumber)0, item);
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public int IndexOf(JsValue item)
+        {
+            var indexOf = RawProperty.GetProperty(this.Reference, "indexOf");
+            return RawNumber.ToInt32(RawFuction.Invoke(indexOf, this.Reference, item?.Reference ?? RawValue.Null));
+        }
+        public void Insert(int index, JsValue item)
+        {
+            var splice = RawProperty.GetProperty(this.Reference, "splice");
+            RawFuction.Invoke(splice, this.Reference, RawNumber.FromInt32(index), RawNumber.FromInt32(0), item?.Reference ?? RawValue.Null);
+        }
         public bool Remove(JsValue item)
         {
             var i = IndexOf(item);
@@ -63,6 +77,10 @@ namespace Opportunity.ChakraBridge.UWP
             RemoveAt(i);
             return true;
         }
-        public void RemoveAt(int index) => this["splice"].ToJsFunction().Invoke(this, (JsNumber)index, (JsNumber)1);
+        public void RemoveAt(int index)
+        {
+            var splice = RawProperty.GetProperty(this.Reference, "splice");
+            RawFuction.Invoke(splice, this.Reference, RawNumber.FromInt32(index), RawNumber.FromInt32(1));
+        }
     }
 }

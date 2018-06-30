@@ -1,0 +1,155 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<#
+var names =   new []{"Int8" , "Uint8", "Uint8Clamped", "Int16", "Uint16" , "Int32", "Uint32", "Float32", "Float64"};
+var types =   new []{"byte" , "byte" , "byte"        , "short", "ushort" , "int"  , "uint"  , "float"  , "double" };
+#>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Foundation.Metadata;
+using Windows.Storage.Streams;
+
+namespace Opportunity.ChakraBridge.UWP
+{
+<#
+for(var i = 0; i < names.Length; i++)
+{
+    var name = names[i];
+    var type = types[i];
+#>
+
+    /// <summary>
+    /// A Javascript <#=name#> array.
+    /// </summary>
+    public unsafe sealed class Js<#=name#>Array : JsTypedArray, IList<<#=type#>>
+    {
+        internal Js<#=name#>Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        public static new Js<#=name#>Array Create()
+            => (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, JsValueRef.Invalid, 0, 0));
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [DefaultOverload]
+        public static Js<#=name#>Array Create(int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length));
+            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, JsValueRef.Invalid, 0, (uint)length));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <param name="typedArray">The array to copy values into the new array.</param>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        public static Js<#=name#>Array Create(JsTypedArray typedArray)
+        {
+            if (typedArray == null)
+                throw new ArgumentNullException(nameof(typedArray));
+            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <param name="obj">The <see cref="JsObject"/> to convert to array.</param>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        public static Js<#=name#>Array Create(JsObject obj)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+        }
+
+        /// <summary>
+        /// Returns a number value of the element size for the different typed array objects.
+        /// </summary>
+        public static int BytesPerElement => sizeof(<#=type#>);
+
+        /// <summary>
+        /// Count of elements in the array.
+        /// </summary>
+        public int Count => (int)(this.BufferLength / sizeof(<#=type#>));
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private <#=type#>* Pointer => (<#=type#>*)this.Buffer;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        bool ICollection<<#=type#>>.IsReadOnly => false;
+
+        public <#=type#> this[int index]
+        {
+            get
+            {
+                if (unchecked((uint)index >= (uint)Count))
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                return Pointer[index];
+            }
+            set
+            {
+                if (unchecked((uint)index >= (uint)Count))
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                Pointer[index] = value;
+            }
+        }
+
+        public int IndexOf(<#=type#> item)
+        {
+            var start = Pointer;
+            var end = start + Count;
+            for (var p = start; p < end; p++)
+            {
+                if (*p == item)
+                    return (int)(p - start);
+            }
+            return -1;
+        }
+        public void Insert(int index, <#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
+        public void RemoveAt(int index) => throw new InvalidOperationException("The array is fixed size.");
+        public void Add(<#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
+        public void Clear() => throw new InvalidOperationException("The array is fixed size.");
+        public bool Contains(<#=type#> item) => IndexOf(item) >= 0;
+        public void CopyTo(<#=type#>[] array, int arrayIndex)
+        {
+            if (array is null)
+                throw new ArgumentNullException(nameof(array));
+            if (arrayIndex < 0 || array.Length < arrayIndex + Count)
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+            fixed (<#=type#>* dst = &array[arrayIndex])
+            {
+                System.Buffer.MemoryCopy(this.Buffer, dst, (array.Length - arrayIndex) * BytesPerElement, this.BufferLength);
+            }
+        }
+        public bool Remove(<#=type#> item) => throw new InvalidOperationException("The array is fixed size.");
+        public <#=type#>[] ToArray()
+        {
+            if (Count == 0)
+                return Array.Empty<<#=type#>>();
+            var r = new <#=type#>[Count];
+            CopyTo(r, 0);
+            return r;
+        }
+        public IEnumerator<<#=type#>> GetEnumerator() => ((IEnumerable<<#=type#>>)ToArray()).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+<#
+}
+#>
+}

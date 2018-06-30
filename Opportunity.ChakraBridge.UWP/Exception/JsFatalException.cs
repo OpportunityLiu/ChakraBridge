@@ -4,12 +4,12 @@
     using System.Runtime.Serialization;
 
     /// <summary>
-    ///     A fatal exception occurred.
+    /// A fatal exception occurred.
     /// </summary>
-    public sealed class JsFatalException : JsException
+    internal sealed class JsFatalException : JsException
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsFatalException"/> class. 
+        /// Initializes a new instance of the <see cref="JsFatalException"/> class. 
         /// </summary>
         /// <param name="code">The error code returned.</param>
         public JsFatalException(JsErrorCode code) :
@@ -18,7 +18,7 @@
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsFatalException"/> class. 
+        /// Initializes a new instance of the <see cref="JsFatalException"/> class. 
         /// </summary>
         /// <param name="code">The error code returned.</param>
         /// <param name="message">The error message.</param>
@@ -28,7 +28,7 @@
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsFatalException"/> class.
+        /// Initializes a new instance of the <see cref="JsFatalException"/> class.
         /// </summary>
         /// <param name="code">The error code returned.</param>
         /// <param name="message">The error message.</param>

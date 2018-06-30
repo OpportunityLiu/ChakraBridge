@@ -1,16 +1,43 @@
 ﻿namespace Opportunity.ChakraBridge.UWP
 {
     using System;
+    using System.Diagnostics;
 
-    internal readonly struct JsValueRef
+    [DebuggerDisplay(@"[{Disp,nq}]")]
+    internal readonly struct JsValueRef : IEquatable<JsValueRef>
     {
-        /// <summary>
-        /// The reference.
-        /// </summary>
-        internal readonly IntPtr Value;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string Disp => this.Value.GetDebugDisp(Native.JS_INVALID_REFERENCE, "(INVALID_REFERENCE)");
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsValueRef"/> struct.
+        /// Gets an invalid value.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        public static JsValueRef Invalid { get; } = new JsValueRef(Native.JS_INVALID_REFERENCE);
+
+        /// <summary>
+        /// Gets a value indicating whether the value is valid.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        public bool IsValid => this.Value != Native.JS_INVALID_REFERENCE;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private readonly IntPtr Value;
+
+        /// <summary>
+        /// Gets the script context that the object belongs to. 
+        /// </summary>
+        public JsContextRef Context
+        {
+            get
+            {
+                Native.JsGetContextOfObject(this, out var c).ThrowIfError();
+                return c;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsValueRef"/> struct.
         /// </summary>
         /// <param name="value">The reference.</param>
         private JsValueRef(IntPtr value)
@@ -18,14 +45,13 @@
             this.Value = value;
         }
 
-        /// <summary>
-        ///     Gets an invalid value.
-        /// </summary>
-        public static JsValueRef Invalid { get; } = new JsValueRef(IntPtr.Zero);
+        public bool Equals(JsValueRef other) => this.Value == other.Value;
 
-        /// <summary>
-        ///     Gets a value indicating whether the value is valid.
-        /// </summary>
-        public bool IsValid => this.Value != IntPtr.Zero;
+        public override bool Equals(object obj) => obj is JsValueRef other && Equals(other);
+
+        public override int GetHashCode() => this.Value.GetHashCode();
+
+        public static bool operator ==(JsValueRef r1, JsValueRef r2) => r1.Value == r2.Value;
+        public static bool operator !=(JsValueRef r1, JsValueRef r2) => r1.Value != r2.Value;
     }
 }

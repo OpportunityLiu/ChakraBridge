@@ -3,21 +3,21 @@
     using System;
     using System.Diagnostics;
     using System.Runtime.InteropServices;
+    using Windows.Foundation.Metadata;
 
     /// <summary>
-    ///     A JavaScript value.
+    /// A JavaScript value.
     /// </summary>
     /// <remarks>
-    ///     A JavaScript value is one of the following types of values: Undefined, Null, Boolean, 
-    ///     String, Number, or Object.
+    /// A JavaScript value is one of the following types of values: Undefined, Null, Boolean, 
+    /// String, Number, or Object.
     /// </remarks>
     [DebuggerDisplay("{ToString(),nq}")]
-    public abstract partial class JsValue
+    public partial class JsValue
     {
         internal static JsValue CreateTyped(JsValueRef reference)
         {
-            Native.JsGetValueType(reference, out var type).ThrowIfError();
-            switch (type)
+            switch (RawValue.GetType(reference))
             {
             case JsValueType.Undefined:
                 return new JsUndefined(reference);
@@ -30,8 +30,7 @@
             case JsValueType.Boolean:
                 return new JsBoolean(reference);
             case JsValueType.Object:
-                Native.JsHasExternalData(reference, out var hasExternalData).ThrowIfError();
-                if (hasExternalData)
+                if (RawObject.HasExternalData(reference))
                     return new JsExtenalObject(reference);
                 else
                     return new JsObject(reference);
@@ -43,8 +42,9 @@
                 return new JsArray(reference);
             case JsValueType.Symbol:
                 return new JsSymbol(reference);
-            case JsValueType.ArrayBuffer:
             case JsValueType.TypedArray:
+                return JsTypedArray.FromRef(reference);
+            case JsValueType.ArrayBuffer:
             case JsValueType.DataView:
             default:
                 return new JsObject(reference);
@@ -55,266 +55,132 @@
 
         internal JsValue(JsValueRef reference)
         {
+            // WinRT disallows abstact classes.
+            Debug.Assert(this.GetType() != typeof(JsValue));
             this.Reference = reference;
         }
 
         /// <summary>
-        ///     Gets the JavaScript type of the value.
+        /// Gets the JavaScript type of the value.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <returns>The type of the value.</returns>
-        public JsValueType ValueType
-        {
-            get
-            {
-                Native.JsGetValueType(this.Reference, out var type).ThrowIfError();
-                return type;
-            }
-        }
+        public JsValueType ValueType => RawValue.GetType(this.Reference);
 
         /// <summary>
-        ///     Adds a reference to the object.
+        /// Converts the value to <c>Boolean</c> using regular JavaScript semantics.
         /// </summary>
-        /// <remarks>
-        ///     This only needs to be called on objects that are not going to be stored somewhere on 
-        ///     the stack. Calling AddRef ensures that the JavaScript object the value refers to will not be freed 
-        ///     until Release is called
-        /// </remarks>
-        /// <returns>The object's new reference count.</returns>
-        public uint AddRef()
-        {
-            Native.JsAddRef(this.Reference, out var count).ThrowIfError();
-            return count;
-        }
-
-        /// <summary>
-        ///     Releases a reference to the object.
-        /// </summary>
-        /// <remarks>
-        ///     Removes a reference that was created by AddRef.
-        /// </remarks>
-        /// <returns>The object's new reference count.</returns>
-        public uint Release()
-        {
-            Native.JsRelease(this.Reference, out var count).ThrowIfError();
-            return count;
-        }
-
-        /// <summary>
-        ///     Retrieves the <c>bool</c> value of a <c>Boolean</c> value.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <returns>The converted value.</returns>
-        public virtual bool ToBoolean()
-        {
-            try
-            {
-                Native.JsBooleanToBool(this.Reference, out var value).ThrowIfError();
-                return value;
-            }
-            catch
-            {
-                return ToJsBoolean().ToBoolean();
-            }
-        }
+        public JsBoolean ToJsBoolean() => this is JsBoolean b ? b : new JsBoolean(RawOperator.ToJsBoolean(this.Reference));
 
         /// <summary>
-        ///     Retrieves the <c>double</c> value of a <c>Number</c> value.
+        /// Converts the value to <c>Number</c> using regular JavaScript semantics.
         /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///     This function retrieves the value of a Number value. It will fail with 
-        ///     <c>InvalidArgument</c> if the type of the value is not <c>Number</c>.
-        ///     </para>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
-        /// </remarks>
-        /// <returns>The <c>double</c> value.</returns>
-        public virtual double ToDouble()
-        {
-            try
-            {
-                Native.JsNumberToDouble(this.Reference, out var value).ThrowIfError();
-                return value;
-            }
-            catch
-            {
-                return ToJsNumber().ToDouble();
-            }
-        }
-
-        /// <summary>
-        ///     Retrieves the <c>int</c> value of a <c>Number</c> value.
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///     This function retrieves the value of a Number value. It will fail with
-        ///     <c>InvalidArgument</c> if the type of the value is not <c>Number</c>.
-        ///     </para>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
-        /// </remarks>
-        /// <returns>The <c>int</c> value.</returns>
-        public virtual int ToInt32()
-        {
-            try
-            {
-                Native.JsNumberToInt(this.Reference, out var value).ThrowIfError();
-                return value;
-            }
-            catch
-            {
-                return ToJsNumber().ToInt32();
-            }
-        }
-
-        /// <summary>
-        ///     Retrieves the string pointer of a <c>String</c> value.
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///     This function retrieves the string pointer of a <c>String</c> value. It will fail with 
-        ///     <c>InvalidArgument</c> if the type of the value is not <c>String</c>.
-        ///     </para>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
-        /// </remarks>
-        /// <returns>The string.</returns>
-        public override string ToString()
-        {
-            try
-            {
-                Native.JsStringToPointer(this.Reference, out var buffer, out var length).ThrowIfError();
-                return Marshal.PtrToStringUni(buffer, (int)length);
-            }
-            catch
-            {
-                return ToJsString();
-            }
-        }
-
-        /// <summary>
-        ///     Converts the value to <c>Boolean</c> using regular JavaScript semantics.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <returns>The converted value.</returns>
-        public virtual JsBoolean ToJsBoolean()
-        {
-            Native.JsConvertValueToBoolean(this.Reference, out var booleanReference).ThrowIfError();
-            return new JsBoolean(booleanReference);
-        }
+        public JsNumber ToJsNumber() => this is JsNumber n ? n : new JsNumber(RawOperator.ToJsNumber(this.Reference));
 
         /// <summary>
-        ///     Converts the value to <c>Number</c> using regular JavaScript semantics.
+        /// Converts the value to <c>String</c> using regular JavaScript semantics.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <returns>The converted value.</returns>
-        public virtual JsNumber ToJsNumber()
-        {
-            Native.JsConvertValueToNumber(this.Reference, out var numberReference).ThrowIfError();
-            return new JsNumber(numberReference);
-        }
+        public JsString ToJsString() => this is JsString s ? s : new JsString(RawOperator.ToJsString(this.Reference));
 
         /// <summary>
-        ///     Converts the value to <c>String</c> using regular JavaScript semantics.
+        /// Converts the value to <c>Object</c> using regular JavaScript semantics.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <returns>The converted value.</returns>
-        public virtual JsString ToJsString()
-        {
-            Native.JsConvertValueToString(this.Reference, out var stringReference).ThrowIfError();
-            return new JsString(stringReference);
-        }
+        public JsObject ToJsObject() => this is JsObject o ? o : (JsObject)CreateTyped(RawOperator.ToJsObject(this.Reference));
 
         /// <summary>
-        ///     Converts the value to <c>Object</c> using regular JavaScript semantics.
+        /// Compare two JavaScript values for equality.
         /// </summary>
         /// <remarks>
-        ///     Requires an active script context.
+        /// <para>
+        /// This function is equivalent to the "==" operator in JavaScript.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
         /// </remarks>
-        /// <returns>The converted value.</returns>
-        public virtual JsObject ToJsObject()
-        {
-            Native.JsConvertValueToObject(this.Reference, out var objectReference).ThrowIfError();
-            return new JsObject(objectReference);
-        }
+        /// <returns>Whether the values are equal.</returns>
+        public static bool JsEquals(JsValue v1, JsValue v2)
+            => RawOperator.Equals((v1 ?? throw new ArgumentNullException(nameof(v1))).Reference, (v2 ?? throw new ArgumentNullException(nameof(v2))).Reference);
 
         /// <summary>
-        ///     Converts the value to <c>Function</c> using regular JavaScript semantics.
+        /// Compare two JavaScript values for strict equality.
         /// </summary>
         /// <remarks>
-        ///     Requires an active script context.
+        /// <para>
+        /// This function is equivalent to the "===" operator in JavaScript.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
         /// </remarks>
-        /// <returns>The converted value.</returns>
-        public virtual JsFunction ToJsFunction()
-        {
-            if (this.ValueType == JsValueType.Function)
-                return new JsFunction(this.Reference);
-            throw new InvalidOperationException();
-        }
+        /// <returns>Whether the values are strictly equal.</returns>
+        public static bool JsStrictEquals(JsValue v1, JsValue v2)
+            => RawOperator.StrictEquals((v1 ?? throw new ArgumentNullException(nameof(v1))).Reference, (v2 ?? throw new ArgumentNullException(nameof(v2))).Reference);
 
         /// <summary>
-        ///     Compare two JavaScript values for equality.
+        /// Compare two JavaScript values for equality.
         /// </summary>
         /// <remarks>
-        ///     <para>
-        ///     This function is equivalent to the "==" operator in JavaScript.
-        ///     </para>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
+        /// <para>
+        /// This function is equivalent to the "==" operator in JavaScript.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
         /// </remarks>
         /// <param name="other">The object to compare.</param>
         /// <returns>Whether the values are equal.</returns>
-        public bool Equals(JsValue other)
-        {
-            Native.JsEquals(this.Reference, other.Reference, out var equals).ThrowIfError();
-            return equals;
-        }
+        public bool JsEqualsTo(JsValue other)
+            => RawOperator.Equals(this.Reference, (other ?? throw new ArgumentNullException(nameof(other))).Reference);
 
         /// <summary>
-        ///     Compare two JavaScript values for strict equality.
+        /// Compare two JavaScript values for strict equality.
         /// </summary>
         /// <remarks>
-        ///     <para>
-        ///     This function is equivalent to the "===" operator in JavaScript.
-        ///     </para>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
+        /// <para>
+        /// This function is equivalent to the "===" operator in JavaScript.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
         /// </remarks>
         /// <param name="other">The object to compare.</param>
         /// <returns>Whether the values are strictly equal.</returns>
-        public bool StrictEquals(JsValue other)
-        {
-            Native.JsStrictEquals(this.Reference, other.Reference, out var equals).ThrowIfError();
-            return equals;
-        }
+        public bool JsStrictEqualsTo(JsValue other)
+            => RawOperator.StrictEquals(this.Reference, (other ?? throw new ArgumentNullException(nameof(other))).Reference);
 
-        public override bool Equals(object obj) => obj is JsValue v && this.Reference.Value == v.Reference.Value;
+        /// <summary>
+        /// Compare reference of two <see cref="JsValue"/>s.
+        /// </summary>
+        /// <param name="other">Another object to compare.</param>
+        /// <returns><see langword="true"/> if <paramref name="other"/> is <see cref="JsValue"/> that has the same reference with this object.</returns>
+        [DefaultOverload]
+        public bool Equals(JsValue other) => other is JsValue v && this.Reference == v.Reference;
 
-        public override int GetHashCode() => this.Reference.GetHashCode();
+        /// <summary>
+        /// Compare reference of two <see cref="JsValue"/>s.
+        /// </summary>
+        /// <param name="obj">Another object to compare.</param>
+        /// <returns><see langword="true"/> if <paramref name="obj"/> is <see cref="JsValue"/> that has the same reference with this object.</returns>
+        public override sealed bool Equals(object obj) => obj is JsValue v && this.Reference == v.Reference;
 
-        public JsContext Context
-        {
-            get
-            {
-                Native.JsGetContextOfObject(this.Reference, out var c).ThrowIfError();
-                return c;
-            }
-        }
+        /// <summary>
+        /// Gets hash code of the reference.
+        /// </summary>
+        /// <returns>The hash code of the reference.</returns>
+        public override sealed int GetHashCode() => this.Reference.GetHashCode();
+
+        /// <summary>
+        /// Gets the script context that the object belongs to. 
+        /// </summary>
+        public JsContext Context => JsContext.GetOrCreate(this.Reference.Context);
     }
 }

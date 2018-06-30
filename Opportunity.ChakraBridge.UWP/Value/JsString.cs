@@ -5,59 +5,47 @@ using System.Runtime.InteropServices;
 namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
-    ///     A JavaScript string value.
+    /// A JavaScript string value.
     /// </summary>
-    [DebuggerDisplay("{ToString()}")]
+    [DebuggerDisplay("{Value}")]
     public sealed class JsString : JsValue
     {
-        internal JsString(JsValueRef refernce) : base(refernce)
-        {
-        }
+        internal JsString(JsValueRef refernce) : base(refernce) { }
 
         /// <summary>
-        ///     Gets the length of a <c>String</c> value.
+        /// Gets the length of a <see cref="JsString"/> value.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <returns>The length of the string.</returns>
-        public int Length
-        {
-            get
-            {
-                Native.JsGetStringLength(this.Reference, out var length).ThrowIfError();
-                return length;
-            }
-        }
+        public int Length => RawString.GetStringLength(this.Reference);
 
-        public override JsString ToJsString() => this;
-
-        public override string ToString()
-        {
-            Native.JsStringToPointer(this.Reference, out var buffer, out var length).ThrowIfError();
-            return Marshal.PtrToStringUni(buffer, (int)length);
-        }
+        internal string Value => ToString();
 
         /// <summary>
-        ///     Creates a <c>String</c> value from a string pointer.
+        /// Creates a <see cref="JsString"/> value from a <see cref="string"/>.
         /// </summary>
+        /// <param name="stringValue">The <see cref="string"/> to convert to a <see cref="JsString"/> value.</param>
+        /// <returns>The new <see cref="JsString"/> value.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <remarks>Requires an active script context.</remarks>
+        public static JsString FromString(string stringValue) => new JsString(RawString.FromString(stringValue));
+
+        /// <summary>
+        /// Retrieves the string pointer of the <see cref="JsString"/> value.
+        /// </summary>
+        /// <returns>The string.</returns>
         /// <remarks>
-        ///     Requires an active script context.
+        /// <para>
+        /// This function retrieves the string pointer of the <see cref="JsString"/> value. It will fail with 
+        /// <see cref="JsErrorCode.InvalidArgument"/> if the type of the value is not <see cref="JsString"/>.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
         /// </remarks>
-        /// <param name="value">The string  to convert to a <c>String</c> value.</param>
-        /// <returns>The new <c>String</c> value.</returns>
-        public static JsString FromString(string value)
+        public override sealed string ToString()
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
-            Native.JsPointerToString(value, new UIntPtr((uint)value.Length), out var reference).ThrowIfError();
-            return new JsString(reference);
+            return RawString.ToString(this.Reference);
         }
-
-        public static implicit operator string(JsString value)
-            => value.ToString();
-
-        public static implicit operator JsString(string value)
-            => FromString(value);
     }
 }

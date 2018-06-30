@@ -1,66 +1,34 @@
 ﻿namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
-    ///     A JavaScript number value.
+    /// A JavaScript number value.
     /// </summary>
     public sealed class JsNumber : JsValue
     {
-        internal JsNumber(JsValueRef reference) : base(reference)
-        {
-        }
+        internal JsNumber(JsValueRef reference) : base(reference) { }
 
-        public override JsNumber ToJsNumber() => this;
+        public int ToInt32() => RawNumber.ToInt32(this.Reference);
 
-        public override int ToInt32()
-        {
-            Native.JsNumberToInt(this.Reference, out var value).ThrowIfError();
-            return value;
-        }
+        public double ToDouble() => RawNumber.ToDouble(this.Reference);
 
-        public override double ToDouble()
-        {
-            Native.JsNumberToDouble(this.Reference, out var value).ThrowIfError();
-            return value;
-        }
+        internal double Value => ToDouble();
 
         /// <summary>
-        ///     Creates a <c>Number</c> value from a <c>double</c> value.
+        /// Creates a <see cref="JsNumber"/> value from a <see cref="double"/> value.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="value">The value to be converted.</param>
-        /// <returns>The new <c>Number</c> value.</returns>
-        public static JsNumber FromDouble(double value)
-        {
-            Native.JsDoubleToNumber(value, out var reference).ThrowIfError();
-            return new JsNumber(reference);
-        }
+        /// <param name="doubleValue">The value to be converted.</param>
+        /// <returns>The new <see cref="JsNumber"/> value.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        public static JsNumber FromDouble(double doubleValue) => new JsNumber(RawNumber.FromDouble(doubleValue));
 
         /// <summary>
-        ///     Creates a <c>Number</c> value from a <c>int</c> value.
+        /// Creates a <see cref="JsNumber"/> value from a <see cref="int"/> value.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="value">The value to be converted.</param>
-        /// <returns>The new <c>Number</c> value.</returns>
-        public static JsNumber FromInt32(int value)
-        {
-            Native.JsIntToNumber(value, out var reference).ThrowIfError();
-            return new JsNumber(reference);
-        }
+        /// <param name="int32Value">The value to be converted.</param>
+        /// <returns>The new <see cref="JsNumber"/> value.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        public static JsNumber FromInt32(int int32Value) => new JsNumber(RawNumber.FromInt32(int32Value));
 
-        public static implicit operator double(JsNumber value)
-            => value.ToDouble();
-
-        public static explicit operator int(JsNumber value)
-            => value.ToInt32();
-
-        public static implicit operator JsNumber(int value)
-            => FromInt32(value);
-
-        public static implicit operator JsNumber(double value)
-            => FromDouble(value);
+        public override string ToString() => ToDouble().ToString();
     }
 }

@@ -2,300 +2,134 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
-    ///     A JavaScript object.
+    /// A JavaScript object.
     /// </summary>
     public partial class JsObject : JsValue
     {
-        internal JsObject(JsValueRef reference) : base(reference)
-        {
-        }
+        internal JsObject(JsValueRef reference) : base(reference) => Native.JsAddRef(reference, out var count).ThrowIfError();
 
         /// <summary>
-        ///     Creates a new <c>Object</c>.
+        /// Releases reference to the object.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        public JsObject()
-            : this(CreateObject())
-        {
-        }
-
-        private static JsValueRef CreateObject()
-        {
-            Native.JsCreateObject(out var reference).ThrowIfError();
-            return reference;
-        }
-
-        public override JsObject ToJsObject() => this;
+        ~JsObject() => Native.JsRelease(this.Reference, out var count).ThrowIfError();
 
         /// <summary>
-        ///     Gets or sets the prototype of an object.
+        /// Creates a new <see cref="JsObject"/>.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <returns>A new <see cref="JsObject"/>.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        public static JsObject Create() => new JsObject(RawObject.Create());
+
+        /// <summary>
+        /// Gets or sets the prototype of an object, use <see langword="null"/> instead of <see cref="JsNull"/>.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
         public JsObject Prototype
         {
-            get
-            {
-                Native.JsGetPrototype(this.Reference, out var prototypeReference).ThrowIfError();
-                return CreateTyped(prototypeReference) as JsObject;
-            }
-            set => Native.JsSetPrototype(this.Reference, value.Reference).ThrowIfError();
+            get => CreateTyped(RawObject.GetPrototype(this.Reference)) as JsObject;
+            set => RawObject.SetPrototype(this.Reference, value?.Reference ?? RawValue.Null);
         }
 
         /// <summary>
-        ///     Sets an object to not be extensible.
+        /// Sets an object to not be extensible.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        public void PreventExtension()
-        {
-            Native.JsPreventExtension(this.Reference).ThrowIfError();
-        }
+        /// <remarks>Requires an active script context.</remarks>
+        public void PreventExtension() => RawObject.PreventExtension(this.Reference);
 
         /// <summary>
-        ///     Gets a value indicating whether an object is extensible or not.
+        /// Gets a value indicating whether an object is extensible or not.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        public bool IsExtensionAllowed
-        {
-            get
-            {
-                Native.JsGetExtensionAllowed(this.Reference, out var allowed).ThrowIfError();
-                return allowed;
-            }
-        }
-
-        /// <summary>
-        /// Gets the list of all symbol properties on the object. 
-        /// </summary>
-        public JsArray GetOwnPropertySymbols()
-        {
-            Native.JsGetOwnPropertySymbols(this.Reference, out var propertySymbols).ThrowIfError();
-            return new JsArray(propertySymbols);
-        }
-
-        /// <summary>
-        ///     Gets a property descriptor for an object's own property.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="propertyId">The ID of the property.</param>
-        /// <returns>The property descriptor.</returns>
-        public JsObject GetOwnPropertyDescriptor(JsPropertyId propertyId)
-        {
-            Native.JsGetOwnPropertyDescriptor(this.Reference, propertyId, out var descriptorReference).ThrowIfError();
-            return new JsObject(descriptorReference);
-        }
-
-        /// <summary>
-        ///     Gets the list of all properties on the object.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <returns>An array of property names.</returns>
-        public JsArray GetOwnPropertyNames()
-        {
-            Native.JsGetOwnPropertyNames(this.Reference, out var propertyNamesReference).ThrowIfError();
-            return new JsArray(propertyNamesReference);
-        }
-
-        /// <summary>
-        ///     Determines whether an object has a property.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="propertyId">The ID of the property.</param>
-        /// <returns>Whether the object (or a prototype) has the property.</returns>
-        public bool HasProperty(JsPropertyId propertyId)
-        {
-            Native.JsHasProperty(this.Reference, propertyId, out var hasProperty).ThrowIfError();
-            return hasProperty;
-        }
-
-        /// <summary>
-        ///     Gets an object's property.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="id">The ID of the property.</param>
-        /// <returns>The value of the property.</returns>
-        public JsValue GetProperty(JsPropertyId id)
-        {
-            Native.JsGetProperty(this.Reference, id, out var propertyReference).ThrowIfError();
-            return CreateTyped(propertyReference);
-        }
-
-        /// <summary>
-        ///     Sets an object's property.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="id">The ID of the property.</param>
-        /// <param name="value">The new value of the property.</param>
-        /// <param name="useStrictRules">The property set should follow strict mode rules.</param>
-        public void SetProperty(JsPropertyId id, JsValue value, bool useStrictRules)
-        {
-            Native.JsSetProperty(this.Reference, id, value.Reference, useStrictRules).ThrowIfError();
-        }
-
-        /// <summary>
-        ///     Deletes an object's property.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="propertyId">The ID of the property.</param>
-        /// <param name="useStrictRules">The property set should follow strict mode rules.</param>
-        /// <returns>Whether the property was deleted.</returns>
-        public bool DeleteProperty(JsPropertyId propertyId, bool useStrictRules)
-        {
-            Native.JsDeleteProperty(this.Reference, propertyId, useStrictRules, out var returnReference).ThrowIfError();
-            return new JsBoolean(returnReference).ToBoolean();
-        }
-
-        /// <summary>
-        ///     Defines a new object's own property from a property descriptor.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="propertyId">The ID of the property.</param>
-        /// <param name="propertyDescriptor">The property descriptor.</param>
-        /// <returns>Whether the property was defined.</returns>
-        public bool DefineProperty(JsPropertyId propertyId, JsObject propertyDescriptor)
-        {
-            Native.JsDefineProperty(this.Reference, propertyId, propertyDescriptor.Reference, out var result).ThrowIfError();
-            return result;
-        }
-
-        /// <summary>
-        ///     Test if an object has a value at the specified index.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="index">The index to test.</param>
-        /// <returns>Whether the object has an value at the specified index.</returns>
-        public bool HasIndexedProperty(JsValue index)
-        {
-            Native.JsHasIndexedProperty(this.Reference, index.Reference, out var hasProperty).ThrowIfError();
-            return hasProperty;
-        }
-
-        /// <summary>
-        ///     Retrieve the value at the specified index of an object.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="index">The index to retrieve.</param>
-        /// <returns>The retrieved value.</returns>
-        public JsValue GetIndexedProperty(JsValue index)
-        {
-            Native.JsGetIndexedProperty(this.Reference, index.Reference, out var propertyReference).ThrowIfError();
-            return CreateTyped(propertyReference);
-        }
-
-        /// <summary>
-        ///     Set the value at the specified index of an object.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="index">The index to set.</param>
-        /// <param name="value">The value to set.</param>
-        public void SetIndexedProperty(JsValue index, JsValue value)
-        {
-            Native.JsSetIndexedProperty(this.Reference, index.Reference, value.Reference).ThrowIfError();
-        }
-
-        /// <summary>
-        ///     Delete the value at the specified index of an object.
-        /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        /// <param name="index">The index to delete.</param>
-        public void DeleteIndexedProperty(JsValue index)
-        {
-            Native.JsDeleteIndexedProperty(this.Reference, index.Reference).ThrowIfError();
-        }
+        /// <remarks>Requires an active script context.</remarks>
+        public bool IsExtensionAllowed => RawObject.IsExtensionAllowed(this.Reference);
 
         /// <summary>
         /// Performs JavaScript "instanceof" operator test. 
         /// </summary>
         /// <param name="constructor">The constructor function to test against. </param>
         /// <returns>Whether the "object instanceof constructor" is <see langword="true"/>. </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="constructor"/> is <see langword="null"/>.</exception>
         public bool InstanceOf(JsFunction constructor)
-        {
-            Native.JsInstanceOf(this.Reference, constructor.Reference, out var r).ThrowIfError();
-            return r;
-        }
+            => RawObject.InstanceOf(this.Reference, (constructor ?? throw new ArgumentNullException(nameof(constructor))).Reference);
 
         /// <summary>
-        /// Sets a callback function that is called by the runtime before garbage collection of an object. 
+        /// A callback function that is called by the runtime before garbage collection of the object. 
         /// </summary>
-        /// <param name="callback">The callback function being set. Use <see langword="null"/> to clear previously registered callback. </param>
-        public void SetObjectBeforeCollectCallback(JsObjectBeforeCollectCallback callback)
+        public JsObjectBeforeCollectCallback ObjectCollectingCallback
         {
-            if (callback == null)
+            get
             {
-                Native.JsSetObjectBeforeCollectCallback(this.Reference, default, null).ThrowIfError();
-                return;
+                var runtime = JsRuntime.RuntimeDictionary[this.Reference.Context.Runtime];
+                var callbackDic = runtime.ObjectCollectingCallbacks;
+                if (callbackDic.TryGetValue(this.Reference, out var cb))
+                    return cb;
+                return null;
             }
-            var tb = JsContext.Current.Runtime.ObjectBeforeCollectTable;
-            var i = tb.GetNextPos();
-            Native.JsSetObjectBeforeCollectCallback(this.Reference, i, ObjectBeforeCollectCallback).ThrowIfError();
-            tb.Add(i, callback);
+            set
+            {
+                var runtime = JsRuntime.RuntimeDictionary[this.Reference.Context.Runtime];
+                var callbackDic = runtime.ObjectCollectingCallbacks;
+                if (value is null)
+                {
+                    Native.JsSetObjectBeforeCollectCallback(this.Reference, runtime.Handle.Value, null).ThrowIfError();
+                    callbackDic.Remove(this.Reference);
+                }
+                else
+                {
+                    Native.JsSetObjectBeforeCollectCallback(this.Reference, runtime.Handle.Value, OnObjectCollecting).ThrowIfError();
+                    callbackDic[this.Reference] = value;
+                }
+            }
         }
 
+        private static JsObjectBeforeCollectCallbackPtr OnObjectCollecting = _OnObjectCollecting;
+
+        private static void _OnObjectCollecting(JsValueRef reference, IntPtr callbackState)
+        {
+            var runtime = JsRuntime.RuntimeDictionary[new JsRuntimeHandle(callbackState)];
+            var callbackDic = runtime.ObjectCollectingCallbacks;
+            var callback = callbackDic[reference];
+            try
+            {
+                callback((JsObject)CreateTyped(reference));
+            }
+            finally
+            {
+                callbackDic.Remove(reference);
+            }
+        }
 
         /// <summary>
-        ///     A callback called before collecting an object.
+        /// Converts the value to string using standard JavaScript semantics. 
         /// </summary>
-        /// <remarks>
-        ///     Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
-        /// </remarks>
-        /// <param name="reference">The object to be collected.</param>
-        /// <param name="callbackState">The state passed to <c>JsSetObjectBeforeCollectCallback</c>.</param>
-        private static void ObjectBeforeCollectCallback(JsValueRef reference, IntPtr callbackState)
+        /// <remarks>Requires an active script context. </remarks>
+        /// <returns>The string.</returns>
+        public override sealed string ToString()
         {
-            var tb = JsContext.Current.Runtime.ObjectBeforeCollectTable;
-            var cb = tb.RemoveAt(callbackState);
-            cb((JsObject)CreateTyped(reference));
+            try
+            {
+                var s = RawOperator.ToJsString(this.Reference);
+                return RawString.ToString(s);
+            }
+            catch (JsScriptException)
+            {
+                // no toString method.
+                return "[object Object]";
+            }
         }
     }
 
-    /// <summary>
-    ///     A callback called before collecting an object.
-    /// </summary>
-    /// <remarks>
-    ///     Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
-    /// </remarks>
-    /// <param name="reference">The object to be collected.</param>
-    /// <param name="callbackState">The state passed to <c>JsSetObjectBeforeCollectCallback</c>.</param>
     internal delegate void JsObjectBeforeCollectCallbackPtr(JsValueRef reference, IntPtr callbackState);
 
     /// <summary>
-    ///     A callback called before collecting an object.
+    /// A callback called before collecting an object.
     /// </summary>
     /// <remarks>
-    ///     Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
+    /// Use <c>JsSetObjectBeforeCollectCallback</c> to register this callback.
     /// </remarks>
     /// <param name="obj">The object to be collected.</param>
     public delegate void JsObjectBeforeCollectCallback(JsObject obj);

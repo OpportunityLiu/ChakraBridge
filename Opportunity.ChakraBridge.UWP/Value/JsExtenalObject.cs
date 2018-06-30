@@ -1,59 +1,31 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
-    ///      A JavaScript object that stores some external data.
+    ///  A JavaScript object that stores some external data.
     /// </summary>
     public class JsExtenalObject : JsObject
     {
-        internal JsExtenalObject(JsValueRef reference) : base(reference)
-        {
-        }
+        internal JsExtenalObject(JsValueRef reference) : base(reference) { }
 
         /// <summary>
-        ///     Creates a new <c>Object</c> that stores some external data.
+        /// Creates a new <see cref="JsExtenalObject"/> that stores some external data.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
         /// <param name="data">External data that the object will represent. May be null.</param>
-        /// <param name="finalizer">
-        ///     A callback for when the object is finalized. May be null.
-        /// </param>
-        public JsExtenalObject(IntPtr data, JsObjectFinalizeCallback finalizer)
-            : this(CreateExternalObject(data, finalizer))
-        {
-        }
-
-        private static JsValueRef CreateExternalObject(IntPtr data, JsObjectFinalizeCallback finalizer)
-        {
-            Native.JsCreateExternalObject(data, finalizer, out var reference).ThrowIfError();
-            return reference;
-        }
+        /// <returns>A new <see cref="JsExtenalObject"/> that stores some external data.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        public static JsExtenalObject Create(object data) => new JsExtenalObject(RawObject.CreateExternalObject(data));
 
         /// <summary>
-        ///     Gets or sets the data in an external object.
+        /// Gets or sets the data in an external object.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
-        public IntPtr ExternalData
+        /// <remarks>Requires an active script context.</remarks>
+        public object ExternalData
         {
-            get
-            {
-                Native.JsGetExternalData(this.Reference, out var data).ThrowIfError();
-                return data;
-            }
-            set => Native.JsSetExternalData(this.Reference, value).ThrowIfError();
+            get => RawObject.GetExternalData(this.Reference);
+            set => RawObject.GetExternalData(this.Reference) = value;
         }
     }
-
-    /// <summary>
-    ///     A finalization callback.
-    /// </summary>
-    /// <param name="data">
-    ///     The external data that was passed in when creating the object being finalized.
-    /// </param>
-    public delegate void JsObjectFinalizeCallback(IntPtr data);
 }

@@ -2,82 +2,75 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Runtime.CompilerServices;
+    using Windows.Foundation.Metadata;
     using Windows.Storage.Streams;
-    partial struct JsContext : IEquatable<JsContext>
+
+    partial class JsContext
     {
-        /// <summary>
-        ///     The reference.
-        /// </summary>
-        private readonly IntPtr Reference;
+        internal readonly JsContextRef Reference;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsContext"/> struct. 
+        /// Create a new instance of the <see cref="JsContext"/>, or <see langword="null"/>, if <paramref name="reference"/> is <see cref="JsContextRef.Invalid"/>. 
         /// </summary>
         /// <param name="reference">The reference.</param>
-        internal JsContext(IntPtr reference)
+        /// <returns>A new instance of the <see cref="JsContext"/></returns>
+        internal static JsContext GetOrCreate(JsContextRef reference)
         {
+            if (!reference.IsValid)
+                return null;
+            if (JsRuntime.Contexts.TryGetValue(reference, out var wr))
+            {
+                if (wr.TryGetTarget(out var r))
+                    return r;
+                r = new JsContext(reference);
+                wr.SetTarget(r);
+                return r;
+            }
+            var cr = new JsContext(reference);
+            JsRuntime.Contexts.Add(reference, new WeakReference<JsContext>(cr));
+            return cr;
+        }
+
+        private JsContext(JsContextRef reference)
+        {
+            Native.JsContextAddRef(reference, out var count).ThrowIfError();
             this.Reference = reference;
         }
 
         /// <summary>
-        ///     Gets the runtime that the context belongs to.
+        /// Releases reference to the script context.
         /// </summary>
-        public JsRuntime Runtime
+        ~JsContext()
         {
-            get
-            {
-                var handle = RuntimeHandle;
-                if (!handle.IsValid)
-                    throw new JsUsageException(JsErrorCode.InvalidArgument, "Not a valid context.");
-                return JsRuntime.RuntimeDictionary[RuntimeHandle];
-            }
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal JsRuntimeHandle RuntimeHandle
-        {
-            get
-            {
-                var r = JsErrorCode.NoError;
-                var handle = JsRuntimeHandle.Invalid;
-                r = Native.JsGetRuntime(this, out handle);
-                if (r == JsErrorCode.InvalidArgument)
-                    return JsRuntimeHandle.Invalid;
-                r.ThrowIfError();
-                return handle;
-            }
+            Native.JsContextRelease(this.Reference, out var count).ThrowIfError();
         }
 
         /// <summary>
-        ///     Gets a value indicating whether the context is a valid context or not.
+        /// Gets the runtime that the context belongs to.
         /// </summary>
-        public bool IsValid => this.Reference != IntPtr.Zero && RuntimeHandle.IsValid;
+        public JsRuntime Runtime => JsRuntime.RuntimeDictionary[this.Reference.Runtime];
 
-        public bool Equals(JsContext other) => this.Reference == other.Reference;
+        /// <summary>
+        /// Gets a value indicating whether the context is a valid context or not.
+        /// </summary>
+        public bool IsValid => this.Reference.IsRuntimeValid;
+
+        [DefaultOverload]
+        public bool Equals(JsContext other) => other is JsContext o && this.Reference == o.Reference;
 
         public override bool Equals(object obj) => obj is JsContext other && Equals(other);
 
         public override int GetHashCode() => this.Reference.GetHashCode();
 
-        /// <summary>
-        ///  The internal data set on <see cref="JsContext"/>. 
-        /// </summary>
-        public IntPtr Data
-        {
-            get
-            {
-                Native.JsGetContextData(this, out var data).ThrowIfError();
-                return data;
-            }
-            set => Native.JsSetContextData(this, value).ThrowIfError();
-        }
-
-        /// <summary>
-        ///     Gets an invalid context.
-        /// </summary>
-        public static JsContext Invalid { get; } = new JsContext(IntPtr.Zero);
-
-        public static bool operator ==(JsContext h1, JsContext h2) => h1.Reference == h2.Reference;
-        public static bool operator !=(JsContext h1, JsContext h2) => h1.Reference != h2.Reference;
+        //public unsafe void* Data
+        //{
+        //    get
+        //    {
+        //        Native.JsGetContextData(this.Reference, out var data).ThrowIfError();
+        //        return data.ToPointer();
+        //    }
+        //    set => Native.JsSetContextData(this.Reference, new IntPtr(value)).ThrowIfError();
+        //}
     }
 }

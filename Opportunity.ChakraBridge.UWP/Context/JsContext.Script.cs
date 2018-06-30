@@ -1,71 +1,68 @@
 ﻿namespace Opportunity.ChakraBridge.UWP
 {
     using System;
+    using System.Runtime.InteropServices.WindowsRuntime;
+    using Windows.Foundation.Metadata;
 
-    partial struct JsContext
+    partial class JsContext
     {
         /// <summary>
-        ///     Parses a script and returns a <c>Function</c> representing the script.
+        /// Parses a script and returns a <c>Function</c> representing the script.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <param name="script">The script to parse.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
-        public static JsFunction ParseScript(string script)
-            => Debugger.ParseScript(script, JsSourceContext.None, string.Empty);
+        [DefaultOverload]
+        public JsFunction ParseScript(string script)
+            => ParseScript(script, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
-        ///     Parses a serialized script and returns a <c>Function</c> representing the script.
+        /// Parses a serialized script and returns a <c>Function</c> representing the script.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <param name="buffer">The serialized script.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
-        public static JsFunction ParseScript(byte[] buffer)
-            => Debugger.ParseScript(null, buffer, JsSourceContext.None, string.Empty);
+        [Overload("ParseSerializedScript")]
+        public JsFunction ParseScript([ReadOnlyArray] byte[] buffer)
+            => ParseScript(null, buffer, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
-        ///     Executes a script.
+        /// Executes a script.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <param name="script">The script to run.</param>
         /// <returns>The result of the script, if any.</returns>
-        public static JsValue RunScript(string script)
-            => Debugger.RunScript(script, JsSourceContext.None, string.Empty);
+        [DefaultOverload]
+        public JsValue RunScript(string script)
+            => RunScript(script, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
-        ///     Runs a serialized script.
+        /// Runs a serialized script.
         /// </summary>
-        /// <remarks>
-        ///     Requires an active script context.
-        /// </remarks>
+        /// <remarks>Requires an active script context.</remarks>
         /// <param name="buffer">The serialized script.</param>
         /// <returns>The result of the script, if any.</returns>
-        public static JsValue RunScript(byte[] buffer)
-            => Debugger.RunScript(null, buffer, JsSourceContext.None, string.Empty);
+        public JsValue RunScript([ReadOnlyArray] byte[] buffer)
+            => RunScript(null, buffer, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
-        ///     Serializes a parsed script to a buffer than can be reused.
+        /// Serializes a parsed script to a buffer than can be reused.
         /// </summary>
         /// <remarks>
-        ///     <para>
-        ///     SerializeScript parses a script and then stores the parsed form of the script in a 
-        ///     runtime-independent format. The serialized script then can be deserialized in any
-        ///     runtime without requiring the script to be re-parsed.
-        ///     </para>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
+        /// <para>
+        /// SerializeScript parses a script and then stores the parsed form of the script in a 
+        /// runtime-independent format. The serialized script then can be deserialized in any
+        /// runtime without requiring the script to be re-parsed.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
         /// </remarks>
         /// <param name="script">The script to serialize.</param>
         /// <returns>
-        ///     The size of the buffer, in bytes, required to hold the serialized script.
+        /// The size of the buffer, in bytes, required to hold the serialized script.
         /// </returns>
-        public static byte[] SerializeScript(string script)
+        public byte[] SerializeScript(string script)
         {
             if (script == null)
                 throw new ArgumentNullException(nameof(script));

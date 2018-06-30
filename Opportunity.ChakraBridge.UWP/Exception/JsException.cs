@@ -4,12 +4,12 @@ namespace Opportunity.ChakraBridge.UWP
     using System.Runtime.Serialization;
 
     /// <summary>
-    ///     An exception returned from the Chakra engine.
+    /// An exception returned from the Chakra engine.
     /// </summary>
-    public class JsException : Exception
+    internal class JsException : Exception
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsException"/> class. 
+        /// Initializes a new instance of the <see cref="JsException"/> class. 
         /// </summary>
         /// <param name="code">The error code returned.</param>
         public JsException(JsErrorCode code) :
@@ -18,7 +18,7 @@ namespace Opportunity.ChakraBridge.UWP
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsException"/> class. 
+        /// Initializes a new instance of the <see cref="JsException"/> class. 
         /// </summary>
         /// <param name="code">The error code returned.</param>
         /// <param name="message">The error message.</param>
@@ -28,7 +28,7 @@ namespace Opportunity.ChakraBridge.UWP
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="JsException"/> class. 
+        /// Initializes a new instance of the <see cref="JsException"/> class. 
         /// </summary>
         /// <param name="code">The error code returned.</param>
         /// <param name="message">The error message.</param>
@@ -41,7 +41,7 @@ namespace Opportunity.ChakraBridge.UWP
         }
 
         /// <summary>
-        ///     The error code.
+        /// The error code.
         /// </summary>
         public JsErrorCode ErrorCode { get; }
     }
