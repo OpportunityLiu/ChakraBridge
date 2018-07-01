@@ -117,10 +117,11 @@
                     return;
                 var currentContext = JsContextRef.Current;
                 if (currentContext.IsValid && currentContext.Runtime == this.Handle)
-                    JsContextRef.Current = default;
+                    JsContextRef.Current = JsContextRef.Invalid;
                 Native.JsDisposeRuntime(this.Handle).ThrowIfError();
                 RuntimeDictionary.Remove(this.Handle);
                 this.Handle = JsRuntimeHandle.Invalid;
+                ClearContexts();
             }
         }
 

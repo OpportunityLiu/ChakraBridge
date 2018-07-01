@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Windows.Foundation.Metadata;
 
 namespace Opportunity.ChakraBridge.UWP
 {
@@ -25,17 +26,19 @@ namespace Opportunity.ChakraBridge.UWP
         }
 
         /// <summary>
-        ///  The internal data set on <see cref="JsContextRef"/>. 
+        /// Gets the internal data set on <see cref="JsContextRef"/>. 
         /// </summary>
-        public IntPtr Data
+        /// <remarks>Requires an active script context. </remarks>
+        public void GetData([Variant]out object data)
         {
-            get
-            {
-                Native.JsGetContextData(this, out var data).ThrowIfError();
-                return data;
-            }
-            set => Native.JsSetContextData(this, value).ThrowIfError();
+            Native.JsGetContextData(this, out data).ThrowIfError();
         }
+
+        /// <summary>
+        /// Sets the internal data of <see cref="JsContextRef"/>. 
+        /// </summary>
+        /// <remarks>Requires an active script context. </remarks>
+        public void SetData([Variant]object value) => Native.JsSetContextData(this, value).ThrowIfError();
 
         /// <summary>
         /// Gets a value indicating whether the value is valid.
@@ -58,6 +61,24 @@ namespace Opportunity.ChakraBridge.UWP
                     return false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Add reference to the script context.
+        /// </summary>
+        internal uint AddRef()
+        {
+            Native.JsContextAddRef(this, out var count).ThrowIfError();
+            return count;
+        }
+
+        /// <summary>
+        /// Releases reference to the script context.
+        /// </summary>
+        internal uint Release()
+        {
+            Native.JsContextRelease(this, out var count).ThrowIfError();
+            return count;
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

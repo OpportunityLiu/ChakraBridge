@@ -158,7 +158,7 @@
     <Compile Include="Exception\JsErrorCode.cs" />
     <Compile Include="Exception\JsException.cs" />
     <Compile Include="Exception\JsFatalException.cs" />
-    <Compile Include="Property\JsPropertyIdImpl.cs" />
+    <Compile Include="Property\JsPropertyId.cs" />
     <Compile Include="Property\JsPropertyIdRef.cs" />
     <Compile Include="Rumtime\JsRuntime.GC.cs" />
     <Compile Include="Rumtime\JsRuntime.Allocation.cs" />
@@ -186,6 +186,8 @@
     <Compile Include="Exception\JsScriptException.cs" />
     <Compile Include="Rumtime\JsRuntime.Background.cs" />
     <Compile Include="Value\JsObject.Property.cs" />
+    <Compile Include="Value\JsObject.Proxy.cs" />
+    <Compile Include="Value\JsObject.Ref.cs" />
     <Compile Include="Value\JsString.cs" />
     <Compile Include="Value\JsSymbol.cs" />
     <Compile Include="Value\Data\JsTypedArray.cs" />
@@ -216,10 +218,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Value\Data\JsTypedArrays.tt">
+    <None Include="Value\Data\JsTypedArrays.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>JsTypedArrays.cs</LastGenOutput>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

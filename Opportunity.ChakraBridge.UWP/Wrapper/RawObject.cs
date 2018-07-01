@@ -1,24 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Windows.Foundation.Metadata;
 
 namespace Opportunity.ChakraBridge.UWP
 {
     internal static class RawObject
     {
-        public static JsValueRef CreateExternalObject(object data)
+        public static JsValueRef CreateExternalObject([Variant]object data)
         {
-            var container = new ExternalDataContainer(data);
-            var handle = GCHandle.Alloc(container);
-            try
-            {
-                Native.JsCreateExternalObject(GCHandle.ToIntPtr(handle), OnObjectFinalize, out var reference).ThrowIfError();
-                return reference;
-            }
-            catch
-            {
-                handle.Free();
-                throw;
-            }
+            Native.JsCreateExternalObject(data, null, out var reference).ThrowIfError();
+            return reference;
         }
 
         public static bool HasExternalData(JsValueRef obj)
@@ -27,25 +18,14 @@ namespace Opportunity.ChakraBridge.UWP
             return hasExternalData;
         }
 
-        private static readonly JsObjectFinalizeCallbackPtr OnObjectFinalize = _OnObjectFinalize;
-
-        private static void _OnObjectFinalize(IntPtr data)
+        public static void GetExternalData(JsValueRef extenalObject, [Variant] out object data)
         {
-            GCHandle.FromIntPtr(data).Free();
+            Native.JsGetExternalData(extenalObject, out data).ThrowIfError();
         }
 
-        public static ref object GetExternalData(JsValueRef extenalObject)
+        public static void SetExternalData(JsValueRef extenalObject, [Variant] object data)
         {
-            Native.JsGetExternalData(extenalObject, out var data).ThrowIfError();
-            var handle = GCHandle.FromIntPtr(data);
-            return ref ((ExternalDataContainer)handle.Target).Value;
-        }
-
-        private sealed class ExternalDataContainer
-        {
-            public object Value;
-
-            public ExternalDataContainer(object data) => this.Value = data;
+            Native.JsGetExternalData(extenalObject, out data).ThrowIfError();
         }
 
         public static JsValueRef Create()

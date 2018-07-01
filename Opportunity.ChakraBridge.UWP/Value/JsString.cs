@@ -7,7 +7,6 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A JavaScript string value.
     /// </summary>
-    [DebuggerDisplay("{Value}")]
     public sealed class JsString : JsValue
     {
         internal JsString(JsValueRef refernce) : base(refernce) { }
@@ -19,7 +18,20 @@ namespace Opportunity.ChakraBridge.UWP
         /// <returns>The length of the string.</returns>
         public int Length => RawString.GetStringLength(this.Reference);
 
-        internal string Value => ToString();
+        /// <summary>
+        /// Retrieves the string pointer of the <see cref="JsString"/> value.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <remarks>
+        /// <para>
+        /// This function retrieves the string pointer of the <see cref="JsString"/> value. It will fail with 
+        /// <see cref="JsErrorCode.InvalidArgument"/> if the type of the value is not <see cref="JsString"/>.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
+        /// </remarks>
+        public string Value => ToString();
 
         /// <summary>
         /// Creates a <see cref="JsString"/> value from a <see cref="string"/>.
@@ -46,6 +58,17 @@ namespace Opportunity.ChakraBridge.UWP
         public override sealed string ToString()
         {
             return RawString.ToString(this.Reference);
+        }
+
+        internal override string GetDebugDisp()
+        {
+            var str = Value
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("\t", "\\t")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r");
+            return '"' + str + '"';
         }
     }
 }

@@ -8,7 +8,6 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A JavaScript array value.
     /// </summary>
-    [DebuggerDisplay("[{ToString(),nq}]")]
     public class JsArray : JsObject, IList<JsValue>
     {
         internal JsArray(JsValueRef reference) : base(reference) { }

@@ -37,6 +37,26 @@
         }
 
         /// <summary>
+        /// Adds a reference to a garbage collected object. 
+        /// </summary>
+        /// <returns>The object's new reference count</returns>
+        internal uint AddRef()
+        {
+            Native.JsAddRef(this, out var count).ThrowIfError();
+            return count;
+        }
+
+        /// <summary>
+        /// Releases a reference to a garbage collected object. 
+        /// </summary>
+        /// <returns>The object's new reference count</returns>
+        internal uint Release()
+        {
+            Native.JsRelease(this, out var count).ThrowIfError();
+            return count;
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="JsValueRef"/> struct.
         /// </summary>
         /// <param name="value">The reference.</param>

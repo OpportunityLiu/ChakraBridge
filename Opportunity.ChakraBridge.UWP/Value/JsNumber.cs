@@ -1,4 +1,6 @@
-﻿namespace Opportunity.ChakraBridge.UWP
+﻿using System.Diagnostics;
+
+namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
     /// A JavaScript number value.
@@ -25,9 +27,7 @@
         /// This function retrieves the value of a number value. It will fail with
         /// <see cref="JsErrorCode.InvalidArgument"/> if the type of the value is not number.
         /// </remarks>
-        public double ToDouble() => RawNumber.ToDouble(this.Reference);
-
-        internal double Value => ToDouble();
+        public double Value => RawNumber.ToDouble(this.Reference);
 
         /// <summary>
         /// Creates a <see cref="JsNumber"/> value from a <see cref="double"/> value.
@@ -49,6 +49,6 @@
         /// Convert the <see cref="JsNumber"/> to its string representaion.
         /// </summary>
         /// <returns>A <see cref="string"/> represent the value of <see cref="JsNumber"/>.</returns>
-        public override string ToString() => ToDouble().ToString();
+        public override string ToString() => Value.ToString();
     }
 }

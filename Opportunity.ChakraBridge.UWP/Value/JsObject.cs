@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Windows.Foundation.Metadata;
 
 namespace Opportunity.ChakraBridge.UWP
 {
@@ -11,12 +12,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public partial class JsObject : JsValue
     {
-        internal JsObject(JsValueRef reference) : base(reference) => Native.JsAddRef(reference, out var count).ThrowIfError();
-
-        /// <summary>
-        /// Releases reference to the object.
-        /// </summary>
-        ~JsObject() => Native.JsRelease(this.Reference, out var count).ThrowIfError();
+        internal JsObject(JsValueRef reference) : base(reference) { }
 
         /// <summary>
         /// Creates a new <see cref="JsObject"/>.

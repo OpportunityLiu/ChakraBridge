@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Foundation.Metadata;
 
 namespace Opportunity.ChakraBridge.UWP
 {
@@ -77,6 +78,31 @@ namespace Opportunity.ChakraBridge.UWP
         {
             Native.JsGetValueType(value, out var type).ThrowIfError();
             return type;
+        }
+
+        /// <summary>
+        /// Creates a JavaScript value that is a projection of the passed in IInspectable pointer. 
+        /// </summary>
+        /// <param name="inspectable">A IInspectable to be projected. </param>
+        /// <returns>A JavaScript value that is a projection of the IInspectable. </returns>
+        /// <remarks><para>The projected value can be used by script to call a WinRT object. Hosts are responsible for enforcing COM threading rules. </para>
+        /// <para>Requires an active script context. </para></remarks>
+        public static JsValueRef FromInspectable([Variant]object inspectable)
+        {
+            Native.JsInspectableToObject(inspectable, out var obj).ThrowIfError();
+            return obj;
+        }
+
+        /// <summary>
+        /// Unwraps a JavaScript object to an IInspectable pointer 
+        /// </summary>
+        /// <param name="obj">A JavaScript value that should be projected to IInspectable. </param>
+        /// <param name="inspectable">An IInspectable value of the object. </param>
+        /// <remarks><para>Hosts are responsible for enforcing COM threading rules. </para>
+        /// <para>Requires an active script context. </para></remarks>
+        public static void ToInspectable(JsValueRef obj, [Variant]out object inspectable)
+        {
+            Native.JsObjectToInspectable(obj, out inspectable).ThrowIfError();
         }
     }
 }

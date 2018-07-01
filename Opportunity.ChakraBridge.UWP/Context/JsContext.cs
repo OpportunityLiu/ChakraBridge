@@ -26,7 +26,7 @@
         /// </summary>
         public static JsContext Current
         {
-            get => GetOrCreate(JsContextRef.Current);
+            get => Get(JsContextRef.Current);
             set
             {
                 if (value is null)
@@ -58,7 +58,7 @@
         /// Requires an active script context.
         /// </para>
         /// </remarks>
-        public bool HasException
+        public static bool HasException
         {
             get
             {
@@ -95,7 +95,7 @@
         /// The next system tick when there will be more idle work to do. Returns the 
         /// maximum number of ticks if there no upcoming idle work to do.
         /// </returns>
-        public uint Idle()
+        public static uint Idle()
         {
             Native.JsIdle(out var ticks).ThrowIfError();
             return ticks;
@@ -116,7 +116,7 @@
         /// <param name="exception">
         /// The JavaScript exception to set for the runtime of the current context.
         /// </param>
-        public void SetException(JsError exception)
+        public static void SetException(JsError exception)
         {
             if (exception == null)
                 throw new ArgumentNullException(nameof(exception));
@@ -128,7 +128,7 @@
         /// </summary>
         /// <param name="namespaceName">The WinRT namespace to be projected. </param>
         /// <remarks>Requires an active script context.</remarks>
-        public void ProjectWinRTNamespace(string namespaceName)
+        public static void ProjectWinRTNamespace(string namespaceName)
         {
             if (namespaceName == null)
                 throw new ArgumentNullException(nameof(namespaceName));

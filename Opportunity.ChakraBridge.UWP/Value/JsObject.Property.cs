@@ -7,7 +7,6 @@ using System.ComponentModel;
 using Opportunity.ChakraBridge.UWP;
 using Windows.Foundation.Metadata;
 
-[assembly: DebuggerDisplay(@"Count = {Length}", Target = typeof(JsObject.Property[]))]
 namespace Opportunity.ChakraBridge.UWP
 {
     partial class JsObject
@@ -249,49 +248,5 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("GetOwnPropertyDescriptorBySymbol")]
         public JsObject GetOwnPropertyDescriptor(JsSymbol propertyId)
             => (JsObject)CreateTyped(RawProperty.GetOwnPropertyDescriptor(this.Reference, propertyId));
-
-        [DebuggerDisplay(@"{Value}", Name = @"[{Key.ToString(),nq}]", Type = @"{Value.GetType().ToString(),nq}")]
-        internal sealed class Property
-        {
-            public Property(JsPropertyIdRef key, JsValue value)
-            {
-                this.key = key;
-                this.Value = value;
-            }
-
-            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            private readonly JsPropertyIdRef key;
-
-            [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-            public JsPropertyId Key => new JsPropertyId(this.key);
-
-            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public JsValue Value;
-        }
-
-        private Property[] Properties
-        {
-            get
-            {
-                var nk = GetOwnPropertyNames();
-                var sk = GetOwnPropertySymbols();
-                var nkc = nk.Count;
-                var skc = sk.Count;
-                var r = new Property[nk.Count + sk.Count];
-                for (var i = 0; i < nkc; i++)
-                {
-                    var k = nk[i].ToString();
-                    var p = JsPropertyId.FromString(k);
-                    r[i] = new Property(p.Reference, this.Get(k));
-                }
-                for (var i = 0; i < skc; i++)
-                {
-                    var s = (JsSymbol)sk[i];
-                    var p = JsPropertyId.FromSymbol(s);
-                    r[i + nkc] = new Property(p.Reference, this.Get(s));
-                }
-                return r;
-            }
-        }
     }
 }

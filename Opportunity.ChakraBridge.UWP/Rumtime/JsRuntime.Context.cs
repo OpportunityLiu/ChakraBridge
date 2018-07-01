@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     partial class JsRuntime
     {
@@ -17,48 +18,32 @@
         public JsContext CreateContext()
         {
             Native.JsCreateContext(this.Handle, out var reference).ThrowIfError();
-            return JsContext.GetOrCreate(reference);
+            var context = new JsContext(reference);
+            this.Contexts.Add(reference, context);
+            return context;
         }
 
-        internal static readonly Dictionary<JsContextRef, WeakReference<JsContext>> Contexts
-            = new Dictionary<JsContextRef, WeakReference<JsContext>>();
-
-        internal static void CleanUpContexts()
+        /// <summary>
+        /// Clear <see cref="Contexts"/> and set it to <see langword="null"/>.
+        /// </summary>
+        private void ClearContexts()
         {
-            var cleanList = new List<JsContextRef>();
-            foreach (var item in Contexts)
-            {
-                if (!item.Value.TryGetTarget(out _))
-                    cleanList.Add(item.Key);
-            }
-            if (cleanList.Count == 0)
+            var c = Interlocked.Exchange(ref this.Contexts, null);
+            if (c is null)
                 return;
-            lock (Contexts)
+            foreach (var item in c.Values)
             {
-                foreach (var item in cleanList)
-                {
-                    Contexts.Remove(item);
-                }
+                GC.SuppressFinalize(item);
             }
         }
+
+        internal Dictionary<JsContextRef, JsContext> Contexts
+            = new Dictionary<JsContextRef, JsContext>();
 
         /// <summary>
         /// Gets created contexts.
         /// </summary>
         /// <returns>Collection of contexts.</returns>
-        public static IEnumerable<JsContext> GetContexts()
-        {
-            var contexts = Contexts.Values.Select(v =>
-            {
-                if (v.TryGetTarget(out var r))
-                    return r;
-                return null;
-            }).Where(r => r != null).ToList();
-
-            if (contexts.Count != Contexts.Count)
-                CleanUpContexts();
-
-            return contexts;
-        }
+        public IEnumerable<JsContext> GetContexts() => this.Contexts.Values;
     }
 }

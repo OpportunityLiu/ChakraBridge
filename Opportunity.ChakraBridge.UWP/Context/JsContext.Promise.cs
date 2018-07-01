@@ -7,14 +7,14 @@
 
     partial class JsContext
     {
-        private JsFunction PromiseContinuation;
+        private static JsFunction PromiseContinuation;
 
-        internal void HandlePromiseContinuation()
+        internal static void HandlePromiseContinuation()
         {
-            while (this.PromiseContinuation != null)
+            while (PromiseContinuation != null)
             {
-                var task = this.PromiseContinuation;
-                this.PromiseContinuation = null;
+                var task = PromiseContinuation;
+                PromiseContinuation = null;
                 task.Invoke(null);
             }
         }
@@ -23,12 +23,11 @@
 
         private static void _OnPromiseContinuationCallback(JsValueRef task, IntPtr callbackState)
         {
-            var context = GetOrCreate(new JsContextRef(callbackState));
-            context.PromiseContinuation = new JsFunction(task);
+            PromiseContinuation = new JsFunction(task);
         }
     }
 
-    /// <summary>
+    /// <summary>s
     /// A promise continuation callback.
     /// </summary>
     /// <remarks>

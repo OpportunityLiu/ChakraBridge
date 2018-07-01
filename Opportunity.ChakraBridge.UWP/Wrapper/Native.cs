@@ -248,7 +248,7 @@
         internal static extern JsErrorCode JsCreateObject(out JsValueRef obj);
 
         [DllImport(DllName)]
-        internal static extern JsErrorCode JsCreateExternalObject(IntPtr data, JsObjectFinalizeCallbackPtr finalizeCallback, out JsValueRef obj);
+        internal static extern JsErrorCode JsCreateExternalObject([MarshalAs(UnmanagedType.IInspectable)] object data, JsObjectFinalizeCallbackPtr finalizeCallback, out JsValueRef obj);
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsConvertValueToObject(JsValueRef value, out JsValueRef obj);
@@ -308,10 +308,10 @@
         internal static extern JsErrorCode JsHasExternalData(JsValueRef obj, out bool value);
 
         [DllImport(DllName)]
-        internal static extern JsErrorCode JsGetExternalData(JsValueRef obj, out IntPtr externalData);
+        internal static extern JsErrorCode JsGetExternalData(JsValueRef obj, [MarshalAs(UnmanagedType.IInspectable)] out object externalData);
 
         [DllImport(DllName)]
-        internal static extern JsErrorCode JsSetExternalData(JsValueRef obj, IntPtr externalData);
+        internal static extern JsErrorCode JsSetExternalData(JsValueRef obj, [MarshalAs(UnmanagedType.IInspectable)] object externalData);
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsCreateArray(uint length, out JsValueRef result);
@@ -462,10 +462,10 @@
         internal static extern JsErrorCode JsGetContextOfObject(JsValueRef obj, out JsContextRef context);
 
         [DllImport(DllName)]
-        internal static extern JsErrorCode JsGetContextData(JsContextRef context, out IntPtr data);
+        internal static extern JsErrorCode JsGetContextData(JsContextRef context, [MarshalAs(UnmanagedType.IInspectable)] out object data);
 
         [DllImport(DllName)]
-        internal static extern JsErrorCode JsSetContextData(JsContextRef context, IntPtr data);
+        internal static extern JsErrorCode JsSetContextData(JsContextRef context, [MarshalAs(UnmanagedType.IInspectable)] object data);
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsParseSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,

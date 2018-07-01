@@ -13,7 +13,8 @@
         /// <param name="script">The script to parse.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
         [DefaultOverload]
-        public JsFunction ParseScript(string script)
+        [Overload("ParseScript")]
+        public static JsFunction ParseScript(string script)
             => ParseScript(script, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
@@ -23,7 +24,7 @@
         /// <param name="buffer">The serialized script.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
         [Overload("ParseSerializedScript")]
-        public JsFunction ParseScript([ReadOnlyArray] byte[] buffer)
+        public static JsFunction ParseScript([ReadOnlyArray] byte[] buffer)
             => ParseScript(null, buffer, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
@@ -33,7 +34,8 @@
         /// <param name="script">The script to run.</param>
         /// <returns>The result of the script, if any.</returns>
         [DefaultOverload]
-        public JsValue RunScript(string script)
+        [Overload("RunScript")]
+        public static JsValue RunScript(string script)
             => RunScript(script, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
@@ -42,7 +44,8 @@
         /// <remarks>Requires an active script context.</remarks>
         /// <param name="buffer">The serialized script.</param>
         /// <returns>The result of the script, if any.</returns>
-        public JsValue RunScript([ReadOnlyArray] byte[] buffer)
+        [Overload("RunSerializedScript")]
+        public static JsValue RunScript([ReadOnlyArray] byte[] buffer)
             => RunScript(null, buffer, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
@@ -62,7 +65,7 @@
         /// <returns>
         /// The size of the buffer, in bytes, required to hold the serialized script.
         /// </returns>
-        public byte[] SerializeScript(string script)
+        public static byte[] SerializeScript(string script)
         {
             if (script == null)
                 throw new ArgumentNullException(nameof(script));

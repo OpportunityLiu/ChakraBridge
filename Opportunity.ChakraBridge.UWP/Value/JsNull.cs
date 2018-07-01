@@ -1,4 +1,6 @@
-﻿namespace Opportunity.ChakraBridge.UWP
+﻿using System.Diagnostics;
+
+namespace Opportunity.ChakraBridge.UWP
 {
     /// <summary>
     /// A JavaScript null value.

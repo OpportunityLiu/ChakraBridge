@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Foundation.Metadata;
 
 namespace Opportunity.ChakraBridge.UWP
 {
@@ -20,7 +21,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
         /// <remarks>Requires an active script context.</remarks>
-        public JsFunction ParseScript(string script, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceName)
+        [Overload("ParseSerializedScriptWithContext")]
+        public static JsFunction ParseScript(string script, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceName)
         {
             if (buffer is null)
                 throw new ArgumentNullException(nameof(buffer));
@@ -38,7 +40,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
         /// <remarks>Requires an active script context.</remarks>
-        public JsFunction ParseScript(string script, JsSourceContext sourceContext, string sourceName)
+        [Overload("ParseScriptWithContext")]
+        public static JsFunction ParseScript(string script, JsSourceContext sourceContext, string sourceName)
         {
             if (script is null)
                 throw new ArgumentNullException(nameof(script));
@@ -68,7 +71,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// It will then call scriptUnloadCallback to inform the caller that it is safe to release.
         /// </para>
         /// </remarks>
-        public JsFunction ParseSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
+        [Overload("ParseSerializedScriptWithCallback")]
+        public static JsFunction ParseScript(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
             JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
         {
             Native.JsParseSerializedScriptWithCallback(scriptLoadCallback, scriptUnloadCallback, buffer, sourceContext, sourceUrl, out var r).ThrowIfError();
@@ -97,7 +101,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// It will then call scriptUnloadCallback to inform the caller that it is safe to release.
         /// </para>
         /// </remarks>
-        public JsValue RunSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
+        [Overload("RunSerializedScriptWithCallback")]
+        public static JsValue RunScript(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
             JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
         {
             Native.JsRunSerializedScriptWithCallback(scriptLoadCallback, scriptUnloadCallback, buffer, sourceContext, sourceUrl, out var result).ThrowIfError();
@@ -117,7 +122,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// </param>
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>The result of the script, if any.</returns>
-        public JsValue RunScript(string script, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceName)
+        [Overload("RunSerializedScriptWithContext")]
+        public static JsValue RunScript(string script, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceName)
         {
             if (buffer == null)
                 throw new ArgumentNullException(nameof(buffer));
@@ -137,7 +143,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// </param>
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>The result of the script, if any.</returns>
-        public JsValue RunScript(string script, JsSourceContext sourceContext, string sourceName)
+        [Overload("RunScriptWithContext")]
+        public static JsValue RunScript(string script, JsSourceContext sourceContext, string sourceName)
         {
             if (script == null)
                 throw new ArgumentNullException(nameof(script));

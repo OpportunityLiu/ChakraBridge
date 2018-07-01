@@ -16,6 +16,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Windows.Web.Http;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -34,15 +35,17 @@ namespace Test
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-
+            var c = JsContext.Current;
             using (var runtime = JsRuntime.Create())
             {
                 runtime.MemoryEvent += this.Runtime_MemoryEvent;
                 runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
-                var c = runtime.CreateContext();
+                c = runtime.CreateContext();
                 JsContext.Current = c;
-                c.ProjectWinRTNamespace("Windows.Foundation");
-                c.ProjectWinRTNamespace("Windows.Web");
+                var hc = new HttpClient();
+                c.Data = new object();
+                //c.ProjectWinRTNamespace("Windows.Foundation");
+                //c.ProjectWinRTNamespace("Windows.Web");
 
                 JsValue.GlobalObject.Set("CD", JsFunction.Create(PostCallback));
                 var ta = JsUint16Array.Create(1000);
@@ -50,9 +53,9 @@ namespace Test
                 {
                     ta[i] = (byte)i;
                 }
-                var taarray = ((IBuffer)ta).ToArray();
+                var taarray = ta.ToArray();
                 var n = JsSourceContextExtension.None;
-                var r = (JsFunction)c.RunScript(@"a = function aa(){this.args = arguments;}");
+                var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments;}");
                 var test = r.New(new JsBoolean[] { JsValue.True, JsValue.False });
                 r.ObjectCollectingCallback = ObjectCollectingCallback;
                 var eee = JsError.CreateError(JsValue.False);
@@ -66,7 +69,7 @@ namespace Test
 
         private void Runtime_CollectingGarbage(JsRuntime sender, object args)
         {
-            Debug.WriteLine("GC");
+            Debug.WriteLine("Charka GC");
         }
 
         private void Runtime_MemoryEvent(JsRuntime sender, JsMemoryEventArgs args)

@@ -12,9 +12,11 @@
     /// A JavaScript value is one of the following types of values: Undefined, Null, Boolean, 
     /// String, Number, or Object.
     /// </remarks>
-    [DebuggerDisplay("{ToString(),nq}")]
+    [DebuggerDisplay("{GetDebugDisp(),nq}")]
     public partial class JsValue
     {
+        internal virtual string GetDebugDisp() => ToString();
+
         internal static JsValue CreateTyped(JsValueRef reference)
         {
             switch (RawValue.GetType(reference))
@@ -58,6 +60,27 @@
             // WinRT disallows abstact classes.
             Debug.Assert(this.GetType() != typeof(JsValue));
             this.Reference = reference;
+        }
+
+        /// <summary>
+        /// Creates a JavaScript value that is a projection of the passed in IInspectable pointer. 
+        /// </summary>
+        /// <param name="inspectable">A IInspectable to be projected. </param>
+        /// <returns>A JavaScript value that is a projection of the IInspectable. </returns>
+        /// <remarks><para>The projected value can be used by script to call a WinRT object. Hosts are responsible for enforcing COM threading rules. </para>
+        /// <para>Requires an active script context. </para></remarks>
+        public static JsValue Create([Variant] object inspectable) => CreateTyped(RawValue.FromInspectable(inspectable));
+
+        /// <summary>
+        /// Unwraps a JavaScript object to an IInspectable pointer 
+        /// </summary>
+        /// <returns>An IInspectable value of the object. </returns>
+        /// <remarks><para>Hosts are responsible for enforcing COM threading rules. </para>
+        /// <para>Requires an active script context. </para></remarks>
+        public object ToInspectable()
+        {
+            RawValue.ToInspectable(this.Reference, out var r);
+            return r;
         }
 
         /// <summary>
@@ -183,6 +206,6 @@
         /// <summary>
         /// Gets the script context that the object belongs to. 
         /// </summary>
-        public JsContext Context => JsContext.GetOrCreate(this.Reference.Context);
+        public JsContext Context => JsContext.Get(this.Reference.Context);
     }
 }
