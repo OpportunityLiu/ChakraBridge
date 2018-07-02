@@ -7,7 +7,7 @@
     using Windows.Foundation.Metadata;
     using Windows.Storage.Streams;
 
-    partial class JsContext
+    partial class JsContext : IDisposable
     {
         /// <summary>
         /// Gets the runtime that the context belongs to.
@@ -31,7 +31,7 @@
         /// <inheritdoc/>
         public override int GetHashCode() => this.Reference.GetHashCode();
 
-        internal readonly JsContextRef Reference;
+        internal JsContextRef Reference;
 
         /// <summary>
         /// Get the instance of the <see cref="JsContext"/>, or <see langword="null"/>, if <paramref name="reference"/> is <see cref="JsContextRef.Invalid"/>. 
@@ -53,11 +53,6 @@
         }
 
         /// <summary>
-        /// Releases reference to the script context.
-        /// </summary>
-        ~JsContext() => this.Reference.Release();
-
-        /// <summary>
         /// The internal data set on <see cref="JsContext"/>. 
         /// </summary>
         [Variant]
@@ -66,5 +61,31 @@
             get { this.Reference.GetData(out var value); return value; }
             set => this.Reference.SetData(value);
         }
+
+        #region IDisposable Support
+
+        void Dispose(bool disposing)
+        {
+            if (this.Reference == JsContextRef.Invalid)
+                return;
+            this.Runtime.Contexts.Remove(this.Reference);
+            this.Reference.Release();
+            this.Reference = JsContextRef.Invalid;
+        }
+
+        /// <summary>
+        /// Releases reference to the script context.
+        /// </summary>
+        ~JsContext() => Dispose(false);
+
+        /// <summary>
+        /// Releases reference to the script context.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

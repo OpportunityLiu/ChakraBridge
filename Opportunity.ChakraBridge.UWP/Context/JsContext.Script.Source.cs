@@ -49,6 +49,27 @@ namespace Opportunity.ChakraBridge.UWP
             return new JsFunction(result);
         }
 
+        private static JsSerializedScriptLoadSourceCallback LoadSourceCallback;
+        private static readonly JsSerializedScriptLoadSourceCallbackPtr OnLoadSource = (JsSourceContextImpl sourceContext, out string scriptBuffer) =>
+        {
+            scriptBuffer = default;
+            if (LoadSourceCallback == null)
+                return false;
+            try
+            {
+                return LoadSourceCallback(sourceContext, out scriptBuffer);
+            }
+            catch
+            {
+                return false;
+            }
+        };
+        private static JsSerializedScriptUnloadCallback UnloadSourceCallback;
+        private static readonly JsSerializedScriptUnloadCallbackPtr OnUnloadSource = (JsSourceContextImpl sourceContext) =>
+        {
+            UnloadSourceCallback?.Invoke(sourceContext);
+        };
+
         /// <summary>
         /// Parses a serialized script and returns a function representing the script.
         /// Provides the ability to lazy load the script source only if/when it is needed. 
@@ -72,10 +93,21 @@ namespace Opportunity.ChakraBridge.UWP
         /// </para>
         /// </remarks>
         [Overload("ParseSerializedScriptWithCallback")]
-        public static JsFunction ParseScript(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
-            JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
+        public static JsFunction ParseScript(JsSerializedScriptLoadSourceCallback scriptLoadCallback,
+            JsSerializedScriptUnloadCallback scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
         {
-            Native.JsParseSerializedScriptWithCallback(scriptLoadCallback, scriptUnloadCallback, buffer, sourceContext, sourceUrl, out var r).ThrowIfError();
+#pragma warning disable IDE0016 // 使用 "throw" 表达式
+            if (scriptLoadCallback == null)
+                throw new ArgumentNullException(nameof(scriptLoadCallback));
+            if (scriptUnloadCallback == null)
+                throw new ArgumentNullException(nameof(scriptUnloadCallback));
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+#pragma warning restore IDE0016 // 使用 "throw" 表达式
+            LoadSourceCallback = scriptLoadCallback;
+            UnloadSourceCallback = scriptUnloadCallback;
+            sourceUrl = sourceUrl ?? "";
+            Native.JsParseSerializedScriptWithCallback(OnLoadSource, OnUnloadSource, buffer, sourceContext, sourceUrl, out var r).ThrowIfError();
             return new JsFunction(r);
         }
 
@@ -102,10 +134,21 @@ namespace Opportunity.ChakraBridge.UWP
         /// </para>
         /// </remarks>
         [Overload("RunSerializedScriptWithCallback")]
-        public static JsValue RunScript(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
-            JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
+        public static JsValue RunScript(JsSerializedScriptLoadSourceCallback scriptLoadCallback,
+            JsSerializedScriptUnloadCallback scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
         {
-            Native.JsRunSerializedScriptWithCallback(scriptLoadCallback, scriptUnloadCallback, buffer, sourceContext, sourceUrl, out var result).ThrowIfError();
+#pragma warning disable IDE0016 // 使用 "throw" 表达式
+            if (scriptLoadCallback == null)
+                throw new ArgumentNullException(nameof(scriptLoadCallback));
+            if (scriptUnloadCallback == null)
+                throw new ArgumentNullException(nameof(scriptUnloadCallback));
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+#pragma warning restore IDE0016 // 使用 "throw" 表达式
+            LoadSourceCallback = scriptLoadCallback;
+            UnloadSourceCallback = scriptUnloadCallback;
+            sourceUrl = sourceUrl ?? "";
+            Native.JsRunSerializedScriptWithCallback(OnLoadSource, OnUnloadSource, buffer, sourceContext, sourceUrl, out var result).ThrowIfError();
             var r = JsValue.CreateTyped(result);
             HandlePromiseContinuation();
             return r;
@@ -160,7 +203,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// The caller should free the source if loaded, the byte code, and the context at this time.
     /// </summary>
     /// <param name="sourceContext">The context passed to Js[Parse|Run]SerializedScriptWithCallback</param>
-    public delegate void JsSerializedScriptUnloadCallbackPtr(JsSourceContext sourceContext);
+    public delegate void JsSerializedScriptUnloadCallback(JsSourceContext sourceContext);
+    internal delegate void JsSerializedScriptUnloadCallbackPtr(JsSourceContextImpl sourceContext);
 
     /// <summary>
     /// Called by the runtime to load the source code of the serialized script.
@@ -171,5 +215,6 @@ namespace Opportunity.ChakraBridge.UWP
     /// <returns>
     /// true if the operation succeeded, false otherwise.
     /// </returns>
-    public delegate bool JsSerializedScriptLoadSourceCallbackPtr(JsSourceContext sourceContext, out string scriptBuffer);
+    public delegate bool JsSerializedScriptLoadSourceCallback(JsSourceContext sourceContext, out string scriptBuffer);
+    internal delegate bool JsSerializedScriptLoadSourceCallbackPtr(JsSourceContextImpl sourceContext, out string scriptBuffer);
 }
