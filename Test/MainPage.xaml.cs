@@ -42,18 +42,9 @@ namespace Test
                 runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
                 c = runtime.CreateContext();
                 JsContext.Current = c;
-                var hc = new HttpClient();
-                c.Data = new object();
-                //c.ProjectWinRTNamespace("Windows.Foundation");
-                //c.ProjectWinRTNamespace("Windows.Web");
-
-                JsValue.GlobalObject.Set("CD", JsFunction.Create(PostCallback));
-                var ta = JsUint16Array.Create(1000);
-                for (int i = 0; i < ta.Count; i++)
-                {
-                    ta[i] = (byte)i;
-                }
-                var taarray = ta.ToArray();
+                var data = new byte[100];
+                var buf = JsArrayBuffer.Create(Windows.Storage.Streams.Buffer.CreateCopyFromMemoryBuffer(new MemoryBuffer(100)));
+                var view = JsInt8Array.Create(buf);
                 var n = JsSourceContextExtension.None;
                 var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments;}");
                 var test = r.New(new JsBoolean[] { JsValue.True, JsValue.False });

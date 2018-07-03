@@ -12,11 +12,11 @@ namespace Opportunity.ChakraBridge.UWP
         /// <returns>The new array object.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         /// <remarks>Requires an active script context.</remarks>
-        public static JsValueRef Create(int length)
+        public static JsValueRef Create(long length)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length));
-            Native.JsCreateArray((uint)length, out var reference).ThrowIfError();
+            Native.JsCreateArray(checked((uint)length), out var reference).ThrowIfError();
             return reference;
         }
 
@@ -31,11 +31,14 @@ namespace Opportunity.ChakraBridge.UWP
         /// Only applicable when creating a new typed array without baseArray (baseArray is <see cref="Native.JS_INVALID_REFERENCE"/>) or when baseArray is an ArrayBuffer object. Must be 0 otherwise. </param>
         /// <returns></returns>
         /// <remarks>Requires an active script context.</remarks>
-        public static JsValueRef CreateTyped(JsTypedArrayType arrayType, JsValueRef arrayBuffer, uint byteOffset,
-            uint elementLength)
+        public static JsValueRef CreateTyped(JsTypedArrayType arrayType, JsValueRef arrayBuffer, long byteOffset,
+            long elementLength)
         {
-            Native.JsCreateTypedArray(arrayType, arrayBuffer, byteOffset, elementLength, out var result).ThrowIfError();
-            return result;
+            checked
+            {
+                Native.JsCreateTypedArray(arrayType, arrayBuffer, (uint)byteOffset, (uint)elementLength, out var result).ThrowIfError();
+                return result;
+            }
         }
 
         /// <summary>
@@ -47,9 +50,12 @@ namespace Opportunity.ChakraBridge.UWP
         /// <param name="byteLength">The number of bytes in the array. </param>
         /// <returns>The type of the array. </returns>
         /// <remarks>Requires an active script context.</remarks>
-        public static JsTypedArrayType GetTypedArrayInfo(JsValueRef typedArray, out JsValueRef arrayBuffer, out uint byteOffset, out uint byteLength)
+        public static JsTypedArrayType GetTypedArrayInfo(JsValueRef typedArray, out JsValueRef arrayBuffer, out long byteOffset, out long byteLength)
         {
-            Native.JsGetTypedArrayInfo(typedArray, out var arrayType, out arrayBuffer, out byteOffset, out byteLength).ThrowIfError();
+            Native.JsGetTypedArrayInfo(typedArray, out var arrayType, out arrayBuffer, out var off, out var len)
+                .ThrowIfError();
+            byteOffset = off;
+            byteLength = len;
             return arrayType;
         }
 
@@ -59,6 +65,41 @@ namespace Opportunity.ChakraBridge.UWP
             buffer = buf.ToPointer();
             bufferLength = bufLen;
             return type;
+        }
+
+        public static unsafe JsValueRef CreateArrayBuffer(long bufferLength)
+        {
+            Native.JsCreateArrayBuffer(checked((uint)bufferLength), out var r).ThrowIfError();
+            return r;
+        }
+
+        public static unsafe JsValueRef CreateExternalArrayBuffer(IntPtr data, long byteLength, JsObjectFinalizeCallbackPtr finalizeCallback, IntPtr callbackState)
+        {
+            Native.JsCreateExternalArrayBuffer(data, checked((uint)byteLength), finalizeCallback, callbackState, out var r).ThrowIfError();
+            return r;
+        }
+
+        public static unsafe void GetArrayBufferStorage(JsValueRef arrayBuffer, out void* buffer, out long bufferLength)
+        {
+            Native.JsGetArrayBufferStorage(arrayBuffer, out var buf, out var bufLen).ThrowIfError();
+            buffer = buf.ToPointer();
+            bufferLength = bufLen;
+        }
+
+        public static unsafe JsValueRef CreateDataView(JsValueRef arrayBuffer, long byteOffset, long length)
+        {
+            checked
+            {
+                Native.JsCreateDataView(arrayBuffer, (uint)byteOffset, (uint)length, out var r).ThrowIfError();
+                return r;
+            }
+        }
+
+        public static unsafe void GetDataViewStorage(JsValueRef dataView, out void* buffer, out long bufferLength)
+        {
+            Native.JsGetDataViewStorage(dataView, out var buf, out var bufLen).ThrowIfError();
+            buffer = buf.ToPointer();
+            bufferLength = bufLen;
         }
     }
 }

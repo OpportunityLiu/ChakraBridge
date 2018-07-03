@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -12,54 +11,60 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript typed array.
     /// </summary>
-    public unsafe class JsTypedArray : JsObject, IEnumerable, IBuffer
+    public unsafe class JsTypedArray : JsObject, IEnumerable
     {
-        internal JsTypedArray(JsValueRef reference, void* buffer, long bufferLength)
+        internal JsTypedArray(JsValueRef reference, JsTypedArrayType type, int elementSize, void* buffer, long bufferLength)
             : base(reference)
         {
             // WinRT disallows abstact classes.
             Debug.Assert(this.GetType() != typeof(JsTypedArray));
             this.Buffer = buffer;
             this.BufferLength = bufferLength;
-            this.length = (uint)bufferLength;
+            this.ArrayType = type;
+            this.ElementSize = elementSize;
         }
 
         internal static JsTypedArray FromRef(JsValueRef reference)
         {
-            switch (RawArray.GetTypedArrayStorage(reference, out var buf, out var buflen))
+            var type = RawArray.GetTypedArrayStorage(reference, out var buf, out var buflen);
+            switch (type)
             {
             case JsTypedArrayType.Int8:
-                return new JsInt8Array(reference, buf, buflen);
+                return new JsInt8Array(reference, type, buf, buflen);
             case JsTypedArrayType.Uint8:
-                return new JsUint8Array(reference, buf, buflen);
+                return new JsUint8Array(reference, type, buf, buflen);
             case JsTypedArrayType.Uint8Clamped:
-                return new JsUint8ClampedArray(reference, buf, buflen);
+                return new JsUint8ClampedArray(reference, type, buf, buflen);
             case JsTypedArrayType.Int16:
-                return new JsInt16Array(reference, buf, buflen);
+                return new JsInt16Array(reference, type, buf, buflen);
             case JsTypedArrayType.Uint16:
-                return new JsUint16Array(reference, buf, buflen);
+                return new JsUint16Array(reference, type, buf, buflen);
             case JsTypedArrayType.Int32:
-                return new JsInt32Array(reference, buf, buflen);
+                return new JsInt32Array(reference, type, buf, buflen);
             case JsTypedArrayType.Uint32:
-                return new JsUint32Array(reference, buf, buflen);
+                return new JsUint32Array(reference, type, buf, buflen);
             case JsTypedArrayType.Float32:
-                return new JsFloat32Array(reference, buf, buflen);
+                return new JsFloat32Array(reference, type, buf, buflen);
             case JsTypedArrayType.Float64:
-                return new JsFloat64Array(reference, buf, buflen);
+                return new JsFloat64Array(reference, type, buf, buflen);
             }
             throw new InvalidOperationException("Unknown array type.");
         }
 
-        //public static JsTypedArray<byte> Create<byte>(JsArrayBuffer buffer, int byteOffset,int length)
-        // where byte : unmanaged, IEquatable<byte>, IComparable<byte>, IConvertible, IFormattable
-        //{
+        /// <summary>
+        /// Size of element in array, count in bytes.
+        /// </summary>
+        public int ElementSize { get; }
 
-        //}
+        /// <summary>
+        /// Count of elements in the array.
+        /// </summary>
+        public int Count => (int)(this.BufferLength / ElementSize);
 
         /// <summary>
         /// Gets the type of array.
         /// </summary>
-        public JsTypedArrayType ArrayType => RawArray.GetTypedArrayInfo(this.Reference, out var buf, out var offset, out var len);
+        public JsTypedArrayType ArrayType { get; }
 
         /// <summary>
         /// Buffer pointer of the array data.
@@ -67,25 +72,10 @@ namespace Opportunity.ChakraBridge.UWP
         protected readonly void* Buffer;
 
         /// <summary>
-        /// Length if buffer in bytes.
+        /// Length of buffer in bytes.
         /// </summary>
         protected readonly long BufferLength;
 
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-
-        uint IBuffer.Capacity => (uint)this.BufferLength;
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private uint length;
-        uint IBuffer.Length
-        {
-            get => this.length;
-            set
-            {
-                if (value > this.BufferLength)
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                this.length = value;
-            }
-        }
     }
 }

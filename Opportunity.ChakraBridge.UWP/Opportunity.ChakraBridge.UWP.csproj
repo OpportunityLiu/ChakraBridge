@@ -166,6 +166,8 @@
     <Compile Include="Context\JsSourceContext.cs" />
     <Compile Include="Rumtime\JsRuntime.Context.cs" />
     <Compile Include="Rumtime\JsRuntime.Value.cs" />
+    <Compile Include="Value\Data\JsArrayBuffer.cs" />
+    <Compile Include="Value\Data\JsDataView.cs" />
     <Compile Include="Value\Data\JsTypedArrays.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -16,7 +16,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsInt8Array : JsTypedArray, IList<byte>
     {
-        internal JsInt8Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsInt8Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsInt8Array"/>.
@@ -48,9 +49,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsInt8Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsInt8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int8, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsInt8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int8, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -61,20 +62,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsInt8Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsInt8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int8, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsInt8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int8, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt8Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsInt8Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsInt8Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt8Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsInt8Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsInt8Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt8Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsInt8Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsInt8Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsInt8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int8, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(byte);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(byte));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private byte* Pointer => (byte*)this.Buffer;
@@ -163,7 +193,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsUint8Array : JsTypedArray, IList<byte>
     {
-        internal JsUint8Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsUint8Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsUint8Array"/>.
@@ -195,9 +226,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsUint8Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsUint8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -208,20 +239,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsUint8Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsUint8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint8Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsUint8Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsUint8Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint8Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsUint8Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsUint8Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint8Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsUint8Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsUint8Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsUint8Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(byte);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(byte));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private byte* Pointer => (byte*)this.Buffer;
@@ -310,7 +370,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsUint8ClampedArray : JsTypedArray, IList<byte>
     {
-        internal JsUint8ClampedArray(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsUint8ClampedArray(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsUint8ClampedArray"/>.
@@ -342,9 +403,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsUint8ClampedArray Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsUint8ClampedArray)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8Clamped, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint8ClampedArray)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8Clamped, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -355,20 +416,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsUint8ClampedArray Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsUint8ClampedArray)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8Clamped, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint8ClampedArray)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8Clamped, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint8ClampedArray"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsUint8ClampedArray"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsUint8ClampedArray Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint8ClampedArray"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsUint8ClampedArray"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsUint8ClampedArray Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint8ClampedArray"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsUint8ClampedArray"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsUint8ClampedArray Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsUint8ClampedArray)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint8Clamped, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(byte);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(byte));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private byte* Pointer => (byte*)this.Buffer;
@@ -457,7 +547,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsInt16Array : JsTypedArray, IList<short>
     {
-        internal JsInt16Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsInt16Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsInt16Array"/>.
@@ -489,9 +580,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsInt16Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsInt16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int16, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsInt16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int16, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -502,20 +593,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsInt16Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsInt16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int16, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsInt16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int16, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt16Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsInt16Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsInt16Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt16Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsInt16Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsInt16Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt16Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsInt16Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsInt16Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsInt16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int16, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(short);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(short));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private short* Pointer => (short*)this.Buffer;
@@ -604,7 +724,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsUint16Array : JsTypedArray, IList<ushort>
     {
-        internal JsUint16Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsUint16Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsUint16Array"/>.
@@ -636,9 +757,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsUint16Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsUint16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint16, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint16, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -649,20 +770,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsUint16Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsUint16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint16, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint16, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint16Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsUint16Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsUint16Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint16Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsUint16Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsUint16Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint16Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsUint16Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsUint16Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsUint16Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint16, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(ushort);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(ushort));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private ushort* Pointer => (ushort*)this.Buffer;
@@ -751,7 +901,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsInt32Array : JsTypedArray, IList<int>
     {
-        internal JsInt32Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsInt32Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsInt32Array"/>.
@@ -783,9 +934,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsInt32Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsInt32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int32, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsInt32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int32, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -796,20 +947,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsInt32Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsInt32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int32, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsInt32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int32, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsInt32Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsInt32Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsInt32Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsInt32Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsInt32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsInt32Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsInt32Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsInt32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Int32, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(int);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(int));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private int* Pointer => (int*)this.Buffer;
@@ -898,7 +1078,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsUint32Array : JsTypedArray, IList<uint>
     {
-        internal JsUint32Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsUint32Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsUint32Array"/>.
@@ -930,9 +1111,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsUint32Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsUint32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint32, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint32, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -943,20 +1124,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsUint32Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsUint32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint32, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsUint32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint32, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsUint32Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsUint32Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsUint32Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsUint32Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsUint32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsUint32Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsUint32Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsUint32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Uint32, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(uint);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(uint));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private uint* Pointer => (uint*)this.Buffer;
@@ -1045,7 +1255,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsFloat32Array : JsTypedArray, IList<float>
     {
-        internal JsFloat32Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsFloat32Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsFloat32Array"/>.
@@ -1077,9 +1288,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsFloat32Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsFloat32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float32, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsFloat32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float32, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -1090,20 +1301,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsFloat32Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsFloat32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float32, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsFloat32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float32, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsFloat32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsFloat32Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsFloat32Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsFloat32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsFloat32Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsFloat32Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsFloat32Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsFloat32Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsFloat32Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsFloat32Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float32, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(float);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(float));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private float* Pointer => (float*)this.Buffer;
@@ -1192,7 +1432,8 @@ namespace Opportunity.ChakraBridge.UWP
     /// </summary>
     public unsafe sealed class JsFloat64Array : JsTypedArray, IList<double>
     {
-        internal JsFloat64Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal JsFloat64Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="JsFloat64Array"/>.
@@ -1224,9 +1465,9 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithTypedArray")]
         public static JsFloat64Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (JsFloat64Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float64, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsFloat64Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float64, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -1237,20 +1478,49 @@ namespace Opportunity.ChakraBridge.UWP
         [Overload("CreateWithObject")]
         public static JsFloat64Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (JsFloat64Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float64, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (JsFloat64Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float64, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="JsFloat64Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="JsFloat64Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static JsFloat64Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsFloat64Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="JsFloat64Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static JsFloat64Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="JsFloat64Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="JsFloat64Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static JsFloat64Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (JsFloat64Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.Float64, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(double);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(double));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private double* Pointer => (double*)this.Buffer;

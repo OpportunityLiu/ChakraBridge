@@ -47,7 +47,9 @@
             case JsValueType.TypedArray:
                 return JsTypedArray.FromRef(reference);
             case JsValueType.ArrayBuffer:
+                return new JsArrayBuffer(reference);
             case JsValueType.DataView:
+                return new JsDataView(reference);
             default:
                 return new JsObject(reference);
             }

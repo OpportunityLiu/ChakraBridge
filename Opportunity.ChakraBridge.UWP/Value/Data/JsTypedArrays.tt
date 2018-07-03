@@ -32,7 +32,8 @@ for(var i = 0; i < names.Length; i++)
     /// </summary>
     public unsafe sealed class Js<#=name#>Array : JsTypedArray, IList<<#=type#>>
     {
-        internal Js<#=name#>Array(JsValueRef reference, void* buffer, long bufferLength) : base(reference, buffer, bufferLength) { }
+        internal Js<#=name#>Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
+            : base(reference, type, BytesPerElement, buffer, bufferLength) { }
 
         /// <summary>
         /// Create new instance of <see cref="Js<#=name#>Array"/>.
@@ -64,9 +65,9 @@ for(var i = 0; i < names.Length; i++)
         [Overload("CreateWithTypedArray")]
         public static Js<#=name#>Array Create(JsTypedArray typedArray)
         {
-            if (typedArray == null)
+            if (typedArray is null)
                 throw new ArgumentNullException(nameof(typedArray));
-            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, typedArray?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, typedArray.Reference, 0, 0));
         }
 
         /// <summary>
@@ -77,20 +78,49 @@ for(var i = 0; i < names.Length; i++)
         [Overload("CreateWithObject")]
         public static Js<#=name#>Array Create(JsObject obj)
         {
-            if (obj == null)
+            if (obj is null)
                 throw new ArgumentNullException(nameof(obj));
-            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, obj?.Reference ?? JsValueRef.Invalid, 0, 0));
+            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, obj.Reference, 0, 0));
+        }
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [Overload("CreateWithArrayBuffer")]
+        public static Js<#=name#>Array Create(JsArrayBuffer buffer)
+            => Create(buffer, 0);
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndOffset")]
+        public static Js<#=name#>Array Create(JsArrayBuffer buffer, int byteOffset)
+            => Create(buffer, byteOffset, (buffer.Count - byteOffset) / BytesPerElement);
+
+        /// <summary>
+        /// Create new instance of <see cref="Js<#=name#>Array"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="JsArrayBuffer"/> that the array will be based on.</param>
+        /// <param name="byteOffset">The offset of the created array to <paramref name="buffer"/>.</param>
+        /// <param name="length">Length of array.</param>
+        /// <returns>A new instance of <see cref="Js<#=name#>Array"/>.</returns>
+        [Overload("CreateWithArrayBufferAndLength")]
+        public static Js<#=name#>Array Create(JsArrayBuffer buffer, int byteOffset, int length)
+        {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+            return (Js<#=name#>Array)FromRef(RawArray.CreateTyped(JsTypedArrayType.<#=name#>, buffer.Reference, byteOffset, length));
         }
 
         /// <summary>
         /// Returns a number value of the element size for the different typed array objects.
         /// </summary>
         public static int BytesPerElement => sizeof(<#=type#>);
-
-        /// <summary>
-        /// Count of elements in the array.
-        /// </summary>
-        public int Count => (int)(this.BufferLength / sizeof(<#=type#>));
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private <#=type#>* Pointer => (<#=type#>*)this.Buffer;
