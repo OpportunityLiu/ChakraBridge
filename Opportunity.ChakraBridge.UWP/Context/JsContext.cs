@@ -1,10 +1,10 @@
-﻿namespace Opportunity.ChakraBridge.UWP
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using Windows.Storage.Streams;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Windows.Storage.Streams;
 
+namespace Opportunity.ChakraBridge.UWP
+{
     /// <summary>
     /// A script context.
     /// </summary>

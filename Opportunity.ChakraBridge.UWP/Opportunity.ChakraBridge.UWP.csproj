@@ -148,6 +148,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Context\JsContext.Promise.cs" />
+    <Compile Include="Context\JsContext.Scope.cs" />
     <Compile Include="Context\JsContext.Value.cs" />
     <Compile Include="Context\JsContext.Script.cs" />
     <Compile Include="Context\JsContextRef.cs" />

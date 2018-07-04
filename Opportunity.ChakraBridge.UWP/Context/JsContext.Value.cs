@@ -68,6 +68,8 @@
         {
             if (this.Reference == JsContextRef.Invalid)
                 return;
+            if (this.Reference == JsContextRef.Current)
+                throw new InvalidOperationException("Can not dispose JsContexts in using.");
             this.Runtime.Contexts.Remove(this.Reference);
             this.Reference.Release();
             this.Reference = JsContextRef.Invalid;
