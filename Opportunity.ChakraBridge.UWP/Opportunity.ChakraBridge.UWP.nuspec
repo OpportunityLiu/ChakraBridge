@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Opportunity.ChakraBridge.UWP</id>
+    <version>$version$</version>
+    <title>Opportunity.ChakraBridge.UWP</title>
+    <authors>Opportunity</authors>
+    <owners>Opportunity</owners>
+    <licenseUrl>https://github.com/OpportunityLiu/ChakraBridge/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/OpportunityLiu/ChakraBridge</projectUrl>
+    <description>Windows runtime library warpper for chakra engine.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Opportunity 2018</copyright>
+    <tags>UWP winmd javascript edge charka</tags>
+  </metadata>
+</package>
