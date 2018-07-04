@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Opportunity.ChakraBridge.UWP
 {
@@ -8,7 +9,10 @@ namespace Opportunity.ChakraBridge.UWP
         /// <summary>
         /// Use the context in the following scope.
         /// </summary>
-        /// <returns>A helper class to set the previous context back when invoking <see cref="Scope.Dispose()"/>.</returns>
+        /// <param name="disposeContext">
+        /// Whether <see cref="Dispose()"/> need to be invoke when invoking <see cref="JsContextScope.Dispose()"/>.
+        /// </param>
+        /// <returns>A helper class to set the previous context back when invoking <see cref="JsContextScope.Dispose()"/>.</returns>
         /// <remarks>
         /// Usage:
         /// <code>
@@ -18,7 +22,7 @@ namespace Opportunity.ChakraBridge.UWP
         /// }
         /// </code>
         /// </remarks>
-        public JsContextScope Use() => new JsContextScope(this);
+        public JsContextScope Use(bool disposeContext) => new JsContextScope(this, disposeContext);
     }
 
     /// <summary>
@@ -27,29 +31,33 @@ namespace Opportunity.ChakraBridge.UWP
     public sealed class JsContextScope : IDisposable
     {
         private JsContextRef previous;
-        private JsContextRef current;
+        private JsContext current;
+        private readonly bool disposeContext;
 
-        internal JsContextScope(JsContext jsContext)
+        internal JsContextScope(JsContext jsContext, bool disposeContext)
         {
             this.previous = JsContextRef.Current;
-            this.current = jsContext.Reference;
-            JsContextRef.Current = this.current;
-            this.previous.AddRef();
-            this.current.AddRef();
+            this.current = jsContext;
+            JsContextRef.Current = this.current.Reference;
+            if (this.previous != JsContextRef.Invalid)
+                this.previous.AddRef();
+            this.disposeContext = disposeContext;
         }
 
         #region IDisposable Support
 
         void Dispose(bool disposing)
         {
-            var c = this.current;
-            this.current = JsContextRef.Invalid;
-            if (c == JsContextRef.Invalid)
+            var c = Interlocked.Exchange(ref this.current, null);
+            if (c is null)
                 return;
             if (disposing)
+            {
                 JsContextRef.Current = this.previous;
-            c.Release();
-            this.previous.Release();
+                c.Dispose();
+            }
+            if (this.previous != JsContextRef.Invalid)
+                this.previous.Release();
             this.previous = JsContextRef.Invalid;
         }
 
