@@ -43,14 +43,20 @@ namespace Test
                 c = runtime.CreateContext();
                 JsContext.Current = c;
                 var data = new byte[100];
-                var buf = JsArrayBuffer.Create(Windows.Storage.Streams.Buffer.CreateCopyFromMemoryBuffer(new MemoryBuffer(100)));
-                var view = JsInt8Array.Create(buf);
                 var n = JsSourceContextExtension.None;
-                var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments;}");
+                var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments; return this;}");
+                var r2 = JsFunction.Create(func, "Naive");
+                JsValue.GlobalObject.Set("r", r);
+                JsValue.GlobalObject.Set("r2", r2);
                 var test = r.New(new JsBoolean[] { JsValue.True, JsValue.False });
                 r.ObjectCollectingCallback = ObjectCollectingCallback;
                 var eee = JsError.CreateError(JsValue.False);
             }
+        }
+
+        private JsValue func(JsFunction callee, JsObject caller, bool isConstructCall, IList<JsValue> arguments)
+        {
+            return caller;
         }
 
         private void ObjectCollectingCallback(JsObject obj)

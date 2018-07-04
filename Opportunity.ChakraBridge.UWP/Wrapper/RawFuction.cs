@@ -37,13 +37,28 @@ namespace Opportunity.ChakraBridge.UWP
             var func = runtime.NativeFunctions[callee];
             try
             {
-                return func(new JsFunction(callee), isConstructCall, arguments.Select(a => JsValue.CreateTyped(a)).ToList()).Reference;
+                var caller = JsValue.CreateTyped(arguments[0]);
+                var callObj = caller as JsObject;
+                if (callObj is null)
+                {
+                    if (caller.ValueType == JsValueType.Undefined || caller.ValueType == JsValueType.Null)
+                        callObj = JsValue.GlobalObject;
+                    else
+                        callObj = caller.ToJsObject();
+                }
+                var args = arguments.Length > 1 ? new JsValue[arguments.Length - 1] : Array.Empty<JsValue>();
+                for (var i = 0; i < args.Length; i++)
+                {
+                    args[i] = JsValue.CreateTyped(arguments[i + 1]);
+                }
+                var result = func(new JsFunction(callee), callObj, isConstructCall, args);
+                return (result?.Reference).GetValueOrDefault();
             }
             catch (Exception ex)
             {
                 var error = RawError.CreateError(RawString.FromString(ex.Message ?? ""));
                 JsScriptException.SetException(error);
-                return RawValue.Undefined;
+                return JsValueRef.Invalid;
             }
         }
 
@@ -52,7 +67,7 @@ namespace Opportunity.ChakraBridge.UWP
             if (arguments is null || arguments.Length == 0)
             {
                 args = new JsValueRef[1];
-                args[0] = caller.IsValid ? caller : RawValue.Undefined;
+                args[0] = caller.IsValid ? caller : RawValue.GlobalObject;
                 return 1;
             }
 
@@ -60,15 +75,8 @@ namespace Opportunity.ChakraBridge.UWP
                 throw new ArgumentOutOfRangeException("Too many arguments");
 
             args = new JsValueRef[arguments.Length + 1];
+            args[0] = caller.IsValid ? caller : RawValue.GlobalObject;
             var undefined = JsValueRef.Invalid;
-            if (caller.IsValid)
-                args[0] = caller;
-            else
-            {
-                if (!undefined.IsValid)
-                    undefined = RawValue.Undefined;
-                args[0] = undefined;
-            }
             for (var i = 0; i < arguments.Length; i++)
             {
                 if (arguments[i].IsValid)

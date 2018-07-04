@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using Windows.Foundation.Metadata;
 
     /// <summary>
     /// A function callback.
@@ -24,10 +25,11 @@
     /// <param name="callee">
     /// A <c>Function</c> object that represents the function being invoked.
     /// </param>
+    /// <param name="caller">The object that the thisArg is.</param>
     /// <param name="isConstructCall">Indicates whether this is a regular call or a 'new' call.</param>
     /// <param name="arguments">The arguments to the call.</param>
     /// <returns>The result of the call, if any.</returns>
-    public delegate JsValue JsNativeFunction(JsFunction callee, bool isConstructCall, IList<JsValue> arguments);
+    public delegate JsValue JsNativeFunction(JsFunction callee, JsObject caller, bool isConstructCall, IList<JsValue> arguments);
 
     /// <summary>
     /// A JavaScript function object.
@@ -46,6 +48,7 @@
         /// <returns>A new JavaScript function.</returns>
         /// <remarks>Requires an active script context.</remarks>
         /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+        [Overload("Create")]
         public static JsFunction Create(JsNativeFunction function) => new JsFunction(RawFuction.Create(function));
 
         /// <summary>
@@ -56,8 +59,22 @@
         /// <returns>A new JavaScript function.</returns>
         /// <remarks>Requires an active script context.</remarks>
         /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+        [Overload("CreateWithJsName")]
         public static JsFunction Create(JsNativeFunction function, JsString name)
             => name is null ? Create(function) : new JsFunction(RawFuction.Create(function, name.Reference));
+
+        /// <summary>
+        /// Creates a new JavaScript function.
+        /// </summary>
+        /// <param name="function">The method to call when the function is invoked.</param>
+        /// <param name="name">The name of this function that will be used for diagnostics and stringification purposes. </param>
+        /// <returns>A new JavaScript function.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="function"/> is <see langword="null"/>.</exception>
+        [DefaultOverload]
+        [Overload("CreateWithName")]
+        public static JsFunction Create(JsNativeFunction function, string name)
+            => name is null ? Create(function) : new JsFunction(RawFuction.Create(function, RawString.FromString(name)));
 
         private JsValueRef[] getArgs(JsValue[] arguments)
         {
@@ -77,7 +94,7 @@
         /// Invokes a function.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        /// <param name="caller">The caller of function.</param>
+        /// <param name="caller">The object that the thisArg is.</param>
         /// <param name="arguments">The arguments to the call.</param>
         /// <returns>The <c>Value</c> returned from the function invocation, if any.</returns>
         public JsValue Invoke(JsValue caller, params JsValue[] arguments)

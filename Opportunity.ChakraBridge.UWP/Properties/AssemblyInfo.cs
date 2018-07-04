@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Opportunity.ChakraBridge.UWP;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -26,6 +27,15 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+
+[assembly: AssemblyVersion(PackageInfo.Version)]
+[assembly: AssemblyFileVersion(PackageInfo.Version)]
 [assembly: ComVisible(false)]
+
+namespace Opportunity.ChakraBridge.UWP
+{
+    internal static class PackageInfo
+    {
+        public const string Version = "1.1.0.0";
+    }
+}
