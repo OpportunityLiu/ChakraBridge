@@ -35,22 +35,22 @@ namespace Test
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            var c = JsContext.Current;
             using (var runtime = JsRuntime.Create())
             {
                 runtime.MemoryEvent += this.Runtime_MemoryEvent;
                 runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
-                c = runtime.CreateContext();
-                JsContext.Current = c;
-                var data = new byte[100];
-                var n = JsSourceContextExtension.None;
-                var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments; return this;}");
-                var r2 = JsFunction.Create(func, "Naive");
-                JsValue.GlobalObject.Set("r", r);
-                JsValue.GlobalObject.Set("r2", r2);
-                var test = r.New(new JsBoolean[] { JsValue.True, JsValue.False });
-                r.ObjectCollectingCallback = ObjectCollectingCallback;
-                var eee = JsError.CreateError(JsValue.False);
+                while (true)
+                {
+                    using (runtime.CreateContext().Use(true))
+                    {
+                        JsContext.ProjectWinRTNamespace("Windows");
+                        var n = JsSourceContextExtension.None;
+                        var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments; return this;}");
+                    }
+                    runtime.CollectGarbage();
+                    runtime.CollectGarbage();
+                    runtime.CollectGarbage();
+                }
             }
         }
 

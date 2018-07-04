@@ -54,7 +54,8 @@ namespace Opportunity.ChakraBridge.UWP
             if (disposing)
             {
                 JsContextRef.Current = this.previous;
-                c.Dispose();
+                if (this.disposeContext)
+                    c.Dispose();
             }
             if (this.previous != JsContextRef.Invalid)
                 this.previous.Release();
