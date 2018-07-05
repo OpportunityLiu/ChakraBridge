@@ -14,7 +14,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Int8Array.
     /// </summary>
-    public unsafe sealed class JsInt8Array : JsTypedArray, IList<byte>
+    public unsafe sealed class JsInt8Array : JsTypedArray, IList<byte>, IReadOnlyList<byte>
     {
         internal JsInt8Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -112,6 +112,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<byte>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<byte>.Count => Count;
+        
         /// <inheritdoc/>
         public byte this[int index]
         {
@@ -128,6 +131,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        byte IReadOnlyList<byte>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(byte item)
@@ -191,7 +195,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Uint8Array.
     /// </summary>
-    public unsafe sealed class JsUint8Array : JsTypedArray, IList<byte>
+    public unsafe sealed class JsUint8Array : JsTypedArray, IList<byte>, IReadOnlyList<byte>
     {
         internal JsUint8Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -289,6 +293,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<byte>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<byte>.Count => Count;
+        
         /// <inheritdoc/>
         public byte this[int index]
         {
@@ -305,6 +312,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        byte IReadOnlyList<byte>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(byte item)
@@ -368,7 +376,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Uint8ClampedArray.
     /// </summary>
-    public unsafe sealed class JsUint8ClampedArray : JsTypedArray, IList<byte>
+    public unsafe sealed class JsUint8ClampedArray : JsTypedArray, IList<byte>, IReadOnlyList<byte>
     {
         internal JsUint8ClampedArray(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -466,6 +474,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<byte>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<byte>.Count => Count;
+        
         /// <inheritdoc/>
         public byte this[int index]
         {
@@ -482,6 +493,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        byte IReadOnlyList<byte>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(byte item)
@@ -545,7 +557,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Int16Array.
     /// </summary>
-    public unsafe sealed class JsInt16Array : JsTypedArray, IList<short>
+    public unsafe sealed class JsInt16Array : JsTypedArray, IList<short>, IReadOnlyList<short>
     {
         internal JsInt16Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -643,6 +655,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<short>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<short>.Count => Count;
+        
         /// <inheritdoc/>
         public short this[int index]
         {
@@ -659,6 +674,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        short IReadOnlyList<short>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(short item)
@@ -722,7 +738,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Uint16Array.
     /// </summary>
-    public unsafe sealed class JsUint16Array : JsTypedArray, IList<ushort>
+    public unsafe sealed class JsUint16Array : JsTypedArray, IList<ushort>, IReadOnlyList<ushort>
     {
         internal JsUint16Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -820,6 +836,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<ushort>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<ushort>.Count => Count;
+        
         /// <inheritdoc/>
         public ushort this[int index]
         {
@@ -836,6 +855,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        ushort IReadOnlyList<ushort>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(ushort item)
@@ -899,7 +919,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Int32Array.
     /// </summary>
-    public unsafe sealed class JsInt32Array : JsTypedArray, IList<int>
+    public unsafe sealed class JsInt32Array : JsTypedArray, IList<int>, IReadOnlyList<int>
     {
         internal JsInt32Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -997,6 +1017,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<int>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<int>.Count => Count;
+        
         /// <inheritdoc/>
         public int this[int index]
         {
@@ -1013,6 +1036,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        int IReadOnlyList<int>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(int item)
@@ -1076,7 +1100,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Uint32Array.
     /// </summary>
-    public unsafe sealed class JsUint32Array : JsTypedArray, IList<uint>
+    public unsafe sealed class JsUint32Array : JsTypedArray, IList<uint>, IReadOnlyList<uint>
     {
         internal JsUint32Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -1174,6 +1198,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<uint>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<uint>.Count => Count;
+        
         /// <inheritdoc/>
         public uint this[int index]
         {
@@ -1190,6 +1217,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        uint IReadOnlyList<uint>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(uint item)
@@ -1253,7 +1281,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Float32Array.
     /// </summary>
-    public unsafe sealed class JsFloat32Array : JsTypedArray, IList<float>
+    public unsafe sealed class JsFloat32Array : JsTypedArray, IList<float>, IReadOnlyList<float>
     {
         internal JsFloat32Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -1351,6 +1379,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<float>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<float>.Count => Count;
+        
         /// <inheritdoc/>
         public float this[int index]
         {
@@ -1367,6 +1398,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        float IReadOnlyList<float>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(float item)
@@ -1430,7 +1462,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript Float64Array.
     /// </summary>
-    public unsafe sealed class JsFloat64Array : JsTypedArray, IList<double>
+    public unsafe sealed class JsFloat64Array : JsTypedArray, IList<double>, IReadOnlyList<double>
     {
         internal JsFloat64Array(JsValueRef reference, JsTypedArrayType type, void* buffer, long bufferLength) 
             : base(reference, type, BytesPerElement, buffer, bufferLength) { }
@@ -1528,6 +1560,9 @@ namespace Opportunity.ChakraBridge.UWP
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         bool ICollection<double>.IsReadOnly => false;
         
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<double>.Count => Count;
+        
         /// <inheritdoc/>
         public double this[int index]
         {
@@ -1544,6 +1579,7 @@ namespace Opportunity.ChakraBridge.UWP
                 Pointer[index] = value;
             }
         }
+        double IReadOnlyList<double>.this[int index] => this[index];
         
         /// <inheritdoc/>
         public int IndexOf(double item)

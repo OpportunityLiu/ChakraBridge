@@ -8,7 +8,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A JavaScript array value.
     /// </summary>
-    public class JsArray : JsObject, IList<JsValue>
+    public class JsArray : JsObject, IList<JsValue>, IReadOnlyList<JsValue>
     {
         internal JsArray(JsValueRef reference) : base(reference) { }
 
@@ -27,11 +27,14 @@ namespace Opportunity.ChakraBridge.UWP
             get => CreateTyped(RawProperty.GetIndexedProperty(this.Reference, RawNumber.FromInt32(index)));
             set => RawProperty.SetIndexedProperty(this.Reference, RawNumber.FromInt32(index), value?.Reference ?? RawValue.Null);
         }
+        JsValue IReadOnlyList<JsValue>.this[int index] => this[index];
 
         /// <summary>
         /// Gets <c>length</c> property of the array.
         /// </summary>
         public int Count => RawNumber.ToInt32(RawProperty.GetProperty(this.Reference, "length"));
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<JsValue>.Count => Count;
 
         bool ICollection<JsValue>.IsReadOnly => false;
 

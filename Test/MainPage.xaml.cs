@@ -1,4 +1,5 @@
 ﻿using Opportunity.ChakraBridge.UWP;
+using Opportunity.ChakraBridge.UWP.Browser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -48,6 +49,10 @@ namespace Test
                     {
                         var abuf = JsArrayBuffer.Create(100);
                         var scr = "12 * 12";
+                        var con = Console.Inject();
+                        con.Logging += this.Con_Logging;
+                        var f = JsFunction.Create(func);
+                        JsValue.GlobalObject.Set("f", f);
                         var scrbuf = JsContext.SerializeScript(scr);
                         var r = JsContext.RunScript(scrbuf);
                         JsContext.ProjectWinRTNamespace("Windows");
@@ -58,6 +63,10 @@ namespace Test
                     runtime.CollectGarbage();
                 }
             }
+        }
+
+        private void Con_Logging(Console sender, ConsoleLoggingEventArgs args)
+        {
         }
 
         private JsValue func(JsFunction callee, JsObject caller, bool isConstructCall, IList<JsValue> arguments)

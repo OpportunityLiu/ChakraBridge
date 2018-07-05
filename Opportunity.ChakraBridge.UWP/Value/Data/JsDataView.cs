@@ -9,7 +9,7 @@ namespace Opportunity.ChakraBridge.UWP
     /// <summary>
     /// A Javascript DataView.
     /// </summary>
-    public unsafe sealed class JsDataView : JsObject, IList<byte>
+    public unsafe sealed class JsDataView : JsObject, IList<byte>, IReadOnlyList<byte>
     {
         internal JsDataView(JsValueRef reference)
             : base(reference)
@@ -59,6 +59,8 @@ namespace Opportunity.ChakraBridge.UWP
         /// Length if buffer in bytes.
         /// </summary>
         public int Count { get; }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        int IReadOnlyCollection<byte>.Count => Count;
 
         /// <summary>
         /// Buffer pointer of the array data.
@@ -84,6 +86,7 @@ namespace Opportunity.ChakraBridge.UWP
                 ((byte*)this.Buffer)[index] = value;
             }
         }
+        byte IReadOnlyList<byte>.this[int index] => this[index];
 
         /// <inheritdoc/>
         public int IndexOf(byte item)
