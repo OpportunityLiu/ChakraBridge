@@ -3,6 +3,7 @@
     using System;
     using System.Runtime.InteropServices.WindowsRuntime;
     using Windows.Foundation.Metadata;
+    using Windows.Storage.Streams;
 
     partial class JsContext
     {
@@ -24,7 +25,7 @@
         /// <param name="buffer">The serialized script.</param>
         /// <returns>A <c>Function</c> representing the script code.</returns>
         [Overload("ParseSerializedScript")]
-        public static JsFunction ParseScript([ReadOnlyArray] byte[] buffer)
+        public static JsFunction ParseScript(IBuffer buffer)
             => ParseScript(null, buffer, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
@@ -45,7 +46,7 @@
         /// <param name="buffer">The serialized script.</param>
         /// <returns>The result of the script, if any.</returns>
         [Overload("RunSerializedScript")]
-        public static JsValue RunScript([ReadOnlyArray] byte[] buffer)
+        public static JsValue RunScript(IBuffer buffer)
             => RunScript(null, buffer, JsSourceContextExtension.None, string.Empty);
 
         /// <summary>
@@ -65,15 +66,16 @@
         /// <returns>
         /// The size of the buffer, in bytes, required to hold the serialized script.
         /// </returns>
-        public static byte[] SerializeScript(string script)
+        public unsafe static IBuffer SerializeScript(string script)
         {
             if (script == null)
                 throw new ArgumentNullException(nameof(script));
             var bufferSize = 0UL;
             Native.JsSerializeScript(script, null, ref bufferSize).ThrowIfError();
-            var rBuf = new byte[bufferSize];
-            Native.JsSerializeScript(script, rBuf, ref bufferSize).ThrowIfError();
-            return rBuf;
+            var buf = new Windows.Storage.Streams.Buffer(checked((uint)bufferSize));
+            Native.JsSerializeScript(script, buf.GetPointer(), ref bufferSize).ThrowIfError();
+            buf.Length = checked((uint)bufferSize);
+            return buf;
         }
     }
 }

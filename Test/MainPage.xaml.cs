@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Foundation.Metadata;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -35,6 +37,7 @@ namespace Test
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            var js = new FileInfo(@"test.js");
             using (var runtime = JsRuntime.Create())
             {
                 runtime.MemoryEvent += this.Runtime_MemoryEvent;
@@ -43,9 +46,12 @@ namespace Test
                 {
                     using (runtime.CreateContext().Use(true))
                     {
+                        var abuf = JsArrayBuffer.Create(100);
+                        var scr = "12 * 12";
+                        var scrbuf = JsContext.SerializeScript(scr);
+                        var r = JsContext.RunScript(scrbuf);
                         JsContext.ProjectWinRTNamespace("Windows");
                         var n = JsSourceContextExtension.None;
-                        var r = (JsFunction)JsContext.RunScript(@"a = function aa(){this.args = arguments; return this;}");
                     }
                     runtime.CollectGarbage();
                     runtime.CollectGarbage();

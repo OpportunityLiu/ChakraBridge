@@ -1,13 +1,15 @@
-﻿namespace Opportunity.ChakraBridge.UWP
-{
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.InteropServices;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
-    /// <summary>
+namespace Opportunity.ChakraBridge.UWP
+{
+
+
+    /// <summary>e
     /// Native interfaces.
     /// </summary>
-    internal static class Native
+    internal unsafe static class Native
     {
         const string DllName = "Chakra.dll";
 
@@ -173,13 +175,13 @@
         internal static extern JsErrorCode JsRunScript(string script, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
 
         [DllImport(DllName, CharSet = CharSet.Unicode)]
-        internal static extern JsErrorCode JsSerializeScript(string script, byte[] buffer, ref ulong bufferSize);
+        internal static extern JsErrorCode JsSerializeScript(string script, byte* buffer, ref ulong bufferSize);
 
         [DllImport(DllName, CharSet = CharSet.Unicode)]
-        internal static extern JsErrorCode JsParseSerializedScript(string script, byte[] buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
+        internal static extern JsErrorCode JsParseSerializedScript(string script, byte* buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
 
         [DllImport(DllName, CharSet = CharSet.Unicode)]
-        internal static extern JsErrorCode JsRunSerializedScript(string script, byte[] buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
+        internal static extern JsErrorCode JsRunSerializedScript(string script, byte* buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
 
         [DllImport(DllName, CharSet = CharSet.Unicode)]
         internal static extern JsErrorCode JsGetPropertyIdFromName(string name, out JsPropertyId propertyId);
@@ -469,10 +471,10 @@
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsParseSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
-            JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, byte[] buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
+            JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, byte* buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
 
         [DllImport(DllName)]
         internal static extern JsErrorCode JsRunSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackPtr scriptLoadCallback,
-            JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, byte[] buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
+            JsSerializedScriptUnloadCallbackPtr scriptUnloadCallback, byte* buffer, JsSourceContextImpl sourceContext, string sourceUrl, out JsValueRef result);
     }
 }

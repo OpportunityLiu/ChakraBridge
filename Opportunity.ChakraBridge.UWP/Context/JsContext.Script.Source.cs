@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation.Metadata;
+using Windows.Storage.Streams;
 
 namespace Opportunity.ChakraBridge.UWP
 {
@@ -22,11 +23,10 @@ namespace Opportunity.ChakraBridge.UWP
         /// <returns>A <c>Function</c> representing the script code.</returns>
         /// <remarks>Requires an active script context.</remarks>
         [Overload("ParseSerializedScriptWithContext")]
-        public static JsFunction ParseScript(string script, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceName)
+        public unsafe static JsFunction ParseScript(string script, IBuffer buffer, JsSourceContext sourceContext, string sourceName)
         {
-            if (buffer is null)
-                throw new ArgumentNullException(nameof(buffer));
-            Native.JsParseSerializedScript(script, buffer, sourceContext, sourceName ?? "", out var result).ThrowIfError();
+            var pointer = buffer.GetPointer();
+            Native.JsParseSerializedScript(script, pointer, sourceContext, sourceName ?? "", out var result).ThrowIfError();
             return new JsFunction(result);
         }
 
@@ -93,21 +93,20 @@ namespace Opportunity.ChakraBridge.UWP
         /// </para>
         /// </remarks>
         [Overload("ParseSerializedScriptWithCallback")]
-        public static JsFunction ParseScript(JsSerializedScriptLoadSourceCallback scriptLoadCallback,
-            JsSerializedScriptUnloadCallback scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
+        public unsafe static JsFunction ParseScript(JsSerializedScriptLoadSourceCallback scriptLoadCallback,
+            JsSerializedScriptUnloadCallback scriptUnloadCallback, IBuffer buffer, JsSourceContext sourceContext, string sourceUrl)
         {
 #pragma warning disable IDE0016 // 使用 "throw" 表达式
             if (scriptLoadCallback == null)
                 throw new ArgumentNullException(nameof(scriptLoadCallback));
             if (scriptUnloadCallback == null)
                 throw new ArgumentNullException(nameof(scriptUnloadCallback));
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
+            var pointer = buffer.GetPointer();
 #pragma warning restore IDE0016 // 使用 "throw" 表达式
             LoadSourceCallback = scriptLoadCallback;
             UnloadSourceCallback = scriptUnloadCallback;
             sourceUrl = sourceUrl ?? "";
-            Native.JsParseSerializedScriptWithCallback(OnLoadSource, OnUnloadSource, buffer, sourceContext, sourceUrl, out var r).ThrowIfError();
+            Native.JsParseSerializedScriptWithCallback(OnLoadSource, OnUnloadSource, pointer, sourceContext, sourceUrl, out var r).ThrowIfError();
             return new JsFunction(r);
         }
 
@@ -134,21 +133,20 @@ namespace Opportunity.ChakraBridge.UWP
         /// </para>
         /// </remarks>
         [Overload("RunSerializedScriptWithCallback")]
-        public static JsValue RunScript(JsSerializedScriptLoadSourceCallback scriptLoadCallback,
-            JsSerializedScriptUnloadCallback scriptUnloadCallback, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceUrl)
+        public unsafe static JsValue RunScript(JsSerializedScriptLoadSourceCallback scriptLoadCallback,
+            JsSerializedScriptUnloadCallback scriptUnloadCallback, IBuffer buffer, JsSourceContext sourceContext, string sourceUrl)
         {
 #pragma warning disable IDE0016 // 使用 "throw" 表达式
             if (scriptLoadCallback == null)
                 throw new ArgumentNullException(nameof(scriptLoadCallback));
             if (scriptUnloadCallback == null)
                 throw new ArgumentNullException(nameof(scriptUnloadCallback));
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
+            var pointer = buffer.GetPointer();
 #pragma warning restore IDE0016 // 使用 "throw" 表达式
             LoadSourceCallback = scriptLoadCallback;
             UnloadSourceCallback = scriptUnloadCallback;
             sourceUrl = sourceUrl ?? "";
-            Native.JsRunSerializedScriptWithCallback(OnLoadSource, OnUnloadSource, buffer, sourceContext, sourceUrl, out var result).ThrowIfError();
+            Native.JsRunSerializedScriptWithCallback(OnLoadSource, OnUnloadSource, pointer, sourceContext, sourceUrl, out var result).ThrowIfError();
             var r = JsValue.CreateTyped(result);
             HandlePromiseContinuation();
             return r;
@@ -166,11 +164,10 @@ namespace Opportunity.ChakraBridge.UWP
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>The result of the script, if any.</returns>
         [Overload("RunSerializedScriptWithContext")]
-        public static JsValue RunScript(string script, [ReadOnlyArray] byte[] buffer, JsSourceContext sourceContext, string sourceName)
+        public static unsafe JsValue RunScript(string script, IBuffer buffer, JsSourceContext sourceContext, string sourceName)
         {
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
-            Native.JsRunSerializedScript(script, buffer, sourceContext, sourceName ?? "", out var result).ThrowIfError();
+            var pointer = buffer.GetPointer();
+            Native.JsRunSerializedScript(script, pointer, sourceContext, sourceName ?? "", out var result).ThrowIfError();
             var r = JsValue.CreateTyped(result);
             HandlePromiseContinuation();
             return r;
