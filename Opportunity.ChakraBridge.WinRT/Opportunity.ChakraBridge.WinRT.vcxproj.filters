@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resources">
+      <UniqueIdentifier>1cd748c8-a83e-4c51-bf4d-af3d24ea9c09</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="JsRuntime\JsRuntime.cpp" />
+    <ClCompile Include="Native\ThrowHelper.cpp" />
+    <ClCompile Include="JsContext\JsContext.Instance.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="JsRuntime\JsRuntime.h" />
+    <ClInclude Include="Native\ThrowHelper.h" />
+    <ClInclude Include="JsEnum.h" />
+    <ClInclude Include="JsContext\JsContext.Instance.h" />
+    <ClInclude Include="JsContext\JsContext.Static.h" />
+  </ItemGroup>
+</Project>

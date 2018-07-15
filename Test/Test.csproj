@@ -149,6 +149,10 @@
       <Project>{bc1090fa-39ae-44c9-9f04-6a4c09aff733}</Project>
       <Name>Opportunity.ChakraBridge.UWP</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Opportunity.ChakraBridge.WinRT\Opportunity.ChakraBridge.WinRT.vcxproj">
+      <Project>{0fd69a5c-73e9-4415-80b6-4f3bd601e297}</Project>
+      <Name>Opportunity.ChakraBridge.WinRT</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

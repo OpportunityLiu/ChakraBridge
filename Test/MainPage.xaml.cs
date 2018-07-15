@@ -33,6 +33,7 @@ namespace Test
         public MainPage()
         {
             this.InitializeComponent();
+            Opportunity.ChakraBridge.WinRT.JsRuntime r;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -49,7 +50,7 @@ namespace Test
                     {
                         var abuf = JsArrayBuffer.Create(100);
                         var scr = "12 * 12";
-                        var con = Console.Inject();
+                        var con = Console.GetOrCreate();
                         con.Logging += this.Con_Logging;
                         var f = JsFunction.Create(func);
                         JsValue.GlobalObject.Set("f", f);

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Opportunity.ChakraBridge.UW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{32052AC8-070F-4AC5-B67D-F2BF24CA917F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Opportunity.ChakraBridge.WinRT", "Opportunity.ChakraBridge.WinRT\Opportunity.ChakraBridge.WinRT.vcxproj", "{0FD69A5C-73E9-4415-80B6-4F3BD601E297}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,20 @@ Global
 		{32052AC8-070F-4AC5-B67D-F2BF24CA917F}.Release|x86.ActiveCfg = Release|x86
 		{32052AC8-070F-4AC5-B67D-F2BF24CA917F}.Release|x86.Build.0 = Release|x86
 		{32052AC8-070F-4AC5-B67D-F2BF24CA917F}.Release|x86.Deploy.0 = Release|x86
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|ARM.ActiveCfg = Debug|ARM
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|ARM.Build.0 = Debug|ARM
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|x64.ActiveCfg = Debug|x64
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|x64.Build.0 = Debug|x64
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|x86.ActiveCfg = Debug|Win32
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Debug|x86.Build.0 = Debug|Win32
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|Any CPU.ActiveCfg = Release|Win32
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|ARM.ActiveCfg = Release|ARM
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|ARM.Build.0 = Release|ARM
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|x64.ActiveCfg = Release|x64
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|x64.Build.0 = Release|x64
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|x86.ActiveCfg = Release|Win32
+		{0FD69A5C-73E9-4415-80B6-4F3BD601E297}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
