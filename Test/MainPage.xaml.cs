@@ -1,4 +1,4 @@
-﻿using Opportunity.ChakraBridge.UWP;
+﻿using Opportunity.ChakraBridge.WinRT;
 using Opportunity.ChakraBridge.UWP.Browser;
 using System;
 using System.Collections.Generic;
@@ -33,52 +33,65 @@ namespace Test
         public MainPage()
         {
             this.InitializeComponent();
-            Opportunity.ChakraBridge.WinRT.JsRuntime r;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            var js = new FileInfo(@"test.js");
-            using (var runtime = JsRuntime.Create())
+            try
             {
-                runtime.MemoryEvent += this.Runtime_MemoryEvent;
-                runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
-                while (true)
+                var js = new FileInfo(@"test.js");
+                using (var runtime = JsRuntime.Create())
                 {
-                    using (runtime.CreateContext().Use(true))
+                    var rt = JsRuntime.GetRuntimes().ToList();
+                    runtime.AllocatingMemory += this.Runtime_MemoryEvent;
+                    runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
+                    using (var c = runtime.CreateContext())
                     {
-                        var abuf = JsArrayBuffer.Create(100);
-                        var scr = "12 * 12";
-                        var con = Console.GetOrCreate();
-                        con.Logging += this.Con_Logging;
-                        var f = JsFunction.Create(func);
-                        JsValue.GlobalObject.Set("f", f);
-                        var scrbuf = JsContext.SerializeScript(scr);
-                        var r = JsContext.RunScript(scrbuf);
-                        JsContext.ProjectWinRTNamespace("Windows");
-                        var n = JsSourceContextExtension.None;
+                        using (c.Use(false))
+                        {
+                            var s = JsContext.SerializeScript(@"//The JavaScript ES6 Promise code goes here
+new Promise(
+ function(resolve, reject) {resolve('basic:success');}
+).then(function () {return new Promise(
+    function(resolve, reject) {resolve('second:success')}
+)});");
+                            JsContext.StartDebugging();
+                            var r = JsContext.RunScript(sss, s, "");
+                        }
                     }
-                    runtime.CollectGarbage();
-                    runtime.CollectGarbage();
-                    runtime.CollectGarbage();
                 }
+
             }
+            catch (Exception)
+            {
+            }
+        }
+
+        private bool sss(out string scriptBuffer)
+        {
+            scriptBuffer = @"//The JavaScript ES6 Promise code goes here
+new Promise(
+ function(resolve, reject) {resolve('basic:success');}
+).then(function () {return new Promise(
+    function(resolve, reject) {resolve('second:success')}
+)});";
+            return true;
         }
 
         private void Con_Logging(Console sender, ConsoleLoggingEventArgs args)
         {
         }
 
-        private JsValue func(JsFunction callee, JsObject caller, bool isConstructCall, IList<JsValue> arguments)
-        {
-            return caller;
-        }
+        //private JsValue func(JsFunction callee, JsObject caller, bool isConstructCall, IList<JsValue> arguments)
+        //{
+        //    return caller;
+        //}
 
-        private void ObjectCollectingCallback(JsObject obj)
-        {
+        //private void ObjectCollectingCallback(JsObject obj)
+        //{
 
-        }
+        //}
 
         private void Runtime_CollectingGarbage(JsRuntime sender, object args)
         {
@@ -91,9 +104,9 @@ namespace Test
             //args.IsRejected = true;
         }
 
-        private JsValue PostCallback(JsFunction callee, bool isConstructCall, IList<JsValue> arguments)
-        {
-            return JsValue.Undefined;
-        }
+        //private JsValue PostCallback(JsFunction callee, bool isConstructCall, IList<JsValue> arguments)
+        //{
+        //    return JsValue.Undefined;
+        //}
     }
 }

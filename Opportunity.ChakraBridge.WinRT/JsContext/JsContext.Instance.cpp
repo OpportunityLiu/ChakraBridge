@@ -28,3 +28,8 @@ JsRuntime^ JsContext::Runtime::get()
     CHAKRA_CALL(JsGetRuntime(this->Reference, &rth));
     return JsRuntime::RuntimeDictionary[rth];
 }
+
+JsContextScope^ JsContext::Use(bool disposeContext)
+{
+    return ref new JsContextScope(this, disposeContext);
+}

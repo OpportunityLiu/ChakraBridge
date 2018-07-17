@@ -11,6 +11,9 @@
     <ClCompile Include="JsRuntime\JsRuntime.cpp" />
     <ClCompile Include="Native\ThrowHelper.cpp" />
     <ClCompile Include="JsContext\JsContext.Instance.cpp" />
+    <ClCompile Include="JsContext\JsContext.Static.cpp" />
+    <ClCompile Include="JsContext\JsContext.Scope.cpp" />
+    <ClCompile Include="Value\JsValue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -19,5 +22,11 @@
     <ClInclude Include="JsEnum.h" />
     <ClInclude Include="JsContext\JsContext.Instance.h" />
     <ClInclude Include="JsContext\JsContext.Static.h" />
+    <ClInclude Include="JsContext\JsContext.Scope.h" />
+    <ClInclude Include="JsContext\JsContext.Script.h" />
+    <ClInclude Include="Value\JsValue.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="JsContext\JsContext.Script.cpp" />
   </ItemGroup>
 </Project>

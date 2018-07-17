@@ -219,14 +219,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="JsContext\JsContext.Instance.h" />
+    <ClInclude Include="JsContext\JsContext.Scope.h" />
+    <ClInclude Include="JsContext\JsContext.Script.h" />
     <ClInclude Include="JsContext\JsContext.Static.h" />
     <ClInclude Include="JsEnum.h" />
     <ClInclude Include="Native\ThrowHelper.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="JsRuntime\JsRuntime.h" />
+    <ClInclude Include="Value\JsValue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JsContext\JsContext.Instance.cpp" />
+    <ClCompile Include="JsContext\JsContext.Scope.cpp" />
+    <ClCompile Include="JsContext\JsContext.Static.cpp" />
     <ClCompile Include="JsRuntime\JsRuntime.cpp" />
     <ClCompile Include="Native\ThrowHelper.cpp" />
     <ClCompile Include="pch.cpp">
@@ -237,6 +242,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Value\JsValue.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="JsContext\JsContext.Script.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
