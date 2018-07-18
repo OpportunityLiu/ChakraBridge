@@ -11,14 +11,19 @@ namespace Opportunity::ChakraBridge::WinRT
 
     ref class JsObjectImpl : JsValueImpl, IJsObject
     {
-    public:
-        virtual ~JsObjectImpl();
     internal:
         JsObjectImpl(JsValueRef ref);
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+
+    public:
+        virtual ~JsObjectImpl();
+        virtual Platform::String^ ToString() override;
     };
 
-    static public ref class JsObject sealed
+    public ref class JsObject sealed
     {
+    private:
+        JsObject() {}
 
     };
 }

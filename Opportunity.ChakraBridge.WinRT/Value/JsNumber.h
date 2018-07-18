@@ -5,18 +5,29 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsNull : IJsValue
+    public interface class IJsNumber : IJsValue
     {
+        float64 ToDouble();
+        int32 ToInt32();
     };
 
-    ref class JsNullImpl sealed : JsValueImpl, IJsNull
+    ref class JsNumberImpl sealed : JsValueImpl, IJsNumber
     {
     internal:
-        JsNullImpl(JsValueRef ref);
+        JsNumberImpl(JsValueRef ref);
+        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+    public:
+        virtual Platform::String^ ToString() override;
+        virtual float64 ToDouble();
+        virtual int32 ToInt32();
     };
 
-    static public ref class JsNull sealed
+    public ref class JsNumber sealed
     {
-
+    private:
+        JsNumber() {}
+    public:
+        static IJsNumber^ OfInt32(int32 value);
+        static IJsNumber^ OfDouble(float64 value);
     };
 }

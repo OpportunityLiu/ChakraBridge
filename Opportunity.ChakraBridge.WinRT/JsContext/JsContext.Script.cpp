@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "JsContext.h"
-#include "Value\JsValue.h"
-#include "Value\JsFunction.h"
+#include "Value\Declare.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 

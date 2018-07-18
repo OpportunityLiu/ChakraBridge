@@ -5,15 +5,29 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsError
+    public interface class IJsError : IJsObject
     {
+
+        /// <summary>
+        /// <c>message</c> property of Error.
+        /// </summary>
+        property Platform::String^ Message;
+
+        /// <summary>
+        /// <c>name</c> property of Error.
+        /// </summary>
+        property Platform::String^ Name;
     };
 
     ref class JsErrorImpl sealed : JsObjectImpl, IJsError
     {
-    private:
     internal:
-        JsErrorImpl(JsValueRef ref)
-            :JsObjectImpl(ref) {}
+        JsErrorImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+
+    public:
+        virtual Platform::String^ ToString() override;
+        virtual property Platform::String^ Message;
+        virtual property Platform::String^ Name;
     };
 }

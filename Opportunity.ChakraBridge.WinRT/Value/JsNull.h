@@ -13,12 +13,17 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     internal:
         JsNullImpl(JsValueRef ref);
+        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+    public:
+        virtual Platform::String^ ToString() override { return "null"; }
     };
 
-    static public ref class JsNull sealed
+    public ref class JsNull sealed
     {
+    private:
+        JsNull() {}
     public:
-        property IJsNull^ Instance
+        static property IJsNull^ Instance
         {
             IJsNull^ get();
         }

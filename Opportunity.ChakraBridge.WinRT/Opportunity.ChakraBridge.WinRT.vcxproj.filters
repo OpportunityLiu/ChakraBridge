@@ -21,6 +21,8 @@
     <ClCompile Include="Value\JsValue.cpp" />
     <ClCompile Include="Value\JsBoolean.cpp" />
     <ClCompile Include="Value\JsNull.cpp" />
+    <ClCompile Include="Value\JsError.cpp" />
+    <ClCompile Include="Value\JsFunction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -34,10 +36,11 @@
     <ClInclude Include="Value\JsString.h" />
     <ClInclude Include="Value\JsUndefined.h" />
     <ClInclude Include="Value\JsValue.h" />
-    <ClInclude Include="Value\Declare.h" />
     <ClInclude Include="Value\JsBoolean.h" />
     <ClInclude Include="Value\JsError.h" />
     <ClInclude Include="Value\JsFunction.h" />
     <ClInclude Include="Value\JsNull.h" />
+    <ClInclude Include="Value\PreDeclare.h" />
+    <ClInclude Include="Value\Declare.h" />
   </ItemGroup>
 </Project>

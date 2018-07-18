@@ -5,18 +5,26 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsNull : IJsValue
+    public interface class IJsString : IJsValue
     {
     };
 
-    ref class JsNullImpl sealed : JsValueImpl, IJsNull
+    ref class JsStringImpl sealed : JsValueImpl, IJsString
     {
     internal:
-        JsNullImpl(JsValueRef ref);
+        JsStringImpl(JsValueRef ref);
+        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+
+    public:
+        virtual ~JsStringImpl();
+        virtual Platform::String^ ToString() override;
     };
 
-    static public ref class JsNull sealed
+    public ref class JsString sealed
     {
-
+    private:
+        JsString() {}
+    public:
+        static IJsString^ OfString(Platform::String^ value);
     };
 }

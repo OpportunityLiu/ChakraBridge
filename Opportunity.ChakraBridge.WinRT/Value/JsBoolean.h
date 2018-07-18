@@ -5,18 +5,37 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsNull : IJsValue
+    public interface class IJsBoolean : IJsValue
     {
+        bool ToBoolean();
     };
 
-    ref class JsNullImpl sealed : JsValueImpl, IJsNull
+    ref class JsBooleanImpl sealed : JsValueImpl, IJsBoolean
     {
     internal:
-        JsNullImpl(JsValueRef ref);
+        JsBooleanImpl(JsValueRef ref);
+        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+
+    public:
+        virtual Platform::String^ ToString() override;
+        virtual bool ToBoolean();
     };
 
-    static public ref class JsNull sealed
+    public ref class JsBoolean sealed
     {
+    private:
+        JsBoolean() {}
+    public:
 
+        static property IJsBoolean^ True
+        {
+            IJsBoolean^ get();
+        }
+        static property IJsBoolean^ False
+        {
+            IJsBoolean^ get();
+        }
+
+        static IJsBoolean^ OfBoolean(bool value);
     };
 }

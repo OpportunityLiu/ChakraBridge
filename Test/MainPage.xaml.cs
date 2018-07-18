@@ -50,14 +50,10 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var s = JsContext.SerializeScript(@"//The JavaScript ES6 Promise code goes here
-new Promise(
- function(resolve, reject) {resolve('basic:success');}
-).then(function () {return new Promise(
-    function(resolve, reject) {resolve('second:success')}
-)});");
-                            JsContext.StartDebugging();
-                            var r = JsContext.RunScript(sss, s, "");
+                            var a = JsString.OfString("123");
+                            var aa = a.ToString();
+                            var r = JsContext.RunScript("'123'");
+                            var isstr = r is IJsString;
                         }
                     }
                 }

@@ -234,6 +234,7 @@
     <ClInclude Include="Value\JsString.h" />
     <ClInclude Include="Value\JsUndefined.h" />
     <ClInclude Include="Value\JsValue.h" />
+    <ClInclude Include="Value\PreDeclare.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JsContext\JsContext.Instance.cpp" />
@@ -250,6 +251,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Value\JsBoolean.cpp" />
+    <ClCompile Include="Value\JsError.cpp" />
+    <ClCompile Include="Value\JsFunction.cpp" />
     <ClCompile Include="Value\JsNull.cpp" />
     <ClCompile Include="Value\JsNumber.cpp" />
     <ClCompile Include="Value\JsObject.cpp" />
