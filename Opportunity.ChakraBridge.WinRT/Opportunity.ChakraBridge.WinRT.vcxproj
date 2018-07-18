@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -218,19 +218,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="JsContext\JsContext.Instance.h" />
-    <ClInclude Include="JsContext\JsContext.Scope.h" />
-    <ClInclude Include="JsContext\JsContext.Script.h" />
-    <ClInclude Include="JsContext\JsContext.Static.h" />
+    <ClInclude Include="JsContext\JsContext.h" />
+    <ClInclude Include="JsContext\JsContextScope.h" />
     <ClInclude Include="JsEnum.h" />
     <ClInclude Include="Native\ThrowHelper.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="JsRuntime\JsRuntime.h" />
+    <ClInclude Include="Value\Declare.h" />
+    <ClInclude Include="Value\JsBoolean.h" />
+    <ClInclude Include="Value\JsError.h" />
+    <ClInclude Include="Value\JsFunction.h" />
+    <ClInclude Include="Value\JsNull.h" />
+    <ClInclude Include="Value\JsNumber.h" />
+    <ClInclude Include="Value\JsObject.h" />
+    <ClInclude Include="Value\JsString.h" />
+    <ClInclude Include="Value\JsUndefined.h" />
     <ClInclude Include="Value\JsValue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JsContext\JsContext.Instance.cpp" />
-    <ClCompile Include="JsContext\JsContext.Scope.cpp" />
+    <ClCompile Include="JsContext\JsContextScope.cpp" />
     <ClCompile Include="JsContext\JsContext.Static.cpp" />
     <ClCompile Include="JsRuntime\JsRuntime.cpp" />
     <ClCompile Include="Native\ThrowHelper.cpp" />
@@ -242,6 +249,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Value\JsBoolean.cpp" />
+    <ClCompile Include="Value\JsNull.cpp" />
+    <ClCompile Include="Value\JsNumber.cpp" />
+    <ClCompile Include="Value\JsObject.cpp" />
+    <ClCompile Include="Value\JsString.cpp" />
+    <ClCompile Include="Value\JsUndefined.cpp" />
     <ClCompile Include="Value\JsValue.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,14 @@
 #include "pch.h"
-#include "JsContext.Instance.h"
+#include "JsContext.h"
+#include "Value\JsError.h"
+
 using namespace Opportunity::ChakraBridge::WinRT;
 
+/// <summary>
+/// Get the instance of the <see cref="JsContext"/>, or <see langword="null"/>, if <paramref name="reference"/> is <see cref="JS_INVALID_REFERENCE"/>. 
+/// </summary>
+/// <param name="reference">The reference.</param>
+/// <returns>The instance of the <see cref="JsContext"/></returns>
 JsContext^ JsContext::Get(JsContextRef reference)
 {
     if (reference == JS_INVALID_REFERENCE)
@@ -12,22 +19,29 @@ JsContext^ JsContext::Get(JsContextRef reference)
     return rt->Contexts[reference];
 }
 
-void Opportunity::ChakraBridge::WinRT::JsContext::StartDebugging()
+void JsContext::StartDebugging()
 {
     CHAKRA_CALL(JsStartDebugging());
 }
 
-uint32 Opportunity::ChakraBridge::WinRT::JsContext::Idle()
+uint32 JsContext::Idle()
 {
     unsigned int ticks;
     CHAKRA_CALL(JsIdle(&ticks));
     return static_cast<uint32>(ticks);
 }
 
-void Opportunity::ChakraBridge::WinRT::JsContext::ProjectWinRTNamespace(Platform::String ^ namespaceName)
+void JsContext::SetException(IJsError^ exception)
+{
+    if (exception == nullptr)
+        throw ref new Platform::InvalidArgumentException("exception is null.");
+    CHAKRA_CALL(JsSetException(to_impl(exception)->Reference));
+}
+
+void JsContext::ProjectWinRTNamespace(Platform::String ^ namespaceName)
 {
     if (namespaceName == nullptr || namespaceName->IsEmpty())
-        throw ref new Platform::InvalidArgumentException("namespaceName is null or empty");
+        throw ref new Platform::InvalidArgumentException("namespaceName is null or empty.");
     CHAKRA_CALL(JsProjectWinRTNamespace(namespaceName->Data()));
 }
 

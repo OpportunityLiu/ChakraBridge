@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "JsContext.Instance.h"
+#include "JsContext.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsContextScope::JsContextScope(JsContext ^ jsContext, bool disposeContext)
+JsContextScope::JsContextScope(JsContext^ jsContext, bool disposeContext)
     : current(jsContext), disposeContext(disposeContext)
 {
     CHAKRA_CALL(JsGetCurrentContext(&this->previous));

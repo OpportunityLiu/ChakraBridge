@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "JsContext.Instance.h"
+#include "JsContext.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
@@ -9,6 +9,9 @@ JsContext::JsContext(JsContextRef ref)
     CHAKRA_CALL(JsAddRef(ref, nullptr));
 }
 
+/// <summary>
+/// Releases reference to the script context.
+/// </summary>
 JsContext::~JsContext()
 {
     if (this->Reference == JS_INVALID_REFERENCE)
@@ -29,6 +32,22 @@ JsRuntime^ JsContext::Runtime::get()
     return JsRuntime::RuntimeDictionary[rth];
 }
 
+/// <summary>
+/// Use the context in the following scope.
+/// </summary>
+/// <param name="disposeContext">
+/// Whether <see cref="~JsContext()"/> need to be invoke when invoking <see cref="JsContextScope::~JsContextScope()"/>.
+/// </param>
+/// <returns>A helper class to set the previous context back when invoking <see cref="JsContextScope::~JsContextScope()"/>.</returns>
+/// <remarks>
+/// Usage:
+/// <code>
+/// using(jsContext.Use())
+/// {
+///     ...
+/// }
+/// </code>
+/// </remarks>
 JsContextScope^ JsContext::Use(bool disposeContext)
 {
     return ref new JsContextScope(this, disposeContext);

@@ -1,5 +1,8 @@
 #include "pch.h"
-#include "JsContext.Instance.h"
+#include "JsContext.h"
+#include "Value\JsValue.h"
+#include "Value\JsFunction.h"
+
 using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSourceContext JsContext::SourceContext = 0;
@@ -35,41 +38,41 @@ JsContext::IBuffer^ JsContext::SerializeScript(Platform::String^ script)
     return buf;
 }
 
-JsValue^ JsContext::ParseScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName)
+IJsFunction^ JsContext::ParseScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName)
 {
     unsigned int buflen;
     auto pointer = GetPointerOfBuffer(buffer, &buflen);
     JsValueRef result;
     CHAKRA_CALL(JsParseSerializedScript(script->Data(), pointer, SourceContext++, sourceName->Data(), &result));
-    return ref new JsValue(result);
+    return ref new JsFunctionImpl(result);
 }
 
-JsValue^ JsContext::RunScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName)
+IJsValue^ JsContext::RunScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName)
 {
     unsigned int buflen;
     auto pointer = GetPointerOfBuffer(buffer, &buflen);
     JsValueRef result;
     CHAKRA_CALL(JsRunSerializedScript(script->Data(), pointer, SourceContext++, sourceName->Data(), &result));
-    return ref new JsValue(result);
+    return JsValue::CreateTyped(result);
 }
 
-JsValue^ JsContext::ParseScript(Platform::String^ script, Platform::String^ sourceName)
+IJsFunction^ JsContext::ParseScript(Platform::String^ script, Platform::String^ sourceName)
 {
     if (script->IsEmpty())
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
     JsValueRef result;
     CHAKRA_CALL(JsParseScript(script->Data(), SourceContext++, sourceName->Data(), &result));
-    return ref new JsValue(result);
+    return ref new JsFunctionImpl(result); 
 }
 
-JsValue^ JsContext::RunScript(Platform::String^ script, Platform::String^ sourceName)
+IJsValue^ JsContext::RunScript(Platform::String^ script, Platform::String^ sourceName)
 {
     if (script->IsEmpty())
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
     JsValueRef result;
     CHAKRA_CALL(JsRunScript(script->Data(), SourceContext++, sourceName->Data(), &result));
     HandlePromiseContinuation();
-    return ref new JsValue(result);
+    return JsValue::CreateTyped(result);
 }
 
 std::unordered_map<JsSourceContext, Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^> LoadSource;
@@ -106,7 +109,7 @@ void CALLBACK JsSerializedScriptUnloadCallbackImpl(_In_ JsSourceContext sourceCo
     UnloadSource.erase(sourceContext);
 }
 
-JsValue^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl)
+IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl)
 {
     if (scriptLoadCallback == nullptr)
         throw ref new Platform::InvalidArgumentException("scriptLoadCallback is null.");
@@ -114,10 +117,10 @@ JsValue^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedSc
     LoadSource[SourceContext] = scriptLoadCallback;
     JsValueRef result;
     CHAKRA_CALL(JsParseSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackImpl, JsSerializedScriptUnloadCallbackImpl, pointer, SourceContext++, sourceUrl->Data(), &result));
-    return ref new JsValue(result);
+    return ref new JsFunctionImpl(result);
 }
 
-JsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl)
+IJsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl)
 {
     if (scriptLoadCallback == nullptr)
         throw ref new Platform::InvalidArgumentException("scriptLoadCallback is null.");
@@ -126,5 +129,5 @@ JsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScri
     JsValueRef result;
     CHAKRA_CALL(JsRunSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackImpl, JsSerializedScriptUnloadCallbackImpl, pointer, SourceContext++, sourceUrl->Data(), &result));
     HandlePromiseContinuation();
-    return ref new JsValue(result);
+    return JsValue::CreateTyped(result);
 }

@@ -2,7 +2,9 @@
 #include "JsEnum.h"
 #include "JsRuntime\JsRuntime.h"
 #include "Native\ThrowHelper.h"
-#include "Value\JsValue.h"
+#include "JsContextScope.h"
+#include "Value\JsError.h"
+#include "Value\JsFunction.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -15,8 +17,134 @@ namespace Opportunity::ChakraBridge::WinRT
     /// </returns>
     public delegate bool JsSerializedScriptLoadSourceCallback(Platform::String^* scriptBuffer);
 
-    partial ref class JsContext sealed
+    /// <summary>
+    /// A script context.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Each script context contains its own global object, distinct from the global object in 
+    /// other script contexts.
+    /// </para>
+    /// <para>
+    /// Many Chakra hosting APIs require an "active" script context, which can be set using 
+    /// Current. Chakra hosting APIs that require a current context to be set will note 
+    /// that explicitly in their documentation.
+    /// </para>
+    /// </remarks>
+    public ref class JsContext sealed
     {
+#pragma region Instance
+    internal:
+        JsContextRef Reference;
+        JsContext(JsContextRef ref);
+    public:
+        virtual ~JsContext();
+
+        /// <summary>
+        /// Gets the runtime that the context belongs to.
+        /// </summary>
+        property JsRuntime^ Runtime
+        {
+            JsRuntime^ get();
+        }
+
+        JsContextScope^ Use(bool disposeContext);
+
+#pragma endregion
+
+#pragma region Static
+    internal:
+        static JsContext^ Get(JsContextRef reference);
+
+    public:
+        /// <summary>
+        /// Gets or sets the current script context on the thread.
+        /// </summary>
+        static property JsContext^ Current
+        {
+            JsContext^ get();
+            void set(JsContext^ value);
+        };
+
+        /// <summary>
+        /// Gets a value indicating whether the runtime of the current context is in an exception state.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If a call into the runtime results in an exception (either as the result of running a 
+        /// script or due to something like a conversion failure), the runtime is placed into an 
+        /// "exception state." All calls into any context created by the runtime (except for the 
+        /// exception APIs) will fail with <c>InExceptionState</c> until the exception is 
+        /// cleared.
+        /// </para>
+        /// <para>
+        /// If the runtime of the current context is in the exception state when a callback returns 
+        /// into the engine, the engine will automatically rethrow the exception.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
+        /// </remarks>
+        static property bool HasException
+        {
+            bool get();
+        }
+
+        /// <summary>
+        /// Starts debugging in the current context. 
+        /// </summary>
+        static void StartDebugging();
+
+        /// <summary>
+        /// Tells the runtime to do any idle processing it need to do.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// If idle processing has been enabled for the current runtime, calling <c>Idle</c> will 
+        /// inform the current runtime that the host is idle and that the runtime can perform 
+        /// memory cleanup tasks.
+        /// </para>
+        /// <para>
+        /// <c>Idle</c> will also return the number of system ticks until there will be more idle work
+        /// for the runtime to do. Calling <c>Idle</c> before this number of ticks has passed will do
+        /// no work.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
+        /// </remarks>
+        /// <returns>
+        /// The next system tick when there will be more idle work to do. Returns the 
+        /// maximum number of ticks if there no upcoming idle work to do.
+        /// </returns>
+        static uint32 Idle();
+
+        /// <summary>
+        /// Sets the runtime of the current context to an exception state.
+        /// </summary>
+        /// <param name="exception">
+        /// The JavaScript exception to set for the runtime of the current context.
+        /// </param>
+        /// <remarks>
+        /// <para>
+        /// If the runtime of the current context is already in an exception state, this API will 
+        /// throw <c>JsErrorInExceptionState</c>.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
+        /// </remarks>
+        static void SetException(IJsError^ exception);
+
+        /// <summary>
+        /// Project a WinRT namespace. 
+        /// </summary>
+        /// <param name="namespaceName">The WinRT namespace to be projected. </param>
+        /// <remarks>Requires an active script context.</remarks>
+        static void ProjectWinRTNamespace(Platform::String^ namespaceName);
+#pragma endregion
+
+#pragma region Script
     private:
         using IBuffer = Windows::Storage::Streams::IBuffer;
         static JsSourceContext SourceContext;
@@ -27,26 +155,26 @@ namespace Opportunity::ChakraBridge::WinRT
 
     public:
         /// <summary>
-        /// Parses a script and returns a <c>Function</c> representing the script.
+        /// Parses a script and returns a <see ref="IJsFunction"/> representing the script.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
         /// <param name="script">The script to parse.</param>
-        /// <returns>A <c>Function</c> representing the script code.</returns>
+        /// <returns>A <see ref="IJsFunction"/> representing the script code. </returns>
         [Windows::Foundation::Metadata::DefaultOverload]
         [Windows::Foundation::Metadata::Overload("ParseScript")]
-        static JsValue^ ParseScript(Platform::String^ script)
+        static IJsFunction^ ParseScript(Platform::String^ script)
         {
             return ParseScript(script, nullptr);
         }
 
         /// <summary>
-        /// Parses a serialized script and returns a <c>Function</c> representing the script.
+        /// Parses a serialized script and returns a <see ref="IJsFunction"/> representing the script.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
         /// <param name="buffer">The serialized script.</param>
-        /// <returns>A <c>Function</c> representing the script code.</returns>
+        /// <returns>A <see ref="IJsFunction"/> representing the script code. </returns>
         [Windows::Foundation::Metadata::Overload("ParseSerializedScript")]
-        static JsValue^ ParseScript(IBuffer^ buffer)
+        static IJsFunction^ ParseScript(IBuffer^ buffer)
         {
             return ParseScript(static_cast<Platform::String^>(nullptr), buffer, nullptr);
         }
@@ -59,7 +187,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <returns>The result of the script, if any.</returns>
         [Windows::Foundation::Metadata::DefaultOverload]
         [Windows::Foundation::Metadata::Overload("RunScript")]
-        static JsValue^ RunScript(Platform::String^ script)
+        static IJsValue^ RunScript(Platform::String^ script)
         {
             return RunScript(script, nullptr);
         }
@@ -71,7 +199,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <param name="buffer">The serialized script.</param>
         /// <returns>The result of the script, if any.</returns>
         [Windows::Foundation::Metadata::Overload("RunSerializedScript")]
-        static JsValue^ RunScript(IBuffer^ buffer)
+        static IJsValue^ RunScript(IBuffer^ buffer)
         {
             return RunScript(static_cast<Platform::String^>(nullptr), buffer, nullptr);
         }
@@ -96,35 +224,35 @@ namespace Opportunity::ChakraBridge::WinRT
         static IBuffer^ SerializeScript(Platform::String^ script);
 
         /// <summary>
-        /// Parses a serialized script and returns a <c>Function</c> representing the script.
+        /// Parses a serialized script and returns a <see ref="IJsFunction"/> representing the script.
         /// </summary>
         /// <param name="script">The script to parse.</param>
         /// <param name="buffer">The serialized script.</param>
         /// <param name="sourceName">The location the script came from.</param>
-        /// <returns>A <c>Function</c> representing the script code.</returns>
+        /// <returns>A <see ref="IJsFunction"/> representing the script code. </returns>
         /// <remarks>Requires an active script context.</remarks>
         [Windows::Foundation::Metadata::Overload("ParseSerializedScriptWithSource")]
-        static JsValue^ ParseScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName);
+        static IJsFunction^ ParseScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName);
 
         /// <summary>
-        /// Parses a script and returns a <c>Function</c> representing the script.
+        /// Parses a script and returns a <see ref="IJsFunction"/> representing the script.
         /// </summary>
         /// <param name="script">The script to parse.</param>
         /// <param name="sourceName">The location the script came from.</param>
-        /// <returns>A <c>Function</c> representing the script code.</returns>
+        /// <returns>A <see ref="IJsFunction"/> representing the script code. </returns>
         /// <remarks>Requires an active script context.</remarks>
         [Windows::Foundation::Metadata::Overload("ParseScriptWithSource")]
-        static JsValue^ ParseScript(Platform::String^ script, Platform::String^ sourceName);
+        static IJsFunction^ ParseScript(Platform::String^ script, Platform::String^ sourceName);
 
         /// <summary>
-        /// Parses a serialized script and returns a function representing the script.
+        /// Parses a serialized script and returns a <see ref="IJsFunction"/> representing the script.
         /// Provides the ability to lazy load the script source only if/when it is needed. 
         /// </summary>
         /// <param name="scriptLoadCallback">Callback called when the source code of the script needs to be loaded. </param>
         /// <param name="scriptUnloadCallback">Callback called when the serialized script and source code are no longer needed. </param>
         /// <param name="buffer">The serialized script. </param>
         /// <param name="sourceUrl">The location the script came from. </param>
-        /// <returns>A function representing the script code. </returns>
+        /// <returns>A <see ref="IJsFunction"/> representing the script code. </returns>
         /// <remarks>
         /// <para>
         /// Requires an active script context. 
@@ -135,7 +263,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </para>
         /// </remarks>
         [Windows::Foundation::Metadata::Overload("ParseSerializedScriptWithCallback")]
-        static JsValue^ ParseScript(JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl);
+        static IJsFunction^ ParseScript(JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl);
 
         /// <summary>
         /// Runs a serialized script.
@@ -156,7 +284,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </para>
         /// </remarks>
         [Windows::Foundation::Metadata::Overload("RunSerializedScriptWithCallback")]
-        static JsValue^ RunScript(JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl);
+        static IJsValue^ RunScript(JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl);
 
         /// <summary>
         /// Runs a serialized script.
@@ -170,7 +298,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>The result of the script, if any.</returns>
         [Windows::Foundation::Metadata::Overload("RunSerializedScriptWithSource")]
-        static JsValue^ RunScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName);
+        static IJsValue^ RunScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName);
 
         /// <summary>
         /// Executes a script.
@@ -180,6 +308,8 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <param name="sourceName">The location the script came from.</param>
         /// <returns>The result of the script, if any.</returns>
         [Windows::Foundation::Metadata::Overload("RunScriptWithSource")]
-        static JsValue^ RunScript(Platform::String^ script, Platform::String^ sourceName);
+        static IJsValue^ RunScript(Platform::String^ script, Platform::String^ sourceName);
+#pragma endregion
+
     };
-};
+}

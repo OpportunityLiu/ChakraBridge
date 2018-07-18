@@ -19,7 +19,6 @@ namespace Opportunity::ChakraBridge::WinRT {
         JsContextScope(JsContext^ jsContext, bool disposeContext);
 
     public:
-
         /// <summary>
         /// Release references to contexts.
         /// </summary>

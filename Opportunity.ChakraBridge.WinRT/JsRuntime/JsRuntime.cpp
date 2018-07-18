@@ -6,7 +6,7 @@
 #include <strsafe.h>
 #include <concrt.h>
 #include <limits>
-#include "JsContext\JsContext.Instance.h"
+#include "JsContext\JsContext.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
