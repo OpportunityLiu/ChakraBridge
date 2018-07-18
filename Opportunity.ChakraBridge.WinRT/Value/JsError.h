@@ -24,6 +24,8 @@ namespace Opportunity::ChakraBridge::WinRT
     internal:
         JsErrorImpl(JsValueRef ref) :JsObjectImpl(ref) {}
         INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+        INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
+        INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
     public:
         virtual Platform::String^ ToString() override;

@@ -14,8 +14,16 @@ JsObjectImpl::JsObjectImpl(JsValueRef ref)
     CHAKRA_CALL(JsAddRef(ref, nullptr));
 }
 
-Platform::String ^ Opportunity::ChakraBridge::WinRT::JsObjectImpl::ToString()
+string^ JsObjectImpl::ToString()
 {
-    throw ref new Platform::NotImplementedException();
-    // TODO: 在此处插入 return 语句
+    JsValueRef strref;
+    if (JsConvertValueToString(Reference, &strref) == JsNoError)
+    {
+        const wchar_t* str;
+        size_t len;
+        CHAKRA_CALL(JsStringToPointer(strref, &str, &len));
+        return ref new string(str, static_cast<unsigned int>(len));
+    }
+    // no toString method.
+    return "[object Object]";
 }

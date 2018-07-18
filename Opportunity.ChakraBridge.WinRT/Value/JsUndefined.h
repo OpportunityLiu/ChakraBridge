@@ -17,6 +17,8 @@ namespace Opportunity::ChakraBridge::WinRT
     internal:
         JsUndefinedImpl(JsValueRef ref);
         INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+        INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
+        INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
     public:
         virtual string^ ToString() override { return "undefined"; }

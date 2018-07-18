@@ -1,4 +1,4 @@
-﻿using Opportunity.ChakraBridge.WinRT;
+﻿using Opportunity.ChakraBridge.UWP;
 using Opportunity.ChakraBridge.UWP.Browser;
 using System;
 using System.Collections.Generic;
@@ -25,6 +25,8 @@ using Windows.Web.Http;
 
 namespace Test
 {
+    public class ib { public string get() => "124"; }
+
     /// <summary>
     /// 可用于自身或导航至 Frame 内部的空白页。
     /// </summary>
@@ -34,7 +36,10 @@ namespace Test
         {
             this.InitializeComponent();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -44,16 +49,18 @@ namespace Test
                 using (var runtime = JsRuntime.Create())
                 {
                     var rt = JsRuntime.GetRuntimes().ToList();
-                    runtime.AllocatingMemory += this.Runtime_MemoryEvent;
+                    //runtime.AllocatingMemory += this.Runtime_MemoryEvent;
                     runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
                     using (var c = runtime.CreateContext())
                     {
                         using (c.Use(false))
                         {
-                            var x = JsNumber.Of(12);
-                            var a = JsString.Of("");
-                            var aa = a.ToString();
-                            var r = (IJsString)JsContext.RunScript("''");
+                            var testobj = JsValue.Create(new System.Net.Http.HttpClient());
+                            var x = JsString.Create("12");
+                            var xx = JsValue.Equals(x, x);
+                            //var a = JsValue.ToJsObject(x);
+                            //var aa = a.ToString();
+                            //var r = (IJsString)JsContext.RunScript("''");
                         }
                     }
                 }
