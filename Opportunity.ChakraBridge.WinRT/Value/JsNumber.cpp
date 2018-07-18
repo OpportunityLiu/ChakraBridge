@@ -21,22 +21,22 @@ float64 JsNumberImpl::ToDouble()
     return v;
 }
 
-Platform::String^ JsNumberImpl::ToString()
+string^ JsNumberImpl::ToString()
 {
     std::wostringstream strs;
     strs << ToDouble();
     std::wstring str = strs.str();
-    return ref new Platform::String(str.c_str());
+    return ref new string(str.c_str());
 }
 
-IJsNumber^ JsNumber::OfInt32(int32 value)
+IJsNumber^ JsNumber::Of(int32 value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsIntToNumber(value, &ref));
     return ref new JsNumberImpl(ref);
 }
 
-IJsNumber^ JsNumber::OfDouble(float64 value)
+IJsNumber^ JsNumber::Of(float64 value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsDoubleToNumber(value, &ref));

@@ -1,4 +1,5 @@
 #pragma once
+#include "alias.h"
 #include "JsValue.h"
 #include "JsEnum.h"
 #include "Native\ThrowHelper.h"
@@ -15,19 +16,26 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     internal:
         JsNumberImpl(JsValueRef ref);
-        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+
     public:
-        virtual Platform::String^ ToString() override;
+        virtual string^ ToString() override;
         virtual float64 ToDouble();
         virtual int32 ToInt32();
     };
 
+    /// <summary>
+    /// Static methods of <see cref="IJsNumber"/>.
+    /// </summary>
     public ref class JsNumber sealed
     {
     private:
         JsNumber() {}
     public:
-        static IJsNumber^ OfInt32(int32 value);
-        static IJsNumber^ OfDouble(float64 value);
+        [Overload("OfInt32")]
+        static IJsNumber^ Of(int32 value);
+        [DefaultOverload]
+        [Overload("OfDouble")]
+        static IJsNumber^ Of(float64 value);
     };
 }

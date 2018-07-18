@@ -30,4 +30,13 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual property Platform::String^ Message;
         virtual property Platform::String^ Name;
     };
+
+    /// <summary>
+    /// Static methods of <see cref="IJsError"/>.
+    /// </summary>
+    public ref class JsError sealed
+    {
+    private:
+        JsError() {}
+    };
 }

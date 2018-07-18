@@ -38,7 +38,7 @@ void JsContext::SetException(IJsError^ exception)
     CHAKRA_CALL(JsSetException(to_impl(exception)->Reference));
 }
 
-void JsContext::ProjectWinRTNamespace(Platform::String ^ namespaceName)
+void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
 {
     if (namespaceName == nullptr || namespaceName->IsEmpty())
         throw ref new Platform::InvalidArgumentException("namespaceName is null or empty.");

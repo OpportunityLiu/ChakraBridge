@@ -218,6 +218,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="alias.h" />
     <ClInclude Include="JsContext\JsContext.h" />
     <ClInclude Include="JsContext\JsContextScope.h" />
     <ClInclude Include="JsEnum.h" />

@@ -42,7 +42,7 @@ namespace Opportunity::ChakraBridge::WinRT
     };
 
     /// <summary>
-    /// Static methods of <see href="IJsValue"/>.
+    /// Static methods of <see cref="IJsValue"/>.
     /// </summary>
     public ref class JsValue sealed
     {

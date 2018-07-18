@@ -13,11 +13,15 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     internal:
         JsNullImpl(JsValueRef ref);
-        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+
     public:
         virtual Platform::String^ ToString() override { return "null"; }
     };
 
+    /// <summary>
+    /// Static methods of <see cref="IJsNull"/>.
+    /// </summary>
     public ref class JsNull sealed
     {
     private:

@@ -20,6 +20,9 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual Platform::String^ ToString() override;
     };
 
+    /// <summary>
+    /// Static methods of <see cref="IJsObject"/>.
+    /// </summary>
     public ref class JsObject sealed
     {
     private:

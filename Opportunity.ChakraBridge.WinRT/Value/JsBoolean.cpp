@@ -13,7 +13,7 @@ bool JsBooleanImpl::ToBoolean()
     return v;
 }
 
-Platform::String^ JsBooleanImpl::ToString()
+string^ JsBooleanImpl::ToString()
 {
     return ToBoolean() ? "true" : "false";
 }
@@ -32,7 +32,7 @@ IJsBoolean^ JsBoolean::False::get()
     return ref new JsBooleanImpl(ref);
 }
 
-IJsBoolean^ JsBoolean::OfBoolean(bool value)
+IJsBoolean^ JsBoolean::Of(bool value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsBoolToBoolean(value, &ref));

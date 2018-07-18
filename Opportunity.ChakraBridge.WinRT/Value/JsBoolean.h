@@ -14,13 +14,16 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     internal:
         JsBooleanImpl(JsValueRef ref);
-        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
 
     public:
-        virtual Platform::String^ ToString() override;
+        virtual string^ ToString() override;
         virtual bool ToBoolean();
     };
 
+    /// <summary>
+    /// Static methods of <see cref="IJsBoolean"/>.
+    /// </summary>
     public ref class JsBoolean sealed
     {
     private:
@@ -36,6 +39,6 @@ namespace Opportunity::ChakraBridge::WinRT
             IJsBoolean^ get();
         }
 
-        static IJsBoolean^ OfBoolean(bool value);
+        static IJsBoolean^ Of(bool value);
     };
 }

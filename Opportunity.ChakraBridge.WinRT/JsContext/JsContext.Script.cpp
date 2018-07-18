@@ -25,7 +25,7 @@ void JsContext::HandlePromiseContinuation()
     }
 }
 
-JsContext::IBuffer^ JsContext::SerializeScript(Platform::String^ script)
+JsContext::IBuffer^ JsContext::SerializeScript(string^ script)
 {
     if (script->IsEmpty())
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
@@ -37,7 +37,7 @@ JsContext::IBuffer^ JsContext::SerializeScript(Platform::String^ script)
     return buf;
 }
 
-IJsFunction^ JsContext::ParseScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName)
+IJsFunction^ JsContext::ParseScript(string^ script, IBuffer^ buffer, string^ sourceName)
 {
     unsigned int buflen;
     auto pointer = GetPointerOfBuffer(buffer, &buflen);
@@ -46,7 +46,7 @@ IJsFunction^ JsContext::ParseScript(Platform::String^ script, IBuffer^ buffer, P
     return ref new JsFunctionImpl(result);
 }
 
-IJsValue^ JsContext::RunScript(Platform::String^ script, IBuffer^ buffer, Platform::String^ sourceName)
+IJsValue^ JsContext::RunScript(string^ script, IBuffer^ buffer, string^ sourceName)
 {
     unsigned int buflen;
     auto pointer = GetPointerOfBuffer(buffer, &buflen);
@@ -55,7 +55,7 @@ IJsValue^ JsContext::RunScript(Platform::String^ script, IBuffer^ buffer, Platfo
     return JsValue::CreateTyped(result);
 }
 
-IJsFunction^ JsContext::ParseScript(Platform::String^ script, Platform::String^ sourceName)
+IJsFunction^ JsContext::ParseScript(string^ script, string^ sourceName)
 {
     if (script->IsEmpty())
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
@@ -64,7 +64,7 @@ IJsFunction^ JsContext::ParseScript(Platform::String^ script, Platform::String^ 
     return ref new JsFunctionImpl(result); 
 }
 
-IJsValue^ JsContext::RunScript(Platform::String^ script, Platform::String^ sourceName)
+IJsValue^ JsContext::RunScript(string^ script, string^ sourceName)
 {
     if (script->IsEmpty())
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
@@ -87,7 +87,7 @@ bool CALLBACK JsSerializedScriptLoadSourceCallbackImpl(_In_ JsSourceContext sour
         return false;
     try
     {
-        Platform::String^ s;
+        string^ s;
         if (!cb(&s))
             return false;
         auto buf = std::unique_ptr<wchar_t[]>(new wchar_t[s->Length() + 1]);
@@ -108,7 +108,7 @@ void CALLBACK JsSerializedScriptUnloadCallbackImpl(_In_ JsSourceContext sourceCo
     UnloadSource.erase(sourceContext);
 }
 
-IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl)
+IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, string^ sourceUrl)
 {
     if (scriptLoadCallback == nullptr)
         throw ref new Platform::InvalidArgumentException("scriptLoadCallback is null.");
@@ -119,7 +119,7 @@ IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializ
     return ref new JsFunctionImpl(result);
 }
 
-IJsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, Platform::String^ sourceUrl)
+IJsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, string^ sourceUrl)
 {
     if (scriptLoadCallback == nullptr)
         throw ref new Platform::InvalidArgumentException("scriptLoadCallback is null.");

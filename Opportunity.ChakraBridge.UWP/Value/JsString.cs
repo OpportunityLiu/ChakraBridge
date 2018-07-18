@@ -28,7 +28,7 @@ namespace Opportunity.ChakraBridge.UWP
         /// <see cref="JsErrorCode.InvalidArgument"/> if the type of the value is not <see cref="JsString"/>.
         /// </para>
         /// <para>
-        /// Requires an active script context.
+        /// Requires an active script context. 
         /// </para>
         /// </remarks>
         public string Value => ToString();

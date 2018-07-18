@@ -42,5 +42,6 @@
     <ClInclude Include="Value\JsNull.h" />
     <ClInclude Include="Value\PreDeclare.h" />
     <ClInclude Include="Value\Declare.h" />
+    <ClInclude Include="alias.h" />
   </ItemGroup>
 </Project>

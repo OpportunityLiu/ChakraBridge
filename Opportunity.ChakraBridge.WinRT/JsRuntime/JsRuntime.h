@@ -46,14 +46,14 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <summary>
         /// Raises before gabage collection.
         /// </summary>
-        event Windows::Foundation::TypedEventHandler<JsRuntime^, Platform::Object^>^ CollectingGarbage;
+        event Windows::Foundation::TypedEventHandler<JsRuntime^, object^>^ CollectingGarbage;
         /// <summary>
         /// Raises when the charka engine allocating or freeing memories.
         /// </summary>
         event Windows::Foundation::TypedEventHandler<JsRuntime^, JsMemoryEventArgs^>^ AllocatingMemory;
     };
 
-    public ref class JsRuntime sealed : [Windows::Foundation::Metadata::Default] IJsRuntime
+    public ref class JsRuntime sealed : [Default] IJsRuntime
     {
     private:
         static void CALLBACK JsBeforeCollectCallbackImpl(_In_opt_ void *callbackState);
@@ -93,7 +93,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <summary>
         /// Raises before gabage collection.
         /// </summary>
-        virtual event Windows::Foundation::TypedEventHandler<JsRuntime^, Platform::Object^>^ CollectingGarbage;
+        virtual event Windows::Foundation::TypedEventHandler<JsRuntime^, object^>^ CollectingGarbage;
         /// <summary>
         /// Raises when the charka engine allocating or freeing memories.
         /// </summary>
@@ -138,14 +138,14 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         /// <param name="attributes">The attributes of the runtime to be created.</param>
         /// <returns>The runtime created.</returns>
-        [Windows::Foundation::Metadata::Overload("CreateWithAttributes")]
+        [Overload("CreateWithAttributes")]
         static JsRuntime^ Create(Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes attributes);
         /// <summary>
         /// Creates a new runtime.
         /// </summary>
         /// <returns>The runtime created.</returns>
-        [Windows::Foundation::Metadata::Overload("Create")]
-        [Windows::Foundation::Metadata::DefaultOverload]
+        [Overload("Create")]
+        [DefaultOverload]
         static JsRuntime^ Create() { return Create(Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes::None); }
         /// <summary>
         /// Gets created runtimes.

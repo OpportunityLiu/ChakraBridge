@@ -50,10 +50,10 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var a = JsString.OfString("123");
+                            var x = JsNumber.Of(12);
+                            var a = JsString.Of("");
                             var aa = a.ToString();
-                            var r = JsContext.RunScript("'123'");
-                            var isstr = r is IJsString;
+                            var r = (IJsString)JsContext.RunScript("''");
                         }
                     }
                 }

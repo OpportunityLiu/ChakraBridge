@@ -16,14 +16,14 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     internal:
         JsUndefinedImpl(JsValueRef ref);
-        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
 
     public:
-        virtual Platform::String^ ToString() override { return "undefined"; }
+        virtual string^ ToString() override { return "undefined"; }
     };
 
     /// <summary>
-    /// Static methods of <see href="IJsUndefined"/>.
+    /// Static methods of <see cref="IJsUndefined"/>.
     /// </summary>
     public ref class JsUndefined sealed
     {

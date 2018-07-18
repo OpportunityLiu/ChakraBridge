@@ -37,4 +37,13 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual IJsValue^ Invoke(IJsValue^ caller, IJsValueVectorView^ arguments);
         virtual IJsObject^ New(IJsValueVectorView^ arguments);
     };
+
+    /// <summary>
+    /// Static methods of <see cref="IJsFunction"/>.
+    /// </summary>
+    public ref class JsFunction sealed
+    {
+    private:
+        JsFunction() {}
+    };
 }

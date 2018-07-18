@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "ThrowHelper.h"
 
-Platform::String^ GetCharkaError()
+using namespace Opportunity::ChakraBridge::WinRT;
+
+string^ GetChakraError()
 {
     JsValueRef error;
     CHAKRA_CALL(JsGetAndClearException(&error));
@@ -12,5 +14,5 @@ Platform::String^ GetCharkaError()
     const wchar_t * msg;
     size_t len;
     CHAKRA_CALL(JsStringToPointer(message, &msg, &len));
-    return ref new Platform::String(msg, static_cast<uint32>(len));
+    return ref new string(msg, static_cast<uint32>(len));
 }

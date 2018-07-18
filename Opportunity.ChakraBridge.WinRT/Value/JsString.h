@@ -5,26 +5,45 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+    /// <summary>
+    /// A JavaScript string value.
+    /// </summary>
     public interface class IJsString : IJsValue
     {
+        /// <summary>
+        /// Gets the length of a <see cref="IJsString"/> value.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <returns>The length of the string.</returns>
+        property int32 Length { int32 get(); }
     };
 
     ref class JsStringImpl sealed : JsValueImpl, IJsString
     {
     internal:
         JsStringImpl(JsValueRef ref);
-        virtual property JsValueType TypeInterface { JsValueType get() = IJsValue::Type::get{ return Type; } };
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
 
     public:
         virtual ~JsStringImpl();
-        virtual Platform::String^ ToString() override;
+        virtual string^ ToString() override;
+        virtual property int32 Length {int32 get(); }
     };
 
+    /// <summary>
+    /// Static methods of <see cref="IJsString"/>.
+    /// </summary>
     public ref class JsString sealed
     {
     private:
         JsString() {}
     public:
-        static IJsString^ OfString(Platform::String^ value);
+        /// <summary>
+        /// Creates a <see cref="IJsString"/> value from a <see langword="string"/>.
+        /// </summary>
+        /// <param name="stringValue">The <see langword="string"/> to convert to a <see cref="IJsString"/> value.</param>
+        /// <returns>The new <see cref="IJsString"/> value.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        static IJsString^ Of(string^ value);
     };
 }

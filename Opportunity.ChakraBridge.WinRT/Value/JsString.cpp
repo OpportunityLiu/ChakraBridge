@@ -14,15 +14,22 @@ JsStringImpl::JsStringImpl(JsValueRef ref)
     CHAKRA_CALL(JsAddRef(ref, nullptr));
 }
 
-Platform::String^ JsStringImpl::ToString()
+int32 JsStringImpl::Length::get()
+{
+    int l;
+    CHAKRA_CALL(JsGetStringLength(Reference, &l));
+    return static_cast<int32>(l);
+}
+
+string^ JsStringImpl::ToString()
 {
     const wchar_t* str;
     size_t len;
     CHAKRA_CALL(JsStringToPointer(Reference, &str, &len));
-    return ref new Platform::String(str, static_cast<unsigned int>(len));
+    return ref new string(str, static_cast<unsigned int>(len));
 }
 
-IJsString^ JsString::OfString(Platform::String^ value)
+IJsString^ JsString::Of(string^ value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsPointerToString(value->Data(), value->Length(), &ref));
