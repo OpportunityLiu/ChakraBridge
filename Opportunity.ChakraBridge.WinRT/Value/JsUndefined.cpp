@@ -8,7 +8,5 @@ JsUndefinedImpl::JsUndefinedImpl(JsValueRef ref)
 
 IJsUndefined^ JsUndefined::Instance::get()
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsGetUndefinedValue(&ref));
-    return ref new JsUndefinedImpl(ref);
+    return ref new JsUndefinedImpl(RawUndefined());
 }

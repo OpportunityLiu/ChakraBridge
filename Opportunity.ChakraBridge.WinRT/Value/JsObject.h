@@ -1,14 +1,13 @@
 #pragma once
 #include "JsValue.h"
 #include "JsEnum.h"
-#include "Native\ThrowHelper.h"
 #include "JsSymbol.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
     public interface class IJsObject : IJsValue, 
-        Windows::Foundation::Collections::IMap<string^, IJsValue^>, Windows::Foundation::Collections::IMapView<string^, IJsValue^>, 
-        Windows::Foundation::Collections::IMap<IJsSymbol^, IJsValue^>, Windows::Foundation::Collections::IMapView<IJsSymbol^, IJsValue^>
+        Windows::Foundation::Collections::IMap<string^, IJsValue^>, 
+        Windows::Foundation::Collections::IMap<IJsSymbol^, IJsValue^>
     {
     };
 
@@ -38,21 +37,19 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual void Clear() {};
 
         virtual IJsValue^ Lookup(string^ key);
-        virtual void Remove(string^ key) {};
-        virtual bool HasKey(string^ key) { return false; };
-        virtual bool Insert(string^ key, IJsValue^ value) { return false; };
-        virtual IStrMapView^ GetStrView() = IStrMap::GetView { return this; };
-        virtual void Split(IStrMapView^* first, IStrMapView^* second) {};
-        virtual property uint32 StrSize { uint32 get() = IStrMap::Size::get, IStrMapView::Size::get { return 0; } };
+        virtual void Remove(string^ key);
+        virtual bool HasKey(string^ key);
+        virtual bool Insert(string^ key, IJsValue^ value);
+        virtual IStrMapView^ GetStrView() = IStrMap::GetView { return nullptr; };
+        virtual property uint32 StrSize { uint32 get() = IStrMap::Size::get { return 0; } };
         virtual IStrIterator^ StrFirst() = IStrIterable::First { return nullptr; }
 
         virtual IJsValue^ Lookup(IJsSymbol^ key);
-        virtual void Remove(IJsSymbol^ key) {};
-        virtual bool HasKey(IJsSymbol^ key) { return false; };
-        virtual bool Insert(IJsSymbol^ key, IJsValue^ value) { return false; };
-        virtual ISymMapView^ GetSymView() = ISymMap::GetView { return this; };
-        virtual void Split(ISymMapView^* first, ISymMapView^* second) {};
-        virtual property uint32 SymSize { uint32 get() = ISymMap::Size::get, ISymMapView::Size::get { return 0; } };
+        virtual void Remove(IJsSymbol^ key);
+        virtual bool HasKey(IJsSymbol^ key);
+        virtual bool Insert(IJsSymbol^ key, IJsValue^ value);
+        virtual ISymMapView^ GetSymView() = ISymMap::GetView { return nullptr; };
+        virtual property uint32 SymSize { uint32 get() = ISymMap::Size::get { return 0; } };
         virtual ISymIterator^ SymFirst() = ISymIterable::First { return nullptr; }
     };
 

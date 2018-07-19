@@ -1,7 +1,6 @@
 #pragma once
 #include "JsValue.h"
 #include "JsEnum.h"
-#include "Native\ThrowHelper.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {

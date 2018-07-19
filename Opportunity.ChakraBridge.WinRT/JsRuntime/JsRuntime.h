@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <unordered_map>
 #include "JsEnum.h"
-#include "Native\ThrowHelper.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {

@@ -55,9 +55,7 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var a = (IJsFunction)JsContext.RunScript("(function a(){this.ag = arguments;})");
-                            var n = a.New(new[] { JsValue.GlobalObject });
-                            var i = a.Invoke(null, new[] { JsValue.GlobalObject });
+                            var a = (IJsSymbol)JsContext.RunScript("Symbol('123')");
                             //var testobj = JsValue.Create(new System.Net.Http.HttpClient());
                             //var x = JsString.Create("12");
                             //var xx = JsValue.Equals(x, x);

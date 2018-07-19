@@ -5,23 +5,24 @@
 using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSourceContext JsContext::SourceContext = 0;
-JsValueRef JsContext::PromiseContinuation = JS_INVALID_REFERENCE;
 
 void CALLBACK JsContext::JsPromiseContinuationCallbackImpl(_In_ JsValueRef task, _In_opt_ void *callbackState)
 {
-    JsContext::PromiseContinuation = task;
+    auto current = Get(reinterpret_cast<JsContextRef>(callbackState));
+    CHAKRA_CALL(JsAddRef(task, nullptr));
+    current->PromiseContinuationQueue.push(task);
 }
 
 void JsContext::HandlePromiseContinuation()
 {
-    JsValueRef caller = JS_INVALID_REFERENCE;
-    CHAKRA_CALL(JsGetGlobalObject(&caller));
-    while (PromiseContinuation != JS_INVALID_REFERENCE)
+    auto current = Current;
+    JsValueRef global = RawGlobalObject();
+    while (!current->PromiseContinuationQueue.empty())
     {
-        JsValueRef result;
-        auto task = PromiseContinuation;
-        PromiseContinuation = JS_INVALID_REFERENCE;
-        CHAKRA_CALL(JsCallFunction(task, &caller, 1, &result));
+        auto task = current->PromiseContinuationQueue.front();
+        current->PromiseContinuationQueue.pop();
+        RawCallFunction(task, global);
+        CHAKRA_CALL(JsRelease(task, nullptr));
     }
 }
 
@@ -52,6 +53,7 @@ IJsValue^ JsContext::RunScript(string^ script, IBuffer^ buffer, string^ sourceNa
     auto pointer = GetPointerOfBuffer(buffer, &buflen);
     JsValueRef result;
     CHAKRA_CALL(JsRunSerializedScript(script->Data(), pointer, SourceContext++, sourceName->Data(), &result));
+    HandlePromiseContinuation();
     return JsValue::CreateTyped(result);
 }
 

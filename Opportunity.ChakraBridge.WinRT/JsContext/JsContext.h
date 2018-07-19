@@ -2,10 +2,10 @@
 #include "alias.h"
 #include "JsEnum.h"
 #include "JsRuntime\JsRuntime.h"
-#include "Native\ThrowHelper.h"
 #include "JsContextScope.h"
 #include "Value\JsError.h"
 #include "Value\JsFunction.h"
+#include <queue>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -149,8 +149,8 @@ namespace Opportunity::ChakraBridge::WinRT
 #pragma region Script
     private:
         using IBuffer = Windows::Storage::Streams::IBuffer;
+        std::queue<JsValueRef> PromiseContinuationQueue;
         static JsSourceContext SourceContext;
-        static JsValueRef PromiseContinuation;
         static void CALLBACK JsContext::JsPromiseContinuationCallbackImpl(_In_ JsValueRef task, _In_opt_ void *callbackState);
     internal:
         static void HandlePromiseContinuation();

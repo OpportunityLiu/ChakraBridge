@@ -16,14 +16,10 @@ JsSymbolImpl::JsSymbolImpl(JsValueRef ref)
 
 string^ JsSymbolImpl::ToString()
 {
-    JsValueRef strref;
-    if (JsConvertValueToString(Reference, &strref) == JsNoError)
-    {
-        const wchar_t* str;
-        size_t len;
-        CHAKRA_CALL(JsStringToPointer(strref, &str, &len));
-        return ref new string(str, static_cast<unsigned int>(len));
-    }
-    // no toString method.
-    return "[object Object]";
+    auto tostrFunc = RawGetProperty(RawGlobalObject(), L"Symbol", L"prototype", L"toString");
+    JsValueRef strref = RawCallFunction(tostrFunc, this->Reference);
+    const wchar_t* str;
+    size_t len;
+    CHAKRA_CALL(JsStringToPointer(strref, &str, &len));
+    return ref new string(str, static_cast<unsigned int>(len));
 }

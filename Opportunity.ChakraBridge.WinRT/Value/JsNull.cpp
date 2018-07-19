@@ -8,7 +8,5 @@ JsNullImpl::JsNullImpl(JsValueRef ref)
 
 IJsNull^ JsNull::Instance::get()
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsGetNullValue(&ref));
-    return ref new JsNullImpl(ref);
+    return ref new JsNullImpl(RawNull());
 }

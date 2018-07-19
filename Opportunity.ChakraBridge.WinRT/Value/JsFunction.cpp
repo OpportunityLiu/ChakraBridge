@@ -18,11 +18,7 @@ _Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee,
 void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, std::vector<JsValueRef>& args)
 {
     if (caller == nullptr || to_impl(caller)->Reference == JS_INVALID_REFERENCE)
-    {
-        JsValueRef globalobj;
-        CHAKRA_CALL(JsGetGlobalObject(&globalobj));
-        args.push_back(globalobj);
-    }
+        args.push_back(RawGlobalObject());
     else
         args.push_back(to_impl(caller)->Reference);
 
@@ -39,7 +35,7 @@ void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, st
         if (var == nullptr || to_impl(var)->Reference == JS_INVALID_REFERENCE)
         {
             if (undef == JS_INVALID_REFERENCE)
-                CHAKRA_CALL(JsGetUndefinedValue(&undef));
+                undef = RawUndefined(); 
             args.push_back(undef);
         }
         else

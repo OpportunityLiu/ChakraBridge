@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "ThrowHelper.h"
+#include "Helper.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 

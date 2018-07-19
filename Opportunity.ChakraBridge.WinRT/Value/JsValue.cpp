@@ -143,7 +143,5 @@ IJsObject^ JsValue::ToJsObject(IJsValue^ value)
 
 IJsObject^ JsValue::GlobalObject::get()
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsGetGlobalObject(&ref));
-    return ref new JsObjectImpl(ref);
+    return ref new JsObjectImpl(RawGlobalObject());
 }

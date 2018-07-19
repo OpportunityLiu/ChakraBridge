@@ -1,6 +1,6 @@
 #pragma once
 #include "JsRuntime\JsRuntime.h"
-#include "Native\ThrowHelper.h"
+#include "Native\Helper.h"
 
 namespace Opportunity::ChakraBridge::WinRT {
 

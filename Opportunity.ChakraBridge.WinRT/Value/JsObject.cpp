@@ -16,24 +16,65 @@ JsObjectImpl::JsObjectImpl(JsValueRef ref)
 
 IJsValue^ JsObjectImpl::Lookup(string^ key)
 {
-    if (key == nullptr)
-        throw ref new Platform::InvalidArgumentException("key is null.");
-    JsPropertyIdRef k;
-    CHAKRA_CALL(JsGetPropertyIdFromName(key->Data(), &k));
-    JsValueRef v;
-    CHAKRA_CALL(JsGetProperty(Reference, k, &v));
-    return JsValue::CreateTyped(v);
+    if (key->IsEmpty())
+        throw ref new Platform::InvalidArgumentException(L"key is null or empty.");
+    return JsValue::CreateTyped(RawGetProperty(Reference, key->Data()));
 }
 
 IJsValue^ JsObjectImpl::Lookup(IJsSymbol^ key)
 {
     if (key == nullptr)
-        throw ref new Platform::InvalidArgumentException("key is null.");
-    JsPropertyIdRef k;
-    CHAKRA_CALL(JsGetPropertyIdFromSymbol(to_impl(key)->Reference, &k));
-    JsValueRef v;
-    CHAKRA_CALL(JsGetProperty(Reference, k, &v));
-    return JsValue::CreateTyped(v);
+        throw ref new Platform::InvalidArgumentException(L"key is null.");
+    return JsValue::CreateTyped(RawGetProperty(Reference, to_impl(key)->Reference));
+}
+
+bool JsObjectImpl::HasKey(string^ key)
+{
+    if (key->IsEmpty())
+        throw ref new Platform::InvalidArgumentException(L"key is null or empty.");
+    bool r;
+    CHAKRA_CALL(JsHasProperty(Reference, RawGetPropertyId(key->Data()), &r));
+    return r;
+}
+
+bool JsObjectImpl::HasKey(IJsSymbol^ key)
+{
+    if (key == nullptr)
+        throw ref new Platform::InvalidArgumentException(L"key is null.");
+    bool r;
+    CHAKRA_CALL(JsHasProperty(Reference, RawGetPropertyId(to_impl(key)->Reference), &r));
+    return r;
+}
+
+bool JsObjectImpl::Insert(string^ key, IJsValue^ value)
+{
+    bool r = HasKey(key);
+    JsValueRef = value != nullptr ? to_impl(value)->Reference : RawGetNull();
+    CHAKRA_CALL(JsSetProperty(Reference, RawGetPropertyId(key->Data()), to_impl(value)->Reference, true));
+    return r;
+}
+
+bool JsObjectImpl::Insert(IJsSymbol^ key, IJsValue^ value)
+{
+    bool r = HasKey(key);
+    CHAKRA_CALL(JsSetProperty(Reference, RawGetPropertyId(to_impl(key)->Reference), to_impl(value)->Reference, true));
+    return r;
+}
+
+void JsObjectImpl::Remove(string^ key)
+{
+    if (key->IsEmpty())
+        throw ref new Platform::InvalidArgumentException(L"key is null or empty.");
+    JsValueRef r;
+    CHAKRA_CALL(JsDeleteProperty(Reference, RawGetPropertyId(key->Data()), true, &r));
+}
+
+void JsObjectImpl::Remove(IJsSymbol^ key)
+{
+    if (key == nullptr)
+        throw ref new Platform::InvalidArgumentException(L"key is null.");
+    JsValueRef r;
+    CHAKRA_CALL(JsDeleteProperty(Reference, RawGetPropertyId(to_impl(key)->Reference), true, &r));
 }
 
 string^ JsObjectImpl::ToString()
