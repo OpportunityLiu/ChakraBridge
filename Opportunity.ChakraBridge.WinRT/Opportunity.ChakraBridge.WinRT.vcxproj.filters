@@ -23,6 +23,7 @@
     <ClCompile Include="Value\JsNull.cpp" />
     <ClCompile Include="Value\JsError.cpp" />
     <ClCompile Include="Value\JsFunction.cpp" />
+    <ClCompile Include="Value\JsSymbol.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -43,5 +44,6 @@
     <ClInclude Include="Value\PreDeclare.h" />
     <ClInclude Include="Value\Declare.h" />
     <ClInclude Include="alias.h" />
+    <ClInclude Include="Value\JsSymbol.h" />
   </ItemGroup>
 </Project>

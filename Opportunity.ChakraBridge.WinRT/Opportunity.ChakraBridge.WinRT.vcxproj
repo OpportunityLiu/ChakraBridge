@@ -233,6 +233,7 @@
     <ClInclude Include="Value\JsNumber.h" />
     <ClInclude Include="Value\JsObject.h" />
     <ClInclude Include="Value\JsString.h" />
+    <ClInclude Include="Value\JsSymbol.h" />
     <ClInclude Include="Value\JsUndefined.h" />
     <ClInclude Include="Value\JsValue.h" />
     <ClInclude Include="Value\PreDeclare.h" />
@@ -258,6 +259,7 @@
     <ClCompile Include="Value\JsNumber.cpp" />
     <ClCompile Include="Value\JsObject.cpp" />
     <ClCompile Include="Value\JsString.cpp" />
+    <ClCompile Include="Value\JsSymbol.cpp" />
     <ClCompile Include="Value\JsUndefined.cpp" />
     <ClCompile Include="Value\JsValue.cpp" />
   </ItemGroup>

@@ -1,4 +1,4 @@
-﻿using Opportunity.ChakraBridge.UWP;
+﻿using Opportunity.ChakraBridge.WinRT;
 using Opportunity.ChakraBridge.UWP.Browser;
 using System;
 using System.Collections.Generic;
@@ -55,9 +55,12 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var testobj = JsValue.Create(new System.Net.Http.HttpClient());
-                            var x = JsString.Create("12");
-                            var xx = JsValue.Equals(x, x);
+                            var a = (IJsFunction)JsContext.RunScript("(function a(){this.ag = arguments;})");
+                            var n = a.New(new[] { JsValue.GlobalObject });
+                            var i = a.Invoke(null, new[] { JsValue.GlobalObject });
+                            //var testobj = JsValue.Create(new System.Net.Http.HttpClient());
+                            //var x = JsString.Create("12");
+                            //var xx = JsValue.Equals(x, x);
                             //var a = JsValue.ToJsObject(x);
                             //var aa = a.ToString();
                             //var r = (IJsString)JsContext.RunScript("''");

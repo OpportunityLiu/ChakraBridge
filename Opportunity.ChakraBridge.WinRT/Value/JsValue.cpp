@@ -51,8 +51,12 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
         return ref new JsNumberImpl(ref);
     case ::JsString:
         return ref new JsStringImpl(ref);
+    case ::JsSymbol:
+        return ref new JsSymbolImpl(ref);
     case ::JsObject:
         return ref new JsObjectImpl(ref);
+    case ::JsFunction:
+        return ref new JsFunctionImpl(ref);
     }
     throw ref new Platform::NotImplementedException();
     // TODO: 在此处插入 return 语句

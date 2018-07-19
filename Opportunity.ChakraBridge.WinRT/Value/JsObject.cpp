@@ -14,6 +14,28 @@ JsObjectImpl::JsObjectImpl(JsValueRef ref)
     CHAKRA_CALL(JsAddRef(ref, nullptr));
 }
 
+IJsValue^ JsObjectImpl::Lookup(string^ key)
+{
+    if (key == nullptr)
+        throw ref new Platform::InvalidArgumentException("key is null.");
+    JsPropertyIdRef k;
+    CHAKRA_CALL(JsGetPropertyIdFromName(key->Data(), &k));
+    JsValueRef v;
+    CHAKRA_CALL(JsGetProperty(Reference, k, &v));
+    return JsValue::CreateTyped(v);
+}
+
+IJsValue^ JsObjectImpl::Lookup(IJsSymbol^ key)
+{
+    if (key == nullptr)
+        throw ref new Platform::InvalidArgumentException("key is null.");
+    JsPropertyIdRef k;
+    CHAKRA_CALL(JsGetPropertyIdFromSymbol(to_impl(key)->Reference, &k));
+    JsValueRef v;
+    CHAKRA_CALL(JsGetProperty(Reference, k, &v));
+    return JsValue::CreateTyped(v);
+}
+
 string^ JsObjectImpl::ToString()
 {
     JsValueRef strref;

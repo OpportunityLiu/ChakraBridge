@@ -27,7 +27,7 @@ void JsContext::HandlePromiseContinuation()
 
 JsContext::IBuffer^ JsContext::SerializeScript(string^ script)
 {
-    if (script->IsEmpty())
+    if (IsNullOrEmpty(script))
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
     unsigned long bufferSize = 0;
     CHAKRA_CALL(JsSerializeScript(script->Data(), nullptr, &bufferSize));
@@ -57,16 +57,16 @@ IJsValue^ JsContext::RunScript(string^ script, IBuffer^ buffer, string^ sourceNa
 
 IJsFunction^ JsContext::ParseScript(string^ script, string^ sourceName)
 {
-    if (script->IsEmpty())
+    if (IsNullOrEmpty(script))
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
     JsValueRef result;
     CHAKRA_CALL(JsParseScript(script->Data(), SourceContext++, sourceName->Data(), &result));
-    return ref new JsFunctionImpl(result); 
+    return ref new JsFunctionImpl(result);
 }
 
 IJsValue^ JsContext::RunScript(string^ script, string^ sourceName)
 {
-    if (script->IsEmpty())
+    if (IsNullOrEmpty(script))
         throw ref new Platform::InvalidArgumentException("script is null or empty.");
     JsValueRef result;
     CHAKRA_CALL(JsRunScript(script->Data(), SourceContext++, sourceName->Data(), &result));
@@ -90,8 +90,9 @@ bool CALLBACK JsSerializedScriptLoadSourceCallbackImpl(_In_ JsSourceContext sour
         string^ s;
         if (!cb(&s))
             return false;
-        auto buf = std::unique_ptr<wchar_t[]>(new wchar_t[s->Length() + 1]);
-        wcscpy_s(buf.get(), s->Length() + 1, s->Data());
+        auto buflen = s->Length() + 1;
+        auto buf = std::unique_ptr<wchar_t[]>(new wchar_t[buflen]);
+        wcscpy_s(buf.get(), buflen, s->Data());
         *scriptBuffer = buf.get();
         UnloadSource[sourceContext] = std::move(buf);
         return true;

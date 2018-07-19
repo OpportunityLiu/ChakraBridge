@@ -40,7 +40,7 @@ void JsContext::SetException(IJsError^ exception)
 
 void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
 {
-    if (namespaceName == nullptr || namespaceName->IsEmpty())
+    if (IsNullOrEmpty(namespaceName))
         throw ref new Platform::InvalidArgumentException("namespaceName is null or empty.");
     CHAKRA_CALL(JsProjectWinRTNamespace(namespaceName->Data()));
 }

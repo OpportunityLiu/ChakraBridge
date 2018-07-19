@@ -8,3 +8,8 @@
 #include "Value\Declare.h"
 
 unsigned char* GetPointerOfBuffer(Windows::Storage::Streams::IBuffer^ buffer, unsigned int *length);
+
+inline bool IsNullOrEmpty(Platform::String^ s)
+{
+    return s == nullptr || s->IsEmpty();
+}

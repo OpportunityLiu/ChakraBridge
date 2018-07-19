@@ -17,4 +17,16 @@ namespace Opportunity::ChakraBridge::WinRT
 #define UNIQUE_NAME(base) PP_CAT(base, __LINE__)
 #define INHERIT_INTERFACE_R_PROPERTY(pname, ptype, pint) virtual property ptype UNIQUE_NAME(__##pname##__) { ptype get() = pint::pname::get { return pname; }}
 #define INHERIT_INTERFACE_RW_PROPERTY(pname, ptype, pint) virtual property ptype UNIQUE_NAME(__##pname##__) { ptype get() = pint::pname::get { return pname; } void set(ptype value) = pint::pname::set { pname = value; }}
+
+#define INHERIT_INTERFACE_METHOD_PARAM1(pname, ptype, pint, p1t) virtual ptype UNIQUE_NAME(__##pname##__)(p1t a1) = pint::pname { return pname(a1); }
+#define INHERIT_INTERFACE_METHOD_PARAM2(pname, ptype, pint, p1t, p2t) virtual ptype UNIQUE_NAME(__##pname##__)(p1t a1, p2t a2) = pint::pname { return pname(a1, a2); } 
+#define INHERIT_INTERFACE_METHOD_PARAM3(pname, ptype, pint, p1t, p2t, p3t) virtual ptype UNIQUE_NAME(__##pname##__)(p1t a1, p2t a2, p3t a3) = pint::pname { return pname(a1, a2, a3); } 
 #define INHERIT_INTERFACE_METHOD(pname, ptype, pint) virtual ptype UNIQUE_NAME(__##pname##__)() = pint::pname { return pname(); } 
+
+#define INHERIT_INTERFACE_R_PROPERTY_EXPLICT(pname, ename, ptype, pint) virtual property ptype UNIQUE_NAME(__##pname##__) { ptype get() = pint::pname::get { return ename; }}
+#define INHERIT_INTERFACE_RW_PROPERTY_EXPLICT(pname, ename, ptype, pint) virtual property ptype UNIQUE_NAME(__##pname##__) { ptype get() = pint::pname::get { return ename; } void set(ptype value) = pint::pname::set { ename = value; }}
+
+#define INHERIT_INTERFACE_METHOD_PARAM1_EXPLICT(pname, ename, ptype, pint, p1t) virtual ptype UNIQUE_NAME(__##pname##__)(p1t a1) = pint::pname { return ename(a1); }
+#define INHERIT_INTERFACE_METHOD_PARAM2_EXPLICT(pname, ename, ptype, pint, p1t, p2t) virtual ptype UNIQUE_NAME(__##pname##__)(p1t a1, p2t a2) = pint::pname { return ename(a1, a2); } 
+#define INHERIT_INTERFACE_METHOD_PARAM3_EXPLICT(pname, ename, ptype, pint, p1t, p2t, p3t) virtual ptype UNIQUE_NAME(__##pname##__)(p1t a1, p2t a2, p3t a3) = pint::pname { return ename(a1, a2, a3); } 
+#define INHERIT_INTERFACE_METHOD_EXPLICT(pname, ename, ptype, pint) virtual ptype UNIQUE_NAME(__##pname##__)() = pint::pname { return ename(); } 

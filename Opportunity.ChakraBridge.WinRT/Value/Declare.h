@@ -6,3 +6,4 @@
 #include "JsUndefined.h"
 #include "JsString.h"
 #include "JsObject.h"
+#include "JsSymbol.h"
