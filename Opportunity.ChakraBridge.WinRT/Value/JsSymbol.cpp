@@ -18,8 +18,5 @@ string^ JsSymbolImpl::ToString()
 {
     auto tostrFunc = RawGetProperty(RawGlobalObject(), L"Symbol", L"prototype", L"toString");
     JsValueRef strref = RawCallFunction(tostrFunc, this->Reference);
-    const wchar_t* str;
-    size_t len;
-    CHAKRA_CALL(JsStringToPointer(strref, &str, &len));
-    return ref new string(str, static_cast<unsigned int>(len));
+    return RawStringToPointer(strref);
 }

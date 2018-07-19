@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "JsObject.h"
+#include <vector>
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
@@ -42,22 +43,23 @@ bool JsObjectImpl::HasKey(IJsSymbol^ key)
     if (key == nullptr)
         throw ref new Platform::InvalidArgumentException(L"key is null.");
     bool r;
-    CHAKRA_CALL(JsHasProperty(Reference, RawGetPropertyId(to_impl(key)->Reference), &r));
+    CHAKRA_CALL(JsHasIndexedProperty(Reference, to_impl(key)->Reference, &r));
     return r;
 }
 
 bool JsObjectImpl::Insert(string^ key, IJsValue^ value)
 {
     bool r = HasKey(key);
-    JsValueRef = value != nullptr ? to_impl(value)->Reference : RawGetNull();
-    CHAKRA_CALL(JsSetProperty(Reference, RawGetPropertyId(key->Data()), to_impl(value)->Reference, true));
+    auto vref = value != nullptr ? to_impl(value)->Reference : RawNull();
+    CHAKRA_CALL(JsSetProperty(Reference, RawGetPropertyId(key->Data()), vref, true));
     return r;
 }
 
 bool JsObjectImpl::Insert(IJsSymbol^ key, IJsValue^ value)
 {
     bool r = HasKey(key);
-    CHAKRA_CALL(JsSetProperty(Reference, RawGetPropertyId(to_impl(key)->Reference), to_impl(value)->Reference, true));
+    auto vref = value != nullptr ? to_impl(value)->Reference : RawNull();
+    CHAKRA_CALL(JsSetIndexedProperty(Reference, to_impl(key)->Reference, vref));
     return r;
 }
 
@@ -73,8 +75,52 @@ void JsObjectImpl::Remove(IJsSymbol^ key)
 {
     if (key == nullptr)
         throw ref new Platform::InvalidArgumentException(L"key is null.");
+    CHAKRA_CALL(JsDeleteIndexedProperty(Reference, to_impl(key)->Reference));
+}
+
+JsObjectImpl::IStrIterator^ JsObjectImpl::StrFirst()
+{
     JsValueRef r;
-    CHAKRA_CALL(JsDeleteProperty(Reference, RawGetPropertyId(to_impl(key)->Reference), true, &r));
+    CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
+    auto n = RawNumberToInt(RawGetProperty(r, L"length"));
+    auto view = ref new KVIteratorImpl<string^, IJsValue^>();
+    for (int i = 0; i < n; i++)
+    {
+        auto kf = RawGetProperty(r, RawIntToNumber(i));
+        auto k = RawStringToPointer(kf);
+        view->Data.emplace_back(k, JsValue::CreateTyped(RawGetProperty(Reference, kf)));
+    }
+    view->Init();
+    return view;
+}
+
+JsObjectImpl::ISymIterator^ JsObjectImpl::SymFirst()
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
+    auto n = RawNumberToInt(RawGetProperty(r, L"length"));
+    auto view = ref new KVIteratorImpl<IJsSymbol^, IJsValue^>();
+    for (int i = 0; i < n; i++)
+    {
+        auto kf = RawGetProperty(r, RawIntToNumber(i));
+        view->Data.emplace_back(ref new JsSymbolImpl(kf), JsValue::CreateTyped(RawGetProperty(Reference, kf)));
+    }
+    view->Init();
+    return view;
+}
+
+uint32 JsObjectImpl::StrSize::get()
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
+    return static_cast<uint32>(RawNumberToInt(RawGetProperty(r, L"length")));
+}
+
+uint32 JsObjectImpl::SymSize::get()
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
+    return static_cast<uint32>(RawNumberToInt(RawGetProperty(r, L"length")));
 }
 
 string^ JsObjectImpl::ToString()
@@ -82,10 +128,7 @@ string^ JsObjectImpl::ToString()
     JsValueRef strref;
     if (JsConvertValueToString(Reference, &strref) == JsNoError)
     {
-        const wchar_t* str;
-        size_t len;
-        CHAKRA_CALL(JsStringToPointer(strref, &str, &len));
-        return ref new string(str, static_cast<unsigned int>(len));
+        return RawStringToPointer(strref);
     }
     // no toString method.
     return "[object Object]";

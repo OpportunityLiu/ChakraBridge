@@ -5,10 +5,65 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsObject : IJsValue, 
-        Windows::Foundation::Collections::IMap<string^, IJsValue^>, 
-        Windows::Foundation::Collections::IMap<IJsSymbol^, IJsValue^>
+    public interface class IJsObject : IJsValue,
+        Windows::Foundation::Collections::IMap<string^, IJsValue^>, Windows::Foundation::Collections::IMapView<string^, IJsValue^>,
+        Windows::Foundation::Collections::IMap<IJsSymbol^, IJsValue^>, Windows::Foundation::Collections::IMapView<IJsSymbol^, IJsValue^>
     {
+    };
+
+    template<typename K, typename V>
+    ref class KVIteratorImpl : Windows::Foundation::Collections::IIterator<Windows::Foundation::Collections::IKeyValuePair<K, V>^>
+    {
+    private:
+        using IKVP = Windows::Foundation::Collections::IKeyValuePair<K, V>;
+        using KVP = std::pair<K, V>;
+        typename std::vector<KVP>::const_iterator Iter;
+    internal:
+        std::vector<KVP> Data;
+        void Init()
+        {
+            Iter = Data.cbegin();
+        }
+    public:
+        virtual property bool HasCurrent
+        {
+            bool get()
+            {
+                return Iter < Data.cend();
+            }
+        }
+
+        virtual property IKVP^ Current
+        {
+            IKVP^ get()
+            {
+                using namespace Platform::Collections::Details;
+                if (!HasCurrent)
+                    throw ref new Platform::OutOfBoundsException(L"Iterate has ended.");
+                return ref new KeyValuePair<K, V>(MakeWrap(Iter->first), MakeWrap(Iter->second));
+            }
+        }
+
+        virtual bool MoveNext()
+        {
+            if (Iter < Data.cend())
+                Iter++;
+            return Iter < Data.cend();
+        }
+
+        virtual uint32 GetMany(Platform::WriteOnlyArray<IKVP^>^ items)
+        {
+            using namespace Platform::Collections::Details;
+            if (items == nullptr)
+                throw ref new Platform::InvalidArgumentException();
+            auto capacity = items->Length;
+            uint32 copied = 0;
+            for (; Iter != Data.cend() && copied < capacity; Iter++, copied++)
+            {
+                items[copied] = ref new KeyValuePair<K, V>(MakeWrap(Iter->first), MakeWrap(Iter->second));
+            }
+            return copied;
+        }
     };
 
     ref class JsObjectImpl : JsValueImpl, IJsObject
@@ -40,17 +95,19 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual void Remove(string^ key);
         virtual bool HasKey(string^ key);
         virtual bool Insert(string^ key, IJsValue^ value);
-        virtual IStrMapView^ GetStrView() = IStrMap::GetView { return nullptr; };
-        virtual property uint32 StrSize { uint32 get() = IStrMap::Size::get { return 0; } };
-        virtual IStrIterator^ StrFirst() = IStrIterable::First { return nullptr; }
+        virtual IStrMapView^ GetStrView() = IStrMap::GetView{ return this; };
+        virtual property uint32 StrSize { uint32 get() = IStrMap::Size::get, IStrMapView::Size::get; };
+        virtual IStrIterator^ StrFirst() = IStrIterable::First;
+        virtual void Split(IStrMapView^*, IStrMapView^*) {}
 
         virtual IJsValue^ Lookup(IJsSymbol^ key);
         virtual void Remove(IJsSymbol^ key);
         virtual bool HasKey(IJsSymbol^ key);
         virtual bool Insert(IJsSymbol^ key, IJsValue^ value);
-        virtual ISymMapView^ GetSymView() = ISymMap::GetView { return nullptr; };
-        virtual property uint32 SymSize { uint32 get() = ISymMap::Size::get { return 0; } };
-        virtual ISymIterator^ SymFirst() = ISymIterable::First { return nullptr; }
+        virtual ISymMapView^ GetSymView() = ISymMap::GetView{ return this; };
+        virtual property uint32 SymSize { uint32 get() = ISymMap::Size::get, ISymMapView::Size::get; };
+        virtual ISymIterator^ SymFirst() = ISymIterable::First;
+        virtual void Split(ISymMapView^*, ISymMapView^*) {}
     };
 
     /// <summary>

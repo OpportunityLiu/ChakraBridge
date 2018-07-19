@@ -1,6 +1,7 @@
 #pragma once
 #include "PreDeclare.h"
 #include "JsEnum.h"
+#include <type_traits>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -13,7 +14,7 @@ namespace Opportunity::ChakraBridge::WinRT
     /// A JavaScript value is one of the following types of values: Undefined, Null, Boolean, 
     /// String, Number, or Object.
     /// </remarks>
-    public interface class IJsValue: Windows::Foundation::IStringable
+    public interface class IJsValue : Windows::Foundation::IStringable
     {
         /// <summary>
         /// Gets the JavaScript type of the value.

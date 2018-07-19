@@ -58,8 +58,7 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
     case ::JsFunction:
         return ref new JsFunctionImpl(ref);
     }
-    throw ref new Platform::NotImplementedException();
-    // TODO: 在此处插入 return 语句
+    return ref new JsObjectImpl(ref);
 }
 
 bool JsValue::Equals(IJsValue^ v1, IJsValue^ v2)

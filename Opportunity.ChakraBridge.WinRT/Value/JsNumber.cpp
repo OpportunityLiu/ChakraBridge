@@ -9,16 +9,12 @@ JsNumberImpl::JsNumberImpl(JsValueRef ref)
 
 int32 JsNumberImpl::ToInt32()
 {
-    int32 v;
-    CHAKRA_CALL(JsNumberToInt(Reference, &v));
-    return v;
+    return static_cast<int32>(RawNumberToInt(Reference));
 }
 
 float64 JsNumberImpl::ToDouble()
 {
-    float64 v;
-    CHAKRA_CALL(JsNumberToDouble(Reference, &v));
-    return v;
+    return static_cast<float64>(RawNumberToDouble(Reference));
 }
 
 string^ JsNumberImpl::ToString()

@@ -105,6 +105,42 @@ namespace Opportunity::ChakraBridge::WinRT
         }
     }
 
+    inline string^ RawStringToPointer(JsValueRef strRef)
+    {
+        const wchar_t* str;
+        size_t len;
+        CHAKRA_CALL(JsStringToPointer(strRef, &str, &len));
+        return ref new string(str, static_cast<unsigned int>(len));
+    }
+
+    inline int RawNumberToInt(JsValueRef numRef)
+    {
+        int v;
+        CHAKRA_CALL(JsNumberToInt(numRef, &v));
+        return v;
+    }
+
+    inline double RawNumberToDouble(JsValueRef numRef)
+    {
+        double v;
+        CHAKRA_CALL(JsNumberToDouble(numRef, &v));
+        return v;
+    }
+
+    inline JsValueRef RawIntToNumber(int num)
+    {
+        JsValueRef v;
+        CHAKRA_CALL(JsIntToNumber(num, &v));
+        return v;
+    }
+
+    inline JsValueRef RawDoubleToNumber(double num)
+    {
+        JsValueRef v;
+        CHAKRA_CALL(JsDoubleToNumber(num, &v));
+        return v;
+    }
+
     inline JsValueRef RawGlobalObject()
     {
         JsValueRef g;
@@ -140,18 +176,26 @@ namespace Opportunity::ChakraBridge::WinRT
         return prop;
     }
 
-    template<typename TProp>
-    inline JsValueRef RawGetProperty(JsValueRef ref, TProp prop)
-    {
-        return RawGetProperty(ref, RawGetPropertyId(prop));
-    }
-
-    inline JsValueRef RawGetProperty(JsValueRef ref, JsPropertyIdRef prop)
+    inline JsValueRef RawGetProperty(JsValueRef ref, JsValueRef propname)
     {
         JsValueRef result;
-        CHAKRA_CALL(::JsGetProperty(ref, prop, &result));
+        CHAKRA_CALL(::JsGetIndexedProperty(ref, propname, &result));
         return result;
     }
+
+    inline JsValueRef RawGetProperty(JsValueRef ref, const wchar_t* propname)
+    {
+        JsValueRef result;
+        CHAKRA_CALL(::JsGetProperty(ref, RawGetPropertyId(propname), &result));
+        return result;
+    }
+
+    //inline JsValueRef RawGetProperty(JsValueRef ref, JsPropertyIdRef prop)
+    //{
+    //    JsValueRef result;
+    //    CHAKRA_CALL(::JsGetProperty(ref, prop, &result));
+    //    return result;
+    //}
 
     template<typename arg0, typename... args>
     inline JsValueRef RawGetProperty(JsValueRef ref, arg0 propname, args... propnameRest)

@@ -55,7 +55,8 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var a = (IJsSymbol)JsContext.RunScript("Symbol('123')");
+                            var a = (IJsObject)JsContext.RunScript("[1,'2', {}]");
+                            var b = ((IDictionary<string, IJsValue>)a).ToArray();
                             //var testobj = JsValue.Create(new System.Net.Http.HttpClient());
                             //var x = JsString.Create("12");
                             //var xx = JsValue.Equals(x, x);

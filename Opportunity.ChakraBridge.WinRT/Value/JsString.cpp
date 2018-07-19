@@ -23,10 +23,7 @@ int32 JsStringImpl::Length::get()
 
 string^ JsStringImpl::ToString()
 {
-    const wchar_t* str;
-    size_t len;
-    CHAKRA_CALL(JsStringToPointer(Reference, &str, &len));
-    return ref new string(str, static_cast<unsigned int>(len));
+    return RawStringToPointer(Reference);
 }
 
 IJsString^ JsString::Of(string^ value)
