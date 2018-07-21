@@ -96,8 +96,7 @@ bool JsValue::StrictEquals(IJsValue^ v1, IJsValue^ v2)
 
 IJsValue^ JsValue::Of(object^ inspectable)
 {
-    if (inspectable == nullptr)
-        throw ref new Platform::InvalidArgumentException("inspectable is null.");
+    NULL_CHECK(inspectable);
     JsValueRef v;
     CHAKRA_CALL(JsInspectableToObject(reinterpret_cast<IInspectable*>(inspectable), &v));
     return CreateTyped(v);
@@ -105,8 +104,7 @@ IJsValue^ JsValue::Of(object^ inspectable)
 
 IJsBoolean^ JsValue::ToJsBoolean(IJsValue^ value)
 {
-    if (value == nullptr)
-        throw ref new Platform::InvalidArgumentException("value is null.");
+    NULL_CHECK(value);
     auto cv = dynamic_cast<IJsBoolean^>(value);
     if (cv != nullptr)
         return cv;
@@ -117,8 +115,7 @@ IJsBoolean^ JsValue::ToJsBoolean(IJsValue^ value)
 
 IJsNumber^ JsValue::ToJsNumber(IJsValue^ value)
 {
-    if (value == nullptr)
-        throw ref new Platform::InvalidArgumentException("value is null.");
+    NULL_CHECK(value);
     auto cv = dynamic_cast<IJsNumber^>(value);
     if (cv != nullptr)
         return cv;
@@ -129,8 +126,7 @@ IJsNumber^ JsValue::ToJsNumber(IJsValue^ value)
 
 IJsString^ JsValue::ToJsString(IJsValue^ value)
 {
-    if (value == nullptr)
-        throw ref new Platform::InvalidArgumentException("value is null.");
+    NULL_CHECK(value);
     auto cv = dynamic_cast<IJsString^>(value);
     if (cv != nullptr)
         return cv;
@@ -141,8 +137,7 @@ IJsString^ JsValue::ToJsString(IJsValue^ value)
 
 IJsObject^ JsValue::ToJsObject(IJsValue^ value)
 {
-    if (value == nullptr)
-        throw ref new Platform::InvalidArgumentException("value is null.");
+    NULL_CHECK(value);
     auto cv = dynamic_cast<IJsObject^>(value);
     if (cv != nullptr)
         return cv;

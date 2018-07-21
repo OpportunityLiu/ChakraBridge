@@ -10,6 +10,22 @@ namespace Opportunity::ChakraBridge::WinRT
     using string = ::Platform::String;
 }
 
+template<typename T>
+inline void __NULL_CHECK(T^ v, const wchar_t* message)
+{
+    if (v == nullptr)
+        throw ref new Platform::InvalidArgumentException(ref new ::Platform::String(message));
+}
+
+template<>
+inline void __NULL_CHECK<::Platform::String>(::Platform::String^ v, const wchar_t* message)
+{
+    if (v->IsEmpty())
+        throw ref new Platform::InvalidArgumentException(ref new ::Platform::String(message));
+}
+
+#define NULL_CHECK(prop) __NULL_CHECK(prop, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.")
+
 #define PP_CAT(a, b) PP_CAT_I(a, b)
 #define PP_CAT_I(a, b) PP_CAT_II(~, a ## b)
 #define PP_CAT_II(p, res) res

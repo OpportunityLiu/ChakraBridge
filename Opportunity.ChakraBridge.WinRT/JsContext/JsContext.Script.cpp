@@ -28,8 +28,7 @@ void JsContext::HandlePromiseContinuation()
 
 JsContext::IBuffer^ JsContext::SerializeScript(string^ script)
 {
-    if (IsNullOrEmpty(script))
-        throw ref new Platform::InvalidArgumentException("script is null or empty.");
+    NULL_CHECK(script);
     unsigned long bufferSize = 0;
     CHAKRA_CALL(JsSerializeScript(script->Data(), nullptr, &bufferSize));
     auto buf = ref new Windows::Storage::Streams::Buffer(bufferSize);
@@ -59,8 +58,7 @@ IJsValue^ JsContext::RunScript(string^ script, IBuffer^ buffer, string^ sourceNa
 
 IJsFunction^ JsContext::ParseScript(string^ script, string^ sourceName)
 {
-    if (IsNullOrEmpty(script))
-        throw ref new Platform::InvalidArgumentException("script is null or empty.");
+    NULL_CHECK(script);
     JsValueRef result;
     CHAKRA_CALL(JsParseScript(script->Data(), SourceContext++, sourceName->Data(), &result));
     return ref new JsFunctionImpl(result);
@@ -68,8 +66,7 @@ IJsFunction^ JsContext::ParseScript(string^ script, string^ sourceName)
 
 IJsValue^ JsContext::RunScript(string^ script, string^ sourceName)
 {
-    if (IsNullOrEmpty(script))
-        throw ref new Platform::InvalidArgumentException("script is null or empty.");
+    NULL_CHECK(script);
     JsValueRef result;
     CHAKRA_CALL(JsRunScript(script->Data(), SourceContext++, sourceName->Data(), &result));
     HandlePromiseContinuation();
@@ -113,8 +110,7 @@ void CALLBACK JsSerializedScriptUnloadCallbackImpl(_In_ JsSourceContext sourceCo
 
 IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, string^ sourceUrl)
 {
-    if (scriptLoadCallback == nullptr)
-        throw ref new Platform::InvalidArgumentException("scriptLoadCallback is null.");
+    NULL_CHECK(scriptLoadCallback);
     auto pointer = GetPointerOfBuffer(buffer, nullptr);
     LoadSource[SourceContext] = scriptLoadCallback;
     JsValueRef result;
@@ -124,8 +120,7 @@ IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializ
 
 IJsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, string^ sourceUrl)
 {
-    if (scriptLoadCallback == nullptr)
-        throw ref new Platform::InvalidArgumentException("scriptLoadCallback is null.");
+    NULL_CHECK(scriptLoadCallback);
     auto pointer = GetPointerOfBuffer(buffer, nullptr);
     LoadSource[SourceContext] = scriptLoadCallback;
     JsValueRef result;

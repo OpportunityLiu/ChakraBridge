@@ -33,15 +33,13 @@ uint32 JsContext::Idle()
 
 void JsContext::SetException(IJsError^ exception)
 {
-    if (exception == nullptr)
-        throw ref new Platform::InvalidArgumentException("exception is null.");
+    NULL_CHECK(exception);
     CHAKRA_CALL(JsSetException(to_impl(exception)->Reference));
 }
 
 void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
 {
-    if (IsNullOrEmpty(namespaceName))
-        throw ref new Platform::InvalidArgumentException("namespaceName is null or empty.");
+    NULL_CHECK(namespaceName);
     CHAKRA_CALL(JsProjectWinRTNamespace(namespaceName->Data()));
 }
 

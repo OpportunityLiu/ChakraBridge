@@ -57,9 +57,14 @@ namespace Test
                         {
                             var o = JsObject.Create();
                             o.ObjectCollectingCallback = aaa;
-                            var a = (IJsObject)JsContext.RunScript("[1,'2', {}]");
+                            var func = JsFunction.Of(saf, "");
+                            JsValue.GlobalObject["ss"] = func;
+                            var funcr = JsContext.RunScript("ss(1,'as',{}, null)");
+                            var a = (IJsArray)JsContext.RunScript("[1,'2', {}]");
+                            var ex = JsError.CreateRangeError("");
+                            var exm = ex.Message;
                             var b = ((IDictionary<string, IJsValue>)a).ToArray();
-                            var cd = (IJsObject)JsContext.RunScript("({})");
+                            var cd = (IJsObject)JsContext.RunScript("({},,)");
                             //var testobj = JsValue.Create(new System.Net.Http.HttpClient());
                             //var x = JsString.Create("12");
                             //var xx = JsValue.Equals(x, x);
@@ -74,6 +79,11 @@ namespace Test
             catch (Exception)
             {
             }
+        }
+
+        private IJsValue saf(IJsFunction callee, IJsObject caller, bool isConstructCall, IReadOnlyList<IJsValue> arguments)
+        {
+            return null;
         }
 
         private void aaa(IJsObject obj)

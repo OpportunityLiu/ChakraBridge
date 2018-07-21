@@ -112,6 +112,14 @@ namespace Opportunity::ChakraBridge::WinRT
         return r;
     }
 
+    template<size_t LEN>
+    inline JsValueRef RawPointerToString(const wchar_t (&pointer)[LEN])
+    {
+        JsValueRef r;
+        CHAKRA_CALL(JsPointerToString(pointer, pointer[LEN - 1] == L'\0' ? LEN - 1 : LEN, &r));
+        return r;
+    }
+
     inline string^ RawStringToPointer(JsValueRef strRef)
     {
         const wchar_t* str;

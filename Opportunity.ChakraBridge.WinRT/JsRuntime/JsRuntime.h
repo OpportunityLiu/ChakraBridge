@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <unordered_map>
 #include "JsEnum.h"
+#include "Value\JsFunction.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -58,6 +59,7 @@ namespace Opportunity::ChakraBridge::WinRT
         static void CALLBACK JsBeforeCollectCallbackImpl(_In_opt_ void *callbackState);
         static bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackState, _In_::JsMemoryEventType allocationEvent, _In_ size_t allocationSize);
     internal:
+        std::unordered_map<size_t, JsFunction::JsFunctionDelegate^> FunctionTable;
         JsRuntimeHandle Handle;
         JsRuntime(JsRuntimeHandle handle);
         std::unordered_map<JsContextRef, JsContext^> Contexts;

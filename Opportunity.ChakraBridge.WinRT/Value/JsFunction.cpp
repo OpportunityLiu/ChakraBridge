@@ -2,6 +2,7 @@
 #include "JsFunction.h"
 #include "JsContext\JsContext.h"
 #include <limits>
+#include <vector>
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
@@ -9,10 +10,51 @@ size_t FuncId = 0;
 
 _Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void* callbackState)
 {
-    auto funciter = JsContext::Current->FunctionTable.find(reinterpret_cast<size_t>(callbackState));
-
-    //TODO:
-    return JS_INVALID_REFERENCE;
+    auto& ftable = JsContext::Current->Runtime->FunctionTable;
+    auto funciter = ftable.find(reinterpret_cast<size_t>(callbackState));
+    if (funciter == ftable.end())
+    {
+        JsValueRef error;
+        CHAKRA_CALL(JsCreateError(RawPointerToString(L"Specific native function is not found."), &error));
+        CHAKRA_CALL(JsSetException(error));
+        return JS_INVALID_REFERENCE;
+    }
+    try
+    {
+        auto func = funciter->second;
+        auto caller = JsValue::CreateTyped(arguments[0]);
+        auto callObj = dynamic_cast<IJsObject^>(caller);
+        if (callObj == nullptr)
+        {
+            if (dynamic_cast<IJsNull^>(caller) != nullptr || dynamic_cast<IJsUndefined^>(caller) != nullptr)
+                callObj = JsValue::GlobalObject;
+            else
+                callObj = JsValue::ToJsObject(caller);
+        }
+        auto args = std::vector<IJsValue^>(argumentCount - 1);
+        for (short i = 0; i < argumentCount - 1; i++)
+        {
+            args[i] = JsValue::CreateTyped(arguments[i + 1]);
+        }
+        auto result = func(ref new JsFunctionImpl(callee), callObj, isConstructCall, ref new Platform::Collections::VectorView<IJsValue^>(std::move(args)));
+        if (result == nullptr)
+            return JS_INVALID_REFERENCE;
+        return to_impl(result)->Reference;
+    }
+    catch (Platform::Exception^ ex)
+    {
+        JsValueRef error;
+        CHAKRA_CALL(JsCreateError(RawPointerToString(ex->Message), &error));
+        CHAKRA_CALL(JsSetException(error));
+        return JS_INVALID_REFERENCE;
+    }
+    catch (...)
+    {
+        JsValueRef error;
+        CHAKRA_CALL(JsCreateError(RawPointerToString(L"Unknown exception in native function."), &error));
+        CHAKRA_CALL(JsSetException(error));
+        return JS_INVALID_REFERENCE;
+    }
 }
 
 void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, std::vector<JsValueRef>& args)
@@ -35,7 +77,7 @@ void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, st
         if (var == nullptr || to_impl(var)->Reference == JS_INVALID_REFERENCE)
         {
             if (undef == JS_INVALID_REFERENCE)
-                undef = RawUndefined(); 
+                undef = RawUndefined();
             args.push_back(undef);
         }
         else
@@ -63,11 +105,10 @@ IJsObject^ JsFunctionImpl::New(IJsValueVectorView^ arguments)
 
 IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function)
 {
-    if (function == nullptr)
-        throw ref new Platform::InvalidArgumentException("function is null.");
+    NULL_CHECK(function);
     JsValueRef ref;
     auto id = FuncId++;
-    JsContext::Current->FunctionTable[id] = function;
+    JsContext::Current->Runtime->FunctionTable[id] = function;
     CHAKRA_CALL(JsCreateFunction(JsNativeFunctionImpl, reinterpret_cast<void*>(id), &ref));
     return ref new JsFunctionImpl(ref);
 }
@@ -76,11 +117,10 @@ IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function, IJsString^ name)
 {
     if (name == nullptr)
         return Of(function);
-    if (function == nullptr)
-        throw ref new Platform::InvalidArgumentException("function is null.");
+    NULL_CHECK(function);
     JsValueRef ref;
     auto id = FuncId++;
-    JsContext::Current->FunctionTable[id] = function;
+    JsContext::Current->Runtime->FunctionTable[id] = function;
     CHAKRA_CALL(JsCreateNamedFunction(to_impl(name)->Reference, JsNativeFunctionImpl, reinterpret_cast<void*>(id), &ref));
     return ref new JsFunctionImpl(ref);
 }
@@ -89,12 +129,11 @@ IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function, string^ name)
 {
     if (name == nullptr)
         return Of(function);
-    if (function == nullptr)
-        throw ref new Platform::InvalidArgumentException("function is null.");
+    NULL_CHECK(function);
     JsValueRef ref, nameref;
     CHAKRA_CALL(JsPointerToString(name->Data(), name->Length(), &nameref));
     auto id = FuncId++;
-    JsContext::Current->FunctionTable[id] = function;
+    JsContext::Current->Runtime->FunctionTable[id] = function;
     CHAKRA_CALL(JsCreateNamedFunction(nameref, JsNativeFunctionImpl, reinterpret_cast<void*>(id), &ref));
     return ref new JsFunctionImpl(ref);
 }

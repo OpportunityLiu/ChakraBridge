@@ -12,8 +12,7 @@ typedef uint8 byte;
 // and must not be used.  
 byte* GetPointerOfBuffer(IBuffer^ buffer, unsigned int *length)
 {
-    if (buffer == nullptr)
-        throw ref new Platform::InvalidArgumentException("buffer is null.");
+    NULL_CHECK(buffer);
     if (length != nullptr)
         *length = buffer->Length;
     // Query the IBufferByteAccess interface.  

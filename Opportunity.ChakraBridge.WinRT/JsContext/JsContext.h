@@ -36,7 +36,6 @@ namespace Opportunity::ChakraBridge::WinRT
     {
 #pragma region Instance
     internal:
-        std::unordered_map<size_t, JsFunction::JsFunctionDelegate^> FunctionTable;
         JsContextRef Reference;
         JsContext(JsContextRef ref);
     public:

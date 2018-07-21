@@ -17,22 +17,19 @@ JsObjectImpl::JsObjectImpl(JsValueRef ref)
 
 IJsValue^ JsObjectImpl::Lookup(string^ key)
 {
-    if (key->IsEmpty())
-        throw ref new Platform::InvalidArgumentException(L"key is null or empty.");
+    NULL_CHECK(key);
     return JsValue::CreateTyped(RawGetProperty(Reference, key->Data()));
 }
 
 IJsValue^ JsObjectImpl::Lookup(IJsSymbol^ key)
 {
-    if (key == nullptr)
-        throw ref new Platform::InvalidArgumentException(L"key is null.");
+    NULL_CHECK(key);
     return JsValue::CreateTyped(RawGetProperty(Reference, to_impl(key)->Reference));
 }
 
 bool JsObjectImpl::HasKey(string^ key)
 {
-    if (key->IsEmpty())
-        throw ref new Platform::InvalidArgumentException(L"key is null or empty.");
+    NULL_CHECK(key);
     bool r;
     CHAKRA_CALL(JsHasProperty(Reference, RawGetPropertyId(key->Data()), &r));
     return r;
@@ -40,8 +37,7 @@ bool JsObjectImpl::HasKey(string^ key)
 
 bool JsObjectImpl::HasKey(IJsSymbol^ key)
 {
-    if (key == nullptr)
-        throw ref new Platform::InvalidArgumentException(L"key is null.");
+    NULL_CHECK(key);
     bool r;
     CHAKRA_CALL(JsHasIndexedProperty(Reference, to_impl(key)->Reference, &r));
     return r;
@@ -65,16 +61,14 @@ bool JsObjectImpl::Insert(IJsSymbol^ key, IJsValue^ value)
 
 void JsObjectImpl::Remove(string^ key)
 {
-    if (key->IsEmpty())
-        throw ref new Platform::InvalidArgumentException(L"key is null or empty.");
+    NULL_CHECK(key);
     JsValueRef r;
     CHAKRA_CALL(JsDeleteProperty(Reference, RawGetPropertyId(key->Data()), true, &r));
 }
 
 void JsObjectImpl::Remove(IJsSymbol^ key)
 {
-    if (key == nullptr)
-        throw ref new Platform::InvalidArgumentException(L"key is null.");
+    NULL_CHECK(key);
     CHAKRA_CALL(JsDeleteIndexedProperty(Reference, to_impl(key)->Reference));
 }
 
@@ -237,10 +231,8 @@ IJsObject^ JsObject::Create()
 
 bool JsObject::InstanceOf(IJsObject ^ obj, IJsFunction ^ constructor)
 {
-    if (obj == nullptr)
-        throw ref new Platform::InvalidArgumentException("obj is null.");
-    if (constructor == nullptr)
-        throw ref new Platform::InvalidArgumentException("constructor is null.");
+    NULL_CHECK(obj);
+    NULL_CHECK(constructor);
     bool r;
     CHAKRA_CALL(JsInstanceOf(to_impl(obj)->Reference, to_impl(obj)->Reference, &r));
     return r;
@@ -248,10 +240,8 @@ bool JsObject::InstanceOf(IJsObject ^ obj, IJsFunction ^ constructor)
 
 bool InnerDefineProperty(JsObjectImpl^ obj, JsPropertyIdRef propertyId, JsObjectImpl^ descriptor)
 {
-    if (obj == nullptr)
-        throw ref new Platform::InvalidArgumentException("obj is null.");
-    if (descriptor == nullptr)
-        throw ref new Platform::InvalidArgumentException("descriptor is null.");
+    NULL_CHECK(obj);
+    NULL_CHECK(descriptor);
     bool r;
     CHAKRA_CALL(JsDefineProperty(obj->Reference, propertyId, descriptor->Reference, &r));
     return r;
@@ -264,15 +254,13 @@ bool JsObject::DefineProperty(IJsObject^ obj, string^ propertyId, IJsObject^ des
 
 bool JsObject::DefineProperty(IJsObject^ obj, IJsSymbol^ propertyId, IJsObject^ descriptor)
 {
-    if (propertyId == nullptr)
-        throw ref new Platform::InvalidArgumentException("propertyId is null.");
+    NULL_CHECK(propertyId);
     return InnerDefineProperty(to_impl(obj), RawGetPropertyId(to_impl(propertyId)->Reference), to_impl(descriptor));
 }
 
 IJsArray^ JsObject::GetOwnPropertySymbols(IJsObject^ obj)
 {
-    if (obj == nullptr)
-        throw ref new Platform::InvalidArgumentException("obj is null.");
+    NULL_CHECK(obj);
     JsValueRef r;
     CHAKRA_CALL(JsGetOwnPropertySymbols(to_impl(obj)->Reference, &r));
     return ref new JsArrayImpl(r);
@@ -280,8 +268,7 @@ IJsArray^ JsObject::GetOwnPropertySymbols(IJsObject^ obj)
 
 IJsArray^ JsObject::GetOwnPropertyNames(IJsObject^ obj)
 {
-    if (obj == nullptr)
-        throw ref new Platform::InvalidArgumentException("obj is null.");
+    NULL_CHECK(obj);
     JsValueRef r;
     CHAKRA_CALL(JsGetOwnPropertyNames(to_impl(obj)->Reference, &r));
     return ref new JsArrayImpl(r);
@@ -289,8 +276,7 @@ IJsArray^ JsObject::GetOwnPropertyNames(IJsObject^ obj)
 
 IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, string^ propertyId)
 {
-    if (obj == nullptr)
-        throw ref new Platform::InvalidArgumentException("obj is null.");
+    NULL_CHECK(obj);
     JsValueRef r;
     CHAKRA_CALL(JsGetOwnPropertyDescriptor(to_impl(obj)->Reference, RawGetPropertyId(propertyId->Data()), &r));
     return safe_cast<IJsObject^>(JsValue::CreateTyped(r));
@@ -298,10 +284,8 @@ IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, string^ propertyId
 
 IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, IJsSymbol^ propertyId)
 {
-    if (obj == nullptr)
-        throw ref new Platform::InvalidArgumentException("obj is null.");
-    if (propertyId == nullptr)
-        throw ref new Platform::InvalidArgumentException("propertyId is null.");
+    NULL_CHECK(obj);
+    NULL_CHECK(propertyId);
     JsValueRef r;
     CHAKRA_CALL(JsGetOwnPropertyDescriptor(to_impl(obj)->Reference, RawGetPropertyId(to_impl(propertyId)->Reference), &r));
     return safe_cast<IJsObject^>(JsValue::CreateTyped(r));

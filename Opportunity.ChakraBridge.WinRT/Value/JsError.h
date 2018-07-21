@@ -4,6 +4,9 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+    /// <summary>
+    /// A JavaScript error object.
+    /// </summary>
     public interface class IJsError : IJsObject
     {
 
@@ -61,5 +64,120 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     private:
         JsError() {}
+    public:
+
+        /// <summary>
+        /// Creates a new JavaScript error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [Overload("CreateErrorWithJsString")]
+        static IJsError^ CreateError(IJsString^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [DefaultOverload]
+        [Overload("CreateErrorWithString")]
+        static IJsError^ CreateError(string^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript RangeError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [Overload("CreateRangeErrorWithJsString")]
+        static IJsError^ CreateRangeError(IJsString^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript RangeError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [DefaultOverload]
+        [Overload("CreateRangeErrorWithString")]
+        static IJsError^ CreateRangeError(string^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript ReferenceError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [Overload("CreateReferenceErrorWithJsString")]
+        static IJsError^ CreateReferenceError(IJsString^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript ReferenceError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [DefaultOverload]
+        [Overload("CreateReferenceErrorWithString")]
+        static IJsError^ CreateReferenceError(string^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript SyntaxError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [Overload("CreateSyntaxErrorWithJsString")]
+        static IJsError^ CreateSyntaxError(IJsString^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript SyntaxError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [DefaultOverload]
+        [Overload("CreateSyntaxErrorWithString")]
+        static IJsError^ CreateSyntaxError(string^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript TypeError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [Overload("CreateTypeErrorWithJsString")]
+        static IJsError^ CreateTypeError(IJsString^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript TypeError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [DefaultOverload]
+        [Overload("CreateTypeErrorWithString")]
+        static IJsError^ CreateTypeError(string^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript URIError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [Overload("CreateUriErrorWithJsString")]
+        static IJsError^ CreateUriError(IJsString^ message);
+
+        /// <summary>
+        /// Creates a new JavaScript URIError error object
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="message">Message for the error object.</param>
+        /// <returns>The new error object.</returns>
+        [DefaultOverload]
+        [Overload("CreateUriErrorWithString")]
+        static IJsError^ CreateUriError(string^ message);
     };
 }
