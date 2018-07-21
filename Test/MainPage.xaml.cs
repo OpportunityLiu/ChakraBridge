@@ -55,8 +55,11 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
+                            var o = JsObject.Create();
+                            o.ObjectCollectingCallback = aaa;
                             var a = (IJsObject)JsContext.RunScript("[1,'2', {}]");
                             var b = ((IDictionary<string, IJsValue>)a).ToArray();
+                            var cd = (IJsObject)JsContext.RunScript("({})");
                             //var testobj = JsValue.Create(new System.Net.Http.HttpClient());
                             //var x = JsString.Create("12");
                             //var xx = JsValue.Equals(x, x);
@@ -71,6 +74,11 @@ namespace Test
             catch (Exception)
             {
             }
+        }
+
+        private void aaa(IJsObject obj)
+        {
+
         }
 
         private bool sss(out string scriptBuffer)

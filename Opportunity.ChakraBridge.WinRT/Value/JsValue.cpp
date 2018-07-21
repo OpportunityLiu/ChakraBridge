@@ -57,8 +57,19 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
         return ref new JsObjectImpl(ref);
     case ::JsFunction:
         return ref new JsFunctionImpl(ref);
+    case ::JsArray:
+        return ref new JsArrayImpl(ref);
     }
     return ref new JsObjectImpl(ref);
+}
+
+bool JsValue::ReferenceEquals(IJsValue^ v1, IJsValue^ v2)
+{
+    if (v1 == nullptr)
+        return (v2 == nullptr);
+    if (v2 == nullptr)
+        return false;
+    return to_impl(v1)->Reference == to_impl(v2)->Reference;
 }
 
 bool JsValue::Equals(IJsValue^ v1, IJsValue^ v2)

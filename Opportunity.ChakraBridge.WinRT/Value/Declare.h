@@ -7,3 +7,4 @@
 #include "JsString.h"
 #include "JsObject.h"
 #include "JsSymbol.h"
+#include "JsArray.h"

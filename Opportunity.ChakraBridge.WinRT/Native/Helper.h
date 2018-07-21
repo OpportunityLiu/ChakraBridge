@@ -105,6 +105,13 @@ namespace Opportunity::ChakraBridge::WinRT
         }
     }
 
+    inline JsValueRef RawPointerToString(string^ pointer)
+    {
+        JsValueRef r;
+        CHAKRA_CALL(JsPointerToString(pointer->Data(), static_cast<size_t>(pointer->Length()), &r));
+        return r;
+    }
+
     inline string^ RawStringToPointer(JsValueRef strRef)
     {
         const wchar_t* str;
@@ -174,6 +181,16 @@ namespace Opportunity::ChakraBridge::WinRT
         JsPropertyIdRef prop;
         CHAKRA_CALL(JsGetPropertyIdFromSymbol(propsym, &prop));
         return prop;
+    }
+
+    inline void RawSetProperty(JsValueRef ref, JsValueRef propname, JsValueRef value)
+    {
+        CHAKRA_CALL(::JsSetIndexedProperty(ref, propname, value));
+    }
+
+    inline void RawSetProperty(JsValueRef ref, const wchar_t* propname, JsValueRef value)
+    {
+        CHAKRA_CALL(::JsSetProperty(ref, RawGetPropertyId(propname), value, true));
     }
 
     inline JsValueRef RawGetProperty(JsValueRef ref, JsValueRef propname)

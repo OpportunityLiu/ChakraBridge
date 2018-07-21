@@ -47,16 +47,17 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToString, string^, Windows::Foundation::IStringable);
 
+        INHERIT_INTERFACE_RW_PROPERTY(Prototype, IJsObject^, IJsObject);
+        INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
+        INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
-        INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMapView, string^);
-        INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMapView, IJsSymbol^);
-        INHERIT_INTERFACE_METHOD(Clear, void, IStrMap);
-        INHERIT_INTERFACE_METHOD(Clear, void, ISymMap);
+        INHERIT_INTERFACE_METHOD_EXPLICT(Clear, StrClear, void, IStrMap);
+        INHERIT_INTERFACE_METHOD_EXPLICT(Clear, SymClear, void, ISymMap);
         INHERIT_INTERFACE_METHOD_PARAM1(HasKey, bool, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(HasKey, bool, ISymMap, IJsSymbol^);
-        INHERIT_INTERFACE_METHOD_PARAM1(HasKey, bool, IStrMapView, string^);
-        INHERIT_INTERFACE_METHOD_PARAM1(HasKey, bool, ISymMapView, IJsSymbol^);
         INHERIT_INTERFACE_METHOD_PARAM1(Remove, void, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Remove, void, ISymMap, IJsSymbol^);
         INHERIT_INTERFACE_METHOD_PARAM2(Insert, bool, IStrMap, string^, IJsValue^);
@@ -65,10 +66,6 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(GetView, GetSymView, ISymMapView^, ISymMap);
         INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, StrSize, uint32, IStrMap);
         INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, SymSize, uint32, ISymMap);
-        INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, StrSize, uint32, IStrMapView);
-        INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, SymSize, uint32, ISymMapView);
-        INHERIT_INTERFACE_METHOD_PARAM2(Split, void, IStrMapView, IStrMapView^*, IStrMapView^*);
-        INHERIT_INTERFACE_METHOD_PARAM2(Split, void, ISymMapView, ISymMapView^*, ISymMapView^*);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 

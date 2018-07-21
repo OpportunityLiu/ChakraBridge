@@ -76,6 +76,20 @@ namespace Opportunity::ChakraBridge::WinRT
         }
 
         /// <summary>
+        /// Compare two JavaScript values for reference equality.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// This function compares inner reference of two values.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
+        /// </remarks>
+        /// <returns>Whether the values are equal.</returns>
+        static bool ReferenceEquals(IJsValue^ v1, IJsValue^ v2);
+
+        /// <summary>
         /// Compare two JavaScript values for equality.
         /// </summary>
         /// <remarks>

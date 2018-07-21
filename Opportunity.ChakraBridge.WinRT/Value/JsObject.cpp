@@ -78,35 +78,67 @@ void JsObjectImpl::Remove(IJsSymbol^ key)
     CHAKRA_CALL(JsDeleteIndexedProperty(Reference, to_impl(key)->Reference));
 }
 
-JsObjectImpl::IStrIterator^ JsObjectImpl::StrFirst()
+void JsObjectImpl::StrClear()
 {
     JsValueRef r;
     CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
     auto n = RawNumberToInt(RawGetProperty(r, L"length"));
-    auto view = ref new KVIteratorImpl<string^, IJsValue^>();
     for (int i = 0; i < n; i++)
     {
-        auto kf = RawGetProperty(r, RawIntToNumber(i));
-        auto k = RawStringToPointer(kf);
-        view->Data.emplace_back(k, JsValue::CreateTyped(RawGetProperty(Reference, kf)));
+        auto pname = RawGetProperty(r, RawIntToNumber(i));
+        CHAKRA_CALL(JsDeleteIndexedProperty(Reference, pname));
     }
-    view->Init();
-    return view;
+}
+
+void JsObjectImpl::SymClear()
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertySymbols(Reference, &r));
+    auto n = RawNumberToInt(RawGetProperty(r, L"length"));
+    for (int i = 0; i < n; i++)
+    {
+        auto pname = RawGetProperty(r, RawIntToNumber(i));
+        CHAKRA_CALL(JsDeleteIndexedProperty(Reference, pname));
+    }
+}
+
+JsObjectImpl::IStrIterator^ JsObjectImpl::StrFirst()
+{
+    return GetStrView()->First();
 }
 
 JsObjectImpl::ISymIterator^ JsObjectImpl::SymFirst()
 {
+    return GetSymView()->First();
+}
+
+JsObjectImpl::IStrMapView^ JsObjectImpl::GetStrView()
+{
     JsValueRef r;
     CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
     auto n = RawNumberToInt(RawGetProperty(r, L"length"));
-    auto view = ref new KVIteratorImpl<IJsSymbol^, IJsValue^>();
+    auto view = ref new Platform::Collections::UnorderedMap<string^, IJsValue^>(static_cast<size_t>(n));
     for (int i = 0; i < n; i++)
     {
         auto kf = RawGetProperty(r, RawIntToNumber(i));
-        view->Data.emplace_back(ref new JsSymbolImpl(kf), JsValue::CreateTyped(RawGetProperty(Reference, kf)));
+        auto k = RawStringToPointer(kf);
+        view->Insert(k, JsValue::CreateTyped(RawGetProperty(Reference, kf)));
     }
-    view->Init();
-    return view;
+    return view->GetView();
+}
+
+JsObjectImpl::ISymMapView^ JsObjectImpl::GetSymView()
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyNames(Reference, &r));
+    auto n = RawNumberToInt(RawGetProperty(r, L"length"));
+    auto view = ref new Platform::Collections::UnorderedMap<IJsSymbol^, IJsValue^>(static_cast<size_t>(n));
+    for (int i = 0; i < n; i++)
+    {
+        auto kf = RawGetProperty(r, RawIntToNumber(i));
+        view->Insert(ref new JsSymbolImpl(kf), JsValue::CreateTyped(RawGetProperty(Reference, kf)));
+    }
+    return view->GetView();
 }
 
 uint32 JsObjectImpl::StrSize::get()
@@ -132,4 +164,145 @@ string^ JsObjectImpl::ToString()
     }
     // no toString method.
     return "[object Object]";
+}
+
+void JsObjectImpl::PreventExtension()
+{
+    CHAKRA_CALL(JsPreventExtension(Reference));
+}
+
+bool JsObjectImpl::IsExtensionAllowed::get()
+{
+    bool r;
+    CHAKRA_CALL(JsGetExtensionAllowed(Reference, &r));
+    return r;
+}
+
+IJsObject^ JsObjectImpl::Prototype::get()
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsGetPrototype(Reference, &r));
+    return dynamic_cast<IJsObject^>(JsValue::CreateTyped(r));
+}
+
+void JsObjectImpl::Prototype::set(IJsObject^ value)
+{
+    if (value == nullptr)
+    {
+        CHAKRA_CALL(JsSetPrototype(Reference, RawNull()));
+        return;
+    }
+    CHAKRA_CALL(JsSetPrototype(Reference, to_impl(value)->Reference));
+}
+
+using JsOBCC = Opportunity::ChakraBridge::WinRT::JsObjectBeforeCollectCallback;
+std::unordered_map<JsValueRef, JsOBCC^> OBCCMap;
+
+void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState)
+{
+    auto v = OBCCMap.find(ref);
+    if (v == OBCCMap.end())
+        return;
+    auto f = v->second;
+    OBCCMap.erase(ref);
+    f(safe_cast<IJsObject^>(JsValue::CreateTyped(ref)));
+}
+
+JsOBCC^ JsObjectImpl::ObjectCollectingCallback::get()
+{
+    auto v = OBCCMap.find(Reference);
+    if (v == OBCCMap.end())
+        return nullptr;
+    return v->second;
+}
+
+void JsObjectImpl::ObjectCollectingCallback::set(JsOBCC^ value)
+{
+    if (value == nullptr)
+    {
+        CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference, Reference, nullptr));
+        OBCCMap.erase(Reference);
+        return;
+    }
+    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference, Reference, JsObjectBeforeCollectCallbackImpl));
+    OBCCMap[Reference] = value;
+}
+
+IJsObject^ JsObject::Create()
+{
+    JsValueRef obj;
+    CHAKRA_CALL(JsCreateObject(&obj));
+    return ref new JsObjectImpl(obj);
+}
+
+bool JsObject::InstanceOf(IJsObject ^ obj, IJsFunction ^ constructor)
+{
+    if (obj == nullptr)
+        throw ref new Platform::InvalidArgumentException("obj is null.");
+    if (constructor == nullptr)
+        throw ref new Platform::InvalidArgumentException("constructor is null.");
+    bool r;
+    CHAKRA_CALL(JsInstanceOf(to_impl(obj)->Reference, to_impl(obj)->Reference, &r));
+    return r;
+}
+
+bool InnerDefineProperty(JsObjectImpl^ obj, JsPropertyIdRef propertyId, JsObjectImpl^ descriptor)
+{
+    if (obj == nullptr)
+        throw ref new Platform::InvalidArgumentException("obj is null.");
+    if (descriptor == nullptr)
+        throw ref new Platform::InvalidArgumentException("descriptor is null.");
+    bool r;
+    CHAKRA_CALL(JsDefineProperty(obj->Reference, propertyId, descriptor->Reference, &r));
+    return r;
+}
+
+bool JsObject::DefineProperty(IJsObject^ obj, string^ propertyId, IJsObject^ descriptor)
+{
+    return InnerDefineProperty(to_impl(obj), RawGetPropertyId(propertyId->Data()), to_impl(descriptor));
+}
+
+bool JsObject::DefineProperty(IJsObject^ obj, IJsSymbol^ propertyId, IJsObject^ descriptor)
+{
+    if (propertyId == nullptr)
+        throw ref new Platform::InvalidArgumentException("propertyId is null.");
+    return InnerDefineProperty(to_impl(obj), RawGetPropertyId(to_impl(propertyId)->Reference), to_impl(descriptor));
+}
+
+IJsArray^ JsObject::GetOwnPropertySymbols(IJsObject^ obj)
+{
+    if (obj == nullptr)
+        throw ref new Platform::InvalidArgumentException("obj is null.");
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertySymbols(to_impl(obj)->Reference, &r));
+    return ref new JsArrayImpl(r);
+}
+
+IJsArray^ JsObject::GetOwnPropertyNames(IJsObject^ obj)
+{
+    if (obj == nullptr)
+        throw ref new Platform::InvalidArgumentException("obj is null.");
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyNames(to_impl(obj)->Reference, &r));
+    return ref new JsArrayImpl(r);
+}
+
+IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, string^ propertyId)
+{
+    if (obj == nullptr)
+        throw ref new Platform::InvalidArgumentException("obj is null.");
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyDescriptor(to_impl(obj)->Reference, RawGetPropertyId(propertyId->Data()), &r));
+    return safe_cast<IJsObject^>(JsValue::CreateTyped(r));
+}
+
+IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, IJsSymbol^ propertyId)
+{
+    if (obj == nullptr)
+        throw ref new Platform::InvalidArgumentException("obj is null.");
+    if (propertyId == nullptr)
+        throw ref new Platform::InvalidArgumentException("propertyId is null.");
+    JsValueRef r;
+    CHAKRA_CALL(JsGetOwnPropertyDescriptor(to_impl(obj)->Reference, RawGetPropertyId(to_impl(propertyId)->Reference), &r));
+    return safe_cast<IJsObject^>(JsValue::CreateTyped(r));
 }

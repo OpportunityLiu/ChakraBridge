@@ -4,24 +4,14 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsError : IJsObject
+    public interface class IJsArray : IJsObject//, Windows::Foundation::Collections::IVector<IJsValue^>
     {
-
-        /// <summary>
-        /// <c>message</c> property of Error.
-        /// </summary>
-        property Platform::String^ Message;
-
-        /// <summary>
-        /// <c>name</c> property of Error.
-        /// </summary>
-        property Platform::String^ Name;
     };
 
-    ref class JsErrorImpl sealed : JsObjectImpl, IJsError
+    ref class JsArrayImpl sealed : JsObjectImpl, IJsArray
     {
     internal:
-        JsErrorImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsArrayImpl(JsValueRef ref) :JsObjectImpl(ref) {}
         INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -50,16 +40,16 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
     public:
-        virtual property string^ Message { string^ get(); void set(string^ value); };
-        virtual property string^ Name { string^ get(); void set(string^ value); }
+        virtual property Platform::String^ Message;
+        virtual property Platform::String^ Name;
     };
 
     /// <summary>
-    /// Static methods of <see cref="IJsError"/>.
+    /// Static methods of <see cref="IJsArray"/>.
     /// </summary>
-    public ref class JsError sealed
+    public ref class JsArray sealed
     {
     private:
-        JsError() {}
+        JsArray() {}
     };
 }
