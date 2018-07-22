@@ -56,17 +56,10 @@ namespace Opportunity::ChakraBridge::WinRT
 #pragma region Static
     internal:
         static JsContext^ Get(JsContextRef reference);
+        static JsValueRef LastJsError;
+        static void GetAndClearExceptionCore();
 
     public:
-        /// <summary>
-        /// Gets or sets the current script context on the thread.
-        /// </summary>
-        static property JsContext^ Current
-        {
-            JsContext^ get();
-            void set(JsContext^ value);
-        };
-
         /// <summary>
         /// Gets a value indicating whether the runtime of the current context is in an exception state.
         /// </summary>
@@ -90,6 +83,53 @@ namespace Opportunity::ChakraBridge::WinRT
         {
             bool get();
         }
+
+        /// <summary>
+        /// Sets the runtime of the current context to an exception state.
+        /// </summary>
+        /// <param name="exception">
+        /// The JavaScript exception to set for the runtime of the current context.
+        /// </param>
+        /// <remarks>
+        /// <para>
+        /// If the runtime of the current context is already in an exception state, this API will 
+        /// throw <c>JsErrorInExceptionState</c>.
+        /// </para>
+        /// <para>
+        /// Requires an active script context.
+        /// </para>
+        /// </remarks>
+        static void SetException(IJsError^ exception);
+
+        /// <summary>
+        ///     Returns the exception that caused the runtime of the current context to be in the
+        ///     exception state and resets the exception state for that runtime.
+        /// </summary>
+        /// <remarks>
+        ///     Requires an active script context.
+        /// </remarks>
+        /// <returns>
+        ///    The exception that caused the runtime of the current context to be in the exception state.
+        /// </returns>
+        static IJsError^ GetAndClearException();
+
+        /// <summary>
+        ///    Last error returned by <see cref="GetAndClearException"/>.
+        /// </summary>
+        /// <remarks>
+        ///     Requires an active script context.
+        /// </remarks>
+        static property IJsError^ LastError { IJsError^ get(); }
+
+
+        /// <summary>
+        /// Gets or sets the current script context on the thread.
+        /// </summary>
+        static property JsContext^ Current
+        {
+            JsContext^ get();
+            void set(JsContext^ value);
+        };
 
         /// <summary>
         /// Starts debugging in the current context. 
@@ -119,37 +159,6 @@ namespace Opportunity::ChakraBridge::WinRT
         /// maximum number of ticks if there no upcoming idle work to do.
         /// </returns>
         static uint32 Idle();
-
-        /// <summary>
-        /// Sets the runtime of the current context to an exception state.
-        /// </summary>
-        /// <param name="exception">
-        /// The JavaScript exception to set for the runtime of the current context.
-        /// </param>
-        /// <remarks>
-        /// <para>
-        /// If the runtime of the current context is already in an exception state, this API will 
-        /// throw <c>JsErrorInExceptionState</c>.
-        /// </para>
-        /// <para>
-        /// Requires an active script context.
-        /// </para>
-        /// </remarks>
-        static void SetException(IJsError^ exception);
-
-        /// <summary>
-        ///     Returns the exception that caused the runtime of the current context to be in the
-        ///     exception state and resets the exception state for that runtime.
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///     Requires an active script context.
-        ///     </para>
-        /// </remarks>
-        /// <returns>
-        ///    The exception that caused the runtime of the current context to be in the exception state.
-        /// </returns>
-        static IJsError^ GetAndClearException();
 
         /// <summary>
         /// Project a WinRT namespace. 

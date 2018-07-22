@@ -8,3 +8,4 @@
 #include "JsObject.h"
 #include "JsSymbol.h"
 #include "JsArray.h"
+#include "JsError.h"

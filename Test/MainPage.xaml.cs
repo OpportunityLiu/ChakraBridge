@@ -55,16 +55,30 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var bs = JsContext.SerializeScript(@"(function(){var o = {}; o.a = o; o.b = 'b'; o.c = 1; o.d = false; o.e = null; return o;})()");
-                            var data = bs.ToArray();
-                            var r = JsContext.ParseScript(data.AsBuffer());
-                            JsValue.GlobalObject["r"] = r;
-                            var r2 = JsFunction.Create(saf, "asf");
-                            var rs = r.ToString();
-                            var sym = JsSymbol.Create();
-                            var array = JsArray.Create(100);
-                            var obj = (IJsObject)r.Invoke(null, null);
-                            obj[sym] = sym;
+                            try
+                            {
+                                var bs = JsContext.SerializeScript(@"(function(){var o = {}; o.a = o; o.b = 'b'; o.c = 1; o.d = false; o.e = null; return o;})()");
+                                var data = bs.ToArray();
+                                var r = JsContext.ParseScript(data.AsBuffer());
+                                JsValue.GlobalObject["r"] = r;
+                                var r2 = JsFunction.Create(saf, "asf");
+                                var rs = r.ToString();
+                                var sym = JsSymbol.Create();
+                                var array = JsArray.Create(100);
+                                var obj = (IJsObject)r.Invoke(null, null);
+                                obj[sym] = sym;
+                                var symbol = (IJsObject)JsContext.RunScript("Symbol");
+                                JsContext.RunScript("Symbol = {iterator = 12};");
+                                var ss = JsSymbol.For("");
+                                var kk = JsSymbol.KeyFor(ss);
+                                var s0 = JsSymbol.Iterator;
+
+                            }
+                            catch (Exception)
+                            {
+
+                                var error = JsContext.LastError;
+                            }
                         }
                     }
                 }

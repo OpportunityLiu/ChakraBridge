@@ -55,6 +55,8 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
         return ref new JsSymbolImpl(ref);
     case ::JsObject:
         return ref new JsObjectImpl(ref);
+    case ::JsError:
+        return ref new JsErrorImpl(ref);
     case ::JsFunction:
         return ref new JsFunctionImpl(ref);
     case ::JsArray:

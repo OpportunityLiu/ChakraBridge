@@ -104,8 +104,9 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <summary>
         /// Performs JavaScript "instanceof" operator test. 
         /// </summary>
+        /// <param name="obj">The object to test against.</param>
         /// <param name="constructor">The constructor function to test against. </param>
-        /// <returns>Whether the "object instanceof constructor" is <see langword="true"/>. </returns>
+        /// <returns>Whether the "obj instanceof constructor" is <see langword="true"/>. </returns>
         static bool InstanceOf(IJsObject^ obj, IJsFunction^ constructor);
 
         /// <summary>

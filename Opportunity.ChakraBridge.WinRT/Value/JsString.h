@@ -14,7 +14,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
         /// <returns>The length of the string.</returns>
-        property int32 Length { int32 get(); }
+        property uint32 Length { uint32 get(); }
     };
 
     ref class JsStringImpl sealed : JsValueImpl, IJsString
@@ -28,7 +28,7 @@ namespace Opportunity::ChakraBridge::WinRT
     public:
         virtual ~JsStringImpl();
         virtual string^ ToString() override;
-        virtual property int32 Length {int32 get(); }
+        virtual property uint32 Length { uint32 get(); }
     };
 
     /// <summary>

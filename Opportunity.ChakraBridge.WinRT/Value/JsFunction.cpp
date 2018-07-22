@@ -133,7 +133,7 @@ void JsFunctionImpl::Prototype::set(IJsObject^ value)
 string^ JsFunctionImpl::ToString()
 {
     // for parsed scripts
-    if (Length <0)
+    if (Length < 0)
     {
         return L"function() { [parsed script code] }";
     }

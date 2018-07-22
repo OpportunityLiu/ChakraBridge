@@ -37,11 +37,32 @@ void JsContext::SetException(IJsError^ exception)
     CHAKRA_CALL(JsSetException(to_impl(exception)->Reference));
 }
 
+JsValueRef JsContext::LastJsError = JS_INVALID_REFERENCE;
+
+void JsContext::GetAndClearExceptionCore()
+{
+    if (JsGetAndClearException(&LastJsError) != ::JsNoError)
+        LastJsError = JS_INVALID_REFERENCE;
+}
+
 IJsError^ JsContext::GetAndClearException()
 {
-    JsValueRef ex;
-    CHAKRA_CALL(JsGetAndClearException(&ex));
-    return ref new JsErrorImpl(ex);
+    GetAndClearExceptionCore();
+    return LastError;
+}
+
+IJsError^ JsContext::LastError::get()
+{
+    if (LastJsError == JS_INVALID_REFERENCE)
+        return nullptr;
+    try
+    {
+        return safe_cast<IJsError^>(JsValue::CreateTyped(LastJsError));
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
 }
 
 void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
@@ -59,6 +80,7 @@ JsContext^ JsContext::Current::get()
 
 void JsContext::Current::set(JsContext^ value)
 {
+    LastJsError = JS_INVALID_REFERENCE;
     if (value == nullptr || value->Reference == JS_INVALID_REFERENCE)
     {
         CHAKRA_CALL(JsSetCurrentContext(JS_INVALID_REFERENCE));

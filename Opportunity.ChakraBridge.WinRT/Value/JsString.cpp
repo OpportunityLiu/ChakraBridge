@@ -14,11 +14,11 @@ JsStringImpl::JsStringImpl(JsValueRef ref)
     CHAKRA_CALL(JsAddRef(ref, nullptr));
 }
 
-int32 JsStringImpl::Length::get()
+uint32 JsStringImpl::Length::get()
 {
     int l;
     CHAKRA_CALL(JsGetStringLength(Reference, &l));
-    return static_cast<int32>(l);
+    return static_cast<uint32>(l);
 }
 
 string^ JsStringImpl::ToString()

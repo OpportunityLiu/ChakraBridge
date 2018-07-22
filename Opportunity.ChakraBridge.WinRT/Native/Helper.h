@@ -7,7 +7,7 @@ namespace Opportunity::ChakraBridge::WinRT
 {
     string^ CHAKRA_LAST_ERROR();
 
-    inline void CHAKRA_CALL(JsErrorCode result)
+    inline void CHAKRA_CALL(const JsErrorCode result)
     {
         void GetChakraError();
         using namespace Platform;
@@ -124,7 +124,7 @@ namespace Opportunity::ChakraBridge::WinRT
         return r;
     }
 
-    inline string^ RawStringToPointer(JsValueRef strRef)
+    inline string^ RawStringToPointer(const JsValueRef strRef)
     {
         const wchar_t* str;
         size_t len;
@@ -132,28 +132,28 @@ namespace Opportunity::ChakraBridge::WinRT
         return ref new string(str, static_cast<unsigned int>(len));
     }
 
-    inline int RawNumberToInt(JsValueRef numRef)
+    inline int RawNumberToInt(const JsValueRef numRef)
     {
         int v;
         CHAKRA_CALL(JsNumberToInt(numRef, &v));
         return v;
     }
 
-    inline double RawNumberToDouble(JsValueRef numRef)
+    inline double RawNumberToDouble(const JsValueRef numRef)
     {
         double v;
         CHAKRA_CALL(JsNumberToDouble(numRef, &v));
         return v;
     }
 
-    inline JsValueRef RawIntToNumber(int num)
+    inline JsValueRef RawIntToNumber(const int num)
     {
         JsValueRef v;
         CHAKRA_CALL(JsIntToNumber(num, &v));
         return v;
     }
 
-    inline JsValueRef RawDoubleToNumber(double num)
+    inline JsValueRef RawDoubleToNumber(const double num)
     {
         JsValueRef v;
         CHAKRA_CALL(JsDoubleToNumber(num, &v));
@@ -181,49 +181,56 @@ namespace Opportunity::ChakraBridge::WinRT
         return g;
     }
 
-    inline JsPropertyIdRef RawGetPropertyId(const wchar_t* propname)
+    inline Opportunity::ChakraBridge::WinRT::JsValueType RawGetValueType(const JsValueRef value)
+    {
+        ::JsValueType type;
+        CHAKRA_CALL(JsGetValueType(value, &type));
+        return static_cast<Opportunity::ChakraBridge::WinRT::JsValueType>(type);
+    }
+
+    inline JsPropertyIdRef RawGetPropertyId(const wchar_t*const propname)
     {
         JsPropertyIdRef prop;
         CHAKRA_CALL(JsGetPropertyIdFromName(propname, &prop));
         return prop;
     }
 
-    inline JsPropertyIdRef RawGetPropertyId(JsValueRef propsym)
+    inline JsPropertyIdRef RawGetPropertyId(const JsValueRef propsym)
     {
         JsPropertyIdRef prop;
         CHAKRA_CALL(JsGetPropertyIdFromSymbol(propsym, &prop));
         return prop;
     }
     template<typename T>
-    inline void RawSetProperty(JsValueRef ref, T* propname, JsValueRef value)
+    inline void RawSetProperty(const JsValueRef ref, T* propname, const JsValueRef value)
     {
         static_assert(false, "T* is not allowed");
     }
 
-    inline void RawSetProperty(JsValueRef ref, JsValueRef propname, JsValueRef value)
+    inline void RawSetProperty(const JsValueRef ref, const JsValueRef propname, const JsValueRef value)
     {
         CHAKRA_CALL(::JsSetIndexedProperty(ref, propname, value));
     }
 
-    inline void RawSetProperty(JsValueRef ref, const wchar_t* propname, JsValueRef value)
+    inline void RawSetProperty(const JsValueRef ref, const wchar_t*const propname, const JsValueRef value)
     {
         CHAKRA_CALL(::JsSetProperty(ref, RawGetPropertyId(propname), value, true));
     }
 
     template<typename T>
-    inline JsValueRef RawGetProperty(JsValueRef ref, T* propname)
+    inline JsValueRef RawGetProperty(const JsValueRef ref, T* propname)
     {
         static_assert(false, "T* is not allowed");
     }
 
-    inline JsValueRef RawGetProperty(JsValueRef ref, JsValueRef propname)
+    inline JsValueRef RawGetProperty(const JsValueRef ref, const JsValueRef propname)
     {
         JsValueRef result;
         CHAKRA_CALL(::JsGetIndexedProperty(ref, propname, &result));
         return result;
     }
 
-    inline JsValueRef RawGetProperty(JsValueRef ref, const wchar_t* propname)
+    inline JsValueRef RawGetProperty(const JsValueRef ref, const wchar_t*const propname)
     {
         JsValueRef result;
         CHAKRA_CALL(::JsGetProperty(ref, RawGetPropertyId(propname), &result));
@@ -238,19 +245,17 @@ namespace Opportunity::ChakraBridge::WinRT
     //}
 
     template<typename arg0, typename arg1, typename... args>
-    inline JsValueRef RawGetProperty(JsValueRef ref, arg0 propname1, arg1 propname2, args... propnameRest)
+    inline JsValueRef RawGetProperty(const JsValueRef ref, const arg0 propname1, const arg1 propname2, const args... propnameRest)
     {
-        JsValueRef result = RawGetProperty(ref, propname1);
+        const JsValueRef result = RawGetProperty(ref, propname1);
         return RawGetProperty(result, propname2, propnameRest...);
     }
 
     template<typename... TArgs>
-    inline JsValueRef RawCallFunction(JsValueRef callee, JsValueRef caller, TArgs... args)
+    inline JsValueRef RawCallFunction(const JsValueRef callee, const JsValueRef caller, const TArgs... args)
     {
-        if (caller == JS_INVALID_REFERENCE)
-            caller = RawGlobalObject();
         JsValueRef r;
-        JsValueRef argsv[] = { caller, args... };
+        JsValueRef argsv[] = { caller == JS_INVALID_REFERENCE ? RawGlobalObject() : caller, args... };
         CHAKRA_CALL(JsCallFunction(callee, argsv, sizeof(argsv) / sizeof(JsValueRef), &r));
         return r;
     }

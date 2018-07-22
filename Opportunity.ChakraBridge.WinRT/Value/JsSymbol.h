@@ -24,16 +24,6 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual Platform::String^ ToString() override;
     };
 
-    inline bool operator ==(IJsSymbol^ sym1, IJsSymbol^ sym2)
-    {
-        return JsValue::ReferenceEquals(sym1, sym2);
-    }
-
-    inline bool operator !=(IJsSymbol^ sym1, IJsSymbol^ sym2)
-    {
-        return !(sym1 == sym2);
-    }
-
     /// <summary>
     /// Static methods of <see cref="IJsSymbol"/>.
     /// </summary>
@@ -47,18 +37,74 @@ namespace Opportunity::ChakraBridge::WinRT
         /// Creates a JavaScript symbol. 
         /// </summary>
         /// <param name="description">The description of the symbol. Can be <see langword="null"/>.</param>
+        [Overload("CreateWithJsValueDescription")]
         static IJsSymbol^ Create(IJsValue^ description);
 
         /// <summary>
         /// Creates a JavaScript symbol. 
         /// </summary>
         /// <param name="description">The string description of the symbol.</param>
+        [Overload("CreateWithStringDescription")]
         static IJsSymbol^ Create(string^ description);
 
         /// <summary>
         /// Creates a JavaScript symbol. 
         /// </summary>
+        [DefaultOverload]
+        [Overload("Create")]
         static IJsSymbol^ Create();
+
+        /// <summary>
+        /// The <c>Symbol.for(key)</c> method searches for existing symbols in a global symbol registry with the given key and returns it if found. Otherwise a new symbol gets created in the global symbol registry with this key.
+        /// </summary>
+        /// <param name="description">The key for the symbol (and also used for the description of the symbol).</param>
+        [Overload("ForJsValue")]
+        [DefaultOverload]
+        static IJsSymbol^ For(IJsValue^ key);
+
+        /// <summary>
+        /// The <c>Symbol.for(key)</c> method searches for existing symbols in a global symbol registry with the given key and returns it if found. Otherwise a new symbol gets created in the global symbol registry with this key.
+        /// </summary>
+        /// <param name="description">The key for the symbol (and also used for the description of the symbol).</param>
+        [Overload("ForString")]
+        static IJsSymbol^ For(string^ key);
+
+        /// <summary>
+        /// The <c>Symbol.keyFor(sym)</c> method retrieves a shared symbol key from the global symbol registry for the given symbol.
+        /// </summary>
+        /// <param name="symbol">The symbol to find a key for.</param>
+        static IJsString^ KeyFor(IJsSymbol^ symbol);
+
+        /// <summary><c>hasInstance</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ HasInstance { IJsSymbol^ get(); };
+
+        /// <summary><c>isConcatSpreadable</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ IsConcatSpreadable { IJsSymbol^ get(); };
+
+        /// <summary><c>iterator</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ Iterator { IJsSymbol^ get(); };
+
+        /// <summary><c>species</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ Species { IJsSymbol^ get(); };
+
+        /// <summary><c>toPrimitive</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ ToPrimitive { IJsSymbol^ get(); };
+
+        /// <summary><c>toStringTag</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ ToStringTag { IJsSymbol^ get(); };
+
+        /// <summary><c>unscopables</c> property of Javascript <c>Symbol</c></summary>
+        static property IJsSymbol^ Unscopables { IJsSymbol^ get(); };
+    };
+
+    inline bool operator ==(IJsSymbol^ sym1, IJsSymbol^ sym2)
+    {
+        return JsValue::ReferenceEquals(sym1, sym2);
+    };
+
+    inline bool operator !=(IJsSymbol^ sym1, IJsSymbol^ sym2)
+    {
+        return !(sym1 == sym2);
     };
 };
 

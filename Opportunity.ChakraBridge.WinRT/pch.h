@@ -6,6 +6,8 @@
 #include "JsEnum.h"
 #include "Native\Helper.h"
 #include "Value\Declare.h"
+#include "JsContext\JsContext.h"
+#include "JsRuntime\JsRuntime.h"
 #include <memory>
 #include <type_traits>
 

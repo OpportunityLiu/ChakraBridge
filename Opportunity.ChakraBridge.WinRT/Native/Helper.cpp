@@ -3,22 +3,24 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsValueRef LastJsError;
-
-void GetChakraError()
-{
-    CHAKRA_CALL(JsGetAndClearException(&LastJsError));
-}
-
 string^ Opportunity::ChakraBridge::WinRT::CHAKRA_LAST_ERROR()
 {
-    auto message = RawGetProperty(LastJsError, L"message");
+    const auto error = JsContext::LastJsError;
+    if (error == JS_INVALID_REFERENCE)
+        return nullptr;
     try
     {
-        return RawStringToPointer(message);
+        JsValueRef str;
+        CHAKRA_CALL(JsConvertValueToString(error, &str));
+        return RawStringToPointer(str);
     }
     catch (...)
     {
-        return JsValue::CreateTyped(message)->ToString();
+        return nullptr;
     }
+}
+
+void GetChakraError()
+{
+    JsContext::GetAndClearExceptionCore();
 }
