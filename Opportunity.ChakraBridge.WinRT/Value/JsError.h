@@ -19,6 +19,11 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <c>name</c> property of Error.
         /// </summary>
         property Platform::String^ Name;
+
+        /// <summary>
+        /// <c>stack</c> property of Error.
+        /// </summary>
+        property Platform::String^ Stack;
     };
 
     ref class JsErrorImpl sealed : JsObjectImpl, IJsError
@@ -30,7 +35,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToString, string^, Windows::Foundation::IStringable);
 
-        INHERIT_INTERFACE_RW_PROPERTY(Prototype, IJsObject^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
         INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
@@ -55,6 +60,7 @@ namespace Opportunity::ChakraBridge::WinRT
     public:
         virtual property string^ Message { string^ get(); void set(string^ value); };
         virtual property string^ Name { string^ get(); void set(string^ value); }
+        virtual property string^ Stack { string^ get(); void set(string^ value); }
     };
 
     /// <summary>

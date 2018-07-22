@@ -138,6 +138,20 @@ namespace Opportunity::ChakraBridge::WinRT
         static void SetException(IJsError^ exception);
 
         /// <summary>
+        ///     Returns the exception that caused the runtime of the current context to be in the
+        ///     exception state and resets the exception state for that runtime.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///     Requires an active script context.
+        ///     </para>
+        /// </remarks>
+        /// <returns>
+        ///    The exception that caused the runtime of the current context to be in the exception state.
+        /// </returns>
+        static IJsError^ GetAndClearException();
+
+        /// <summary>
         /// Project a WinRT namespace. 
         /// </summary>
         /// <param name="namespaceName">The WinRT namespace to be projected. </param>

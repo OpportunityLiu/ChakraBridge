@@ -37,6 +37,13 @@ void JsContext::SetException(IJsError^ exception)
     CHAKRA_CALL(JsSetException(to_impl(exception)->Reference));
 }
 
+IJsError^ JsContext::GetAndClearException()
+{
+    JsValueRef ex;
+    CHAKRA_CALL(JsGetAndClearException(&ex));
+    return ref new JsErrorImpl(ex);
+}
+
 void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
 {
     NULL_CHECK(namespaceName);

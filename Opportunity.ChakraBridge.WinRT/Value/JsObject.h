@@ -19,7 +19,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// Gets or sets the prototype of an object, use <see langword="null"/> instead of <see cref="IJsNull"/>.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property IJsObject^ Prototype;
+        property IJsObject^ Proto;
 
         /// <summary>
         /// Sets an object to not be extensible.
@@ -62,7 +62,7 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual ~JsObjectImpl();
         virtual Platform::String^ ToString() override;
 
-        virtual property IJsObject^ Prototype { IJsObject^ get(); void set(IJsObject^ value); }
+        virtual property IJsObject^ Proto { IJsObject^ get(); void set(IJsObject^ value); }
         virtual void PreventExtension();
         virtual property bool IsExtensionAllowed { bool get(); };
         virtual property JsObjectBeforeCollectCallback^ ObjectCollectingCallback { JsObjectBeforeCollectCallback^ get(); void set(JsObjectBeforeCollectCallback^ value); }

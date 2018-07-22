@@ -33,10 +33,10 @@ namespace Opportunity::ChakraBridge::WinRT
     private:
         JsNumber() {}
     public:
-        [Overload("OfInt32")]
-        static IJsNumber^ Of(int32 value);
+        [Overload("CreateFromInt32")]
+        static IJsNumber^ Create(int32 value);
         [DefaultOverload]
-        [Overload("OfDouble")]
-        static IJsNumber^ Of(float64 value);
+        [Overload("CreateFromDouble")]
+        static IJsNumber^ Create(float64 value);
     };
 }

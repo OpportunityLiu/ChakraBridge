@@ -41,6 +41,25 @@ void JsErrorImpl::Name::set(string^ value)
     RawSetProperty(Reference, L"name", v);
 }
 
+string^ JsErrorImpl::Stack::get()
+{
+    auto p = RawGetProperty(Reference, L"stack");
+    try
+    {
+        return RawStringToPointer(p);
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+void JsErrorImpl::Stack::set(string^ value)
+{
+    auto v = RawPointerToString(value);
+    RawSetProperty(Reference, L"Stack", v);
+}
+
 #define CREATE_ERROR_WITH_JSSTRING(methodName, implName)                          \
 IJsError^ JsError::methodName(IJsString^ message)                                 \
 {                                                                                 \

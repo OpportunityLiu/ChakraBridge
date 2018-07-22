@@ -26,7 +26,7 @@ string^ JsStringImpl::ToString()
     return RawStringToPointer(Reference);
 }
 
-IJsString^ JsString::Of(string^ value)
+IJsString^ JsString::Create(string^ value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsPointerToString(value->Data(), value->Length(), &ref));

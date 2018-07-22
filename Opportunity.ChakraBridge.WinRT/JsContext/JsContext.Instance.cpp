@@ -19,7 +19,7 @@ JsContext::~JsContext()
     JsContextRef ct;
     CHAKRA_CALL(JsGetCurrentContext(&ct));
     if (this->Reference == ct)
-        throw ref new Platform::FailureException("Can not dispose JsContexts in using.");
+        throw ref new Platform::FailureException(L"Can not dispose JsContexts in using.");
     this->Runtime->Contexts.erase(this->Reference);
     CHAKRA_CALL(JsRelease(this->Reference, nullptr));
     this->Reference = JS_INVALID_REFERENCE;

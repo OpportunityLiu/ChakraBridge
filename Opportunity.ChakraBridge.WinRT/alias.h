@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -10,21 +11,19 @@ namespace Opportunity::ChakraBridge::WinRT
     using string = ::Platform::String;
 }
 
-template<typename T>
-inline void __NULL_CHECK(T^ v, const wchar_t* message)
-{
-    if (v == nullptr)
-        throw ref new Platform::InvalidArgumentException(ref new ::Platform::String(message));
-}
-
-template<>
-inline void __NULL_CHECK<::Platform::String>(::Platform::String^ v, const wchar_t* message)
-{
-    if (v->IsEmpty())
-        throw ref new Platform::InvalidArgumentException(ref new ::Platform::String(message));
-}
-
-#define NULL_CHECK(prop) __NULL_CHECK(prop, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.")
+#define NULL_CHECK(prop) \
+do{\
+    if constexpr (std::is_same_v<decltype(prop), ::Platform::String^>)\
+    {\
+        if ((prop) == nullptr)\
+            throw ref new ::Platform::InvalidArgumentException(_CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null or empty.");\
+    }\
+    else\
+    {\
+        if ((prop) == nullptr)\
+            throw ref new ::Platform::InvalidArgumentException(_CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.");\
+    }\
+}while (false)
 
 #define PP_CAT(a, b) PP_CAT_I(a, b)
 #define PP_CAT_I(a, b) PP_CAT_II(~, a ## b)

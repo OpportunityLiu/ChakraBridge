@@ -55,22 +55,16 @@ namespace Test
                     {
                         using (c.Use(false))
                         {
-                            var o = JsObject.Create();
-                            o.ObjectCollectingCallback = aaa;
-                            var func = JsFunction.Of(saf, "");
-                            JsValue.GlobalObject["ss"] = func;
-                            var funcr = JsContext.RunScript("ss(1,'as',{}, null)");
-                            var a = (IJsArray)JsContext.RunScript("[1,'2', {}]");
-                            var ex = JsError.CreateRangeError("");
-                            var exm = ex.Message;
-                            var b = ((IDictionary<string, IJsValue>)a).ToArray();
-                            var cd = (IJsObject)JsContext.RunScript("({},,)");
-                            //var testobj = JsValue.Create(new System.Net.Http.HttpClient());
-                            //var x = JsString.Create("12");
-                            //var xx = JsValue.Equals(x, x);
-                            //var a = JsValue.ToJsObject(x);
-                            //var aa = a.ToString();
-                            //var r = (IJsString)JsContext.RunScript("''");
+                            var bs = JsContext.SerializeScript(@"(function(){var o = {}; o.a = o; o.b = 'b'; o.c = 1; o.d = false; o.e = null; return o;})()");
+                            var data = bs.ToArray();
+                            var r = JsContext.ParseScript(data.AsBuffer());
+                            JsValue.GlobalObject["r"] = r;
+                            var r2 = JsFunction.Create(saf, "asf");
+                            var rs = r.ToString();
+                            var sym = JsSymbol.Create();
+                            var array = JsArray.Create(100);
+                            var obj = (IJsObject)r.Invoke(null, null);
+                            obj[sym] = sym;
                         }
                     }
                 }

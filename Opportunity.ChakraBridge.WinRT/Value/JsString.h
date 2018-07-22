@@ -45,6 +45,6 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <param name="stringValue">The <see langword="string"/> to convert to a <see cref="IJsString"/> value.</param>
         /// <returns>The new <see cref="IJsString"/> value.</returns>
         /// <remarks>Requires an active script context.</remarks>
-        static IJsString^ Of(string^ value);
+        static IJsString^ Create(string^ value);
     };
 }

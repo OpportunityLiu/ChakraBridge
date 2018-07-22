@@ -4,7 +4,10 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    public interface class IJsArray : IJsObject//, Windows::Foundation::Collections::IVector<IJsValue^>
+    /// <summary>
+    /// A JavaScript array value.
+    /// </summary>
+    public interface class IJsArray : IJsObject, Windows::Foundation::Collections::IVector<IJsValue^>
     {
     };
 
@@ -17,7 +20,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToString, string^, Windows::Foundation::IStringable);
 
-        INHERIT_INTERFACE_RW_PROPERTY(Prototype, IJsObject^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
         INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
@@ -40,8 +43,24 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
     public:
-        virtual property Platform::String^ Message;
-        virtual property Platform::String^ Name;
+        using T = IJsValue^;
+        using TVector = Windows::Foundation::Collections::IVector<T>;
+        using TVectorView = Windows::Foundation::Collections::IVectorView<T>;
+        using TIterable = Windows::Foundation::Collections::IIterable<T>;
+        using TIterator = Windows::Foundation::Collections::IIterator<T>;
+        virtual property uint32 ArraySize { uint32 get() = TVector::Size::get; }
+        virtual void Append(T value);
+        virtual void ArrayClear() = TVector::Clear;
+        virtual T GetAt(uint32 index);
+        virtual uint32 GetMany(uint32 startIndex, Platform::WriteOnlyArray<T>^ items);
+        virtual TVectorView^ ArrayGetView() = TVector::GetView;
+        virtual bool IndexOf(T value, uint32* index);
+        virtual void InsertAt(uint32 index, T value);
+        virtual void RemoveAt(uint32 index);
+        virtual void RemoveAtEnd();
+        virtual void ReplaceAll(const Platform::Array<T>^ items);
+        virtual void SetAt(uint32 index, T value);
+        virtual TIterator^ ArrayFirst() = TVector::First;
     };
 
     /// <summary>
@@ -51,5 +70,14 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     private:
         JsArray() {}
+    public:
+
+        /// <summary>
+        /// Creates a JavaScript array object.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        /// <param name="length">The initial length of the array.</param>
+        /// <returns>A JavaScript array object.</returns>
+        static IJsArray^ Create(uint32 length);
     };
 }

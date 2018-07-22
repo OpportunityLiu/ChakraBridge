@@ -32,7 +32,7 @@ IJsBoolean^ JsBoolean::False::get()
     return ref new JsBooleanImpl(ref);
 }
 
-IJsBoolean^ JsBoolean::Of(bool value)
+IJsBoolean^ JsBoolean::Create(bool value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsBoolToBoolean(value, &ref));

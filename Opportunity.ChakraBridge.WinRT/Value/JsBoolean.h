@@ -40,6 +40,6 @@ namespace Opportunity::ChakraBridge::WinRT
             IJsBoolean^ get();
         }
 
-        static IJsBoolean^ Of(bool value);
+        static IJsBoolean^ Create(bool value);
     };
 }

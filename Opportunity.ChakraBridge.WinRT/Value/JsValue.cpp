@@ -9,7 +9,7 @@ JsValueImpl::JsValueImpl(JsValueRef ref)
     : Reference(ref)
 {
     if (Reference == JS_INVALID_REFERENCE)
-        throw ref new Platform::InvalidArgumentException("ref for JsValue is JS_INVALID_REFERENCE");
+        throw ref new Platform::InvalidArgumentException(L"ref for JsValue is JS_INVALID_REFERENCE");
 }
 
 object^ JsValueImpl::ToInspectable()
@@ -94,7 +94,7 @@ bool JsValue::StrictEquals(IJsValue^ v1, IJsValue^ v2)
     return r;
 }
 
-IJsValue^ JsValue::Of(object^ inspectable)
+IJsValue^ JsValue::Create(object^ inspectable)
 {
     NULL_CHECK(inspectable);
     JsValueRef v;

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "JsObject.h"
 #include <vector>
+#include <sstream>
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
@@ -151,13 +152,18 @@ uint32 JsObjectImpl::SymSize::get()
 
 string^ JsObjectImpl::ToString()
 {
-    JsValueRef strref;
-    if (JsConvertValueToString(Reference, &strref) == JsNoError)
+    try
     {
+        JsValueRef strref;
+        CHAKRA_CALL(JsConvertValueToString(Reference, &strref));
         return RawStringToPointer(strref);
     }
-    // no toString method.
-    return "[object Object]";
+    catch (Platform::Exception^ ex)
+    {
+        std::wstringstream msg;
+        msg << L'<' << CHAKRA_LAST_ERROR()->Data() << L'>';
+        return ref new string(msg.str().c_str());
+    }
 }
 
 void JsObjectImpl::PreventExtension()
@@ -172,14 +178,14 @@ bool JsObjectImpl::IsExtensionAllowed::get()
     return r;
 }
 
-IJsObject^ JsObjectImpl::Prototype::get()
+IJsObject^ JsObjectImpl::Proto::get()
 {
     JsValueRef r;
     CHAKRA_CALL(JsGetPrototype(Reference, &r));
     return dynamic_cast<IJsObject^>(JsValue::CreateTyped(r));
 }
 
-void JsObjectImpl::Prototype::set(IJsObject^ value)
+void JsObjectImpl::Proto::set(IJsObject^ value)
 {
     if (value == nullptr)
     {

@@ -25,14 +25,14 @@ string^ JsNumberImpl::ToString()
     return ref new string(str.c_str());
 }
 
-IJsNumber^ JsNumber::Of(int32 value)
+IJsNumber^ JsNumber::Create(int32 value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsIntToNumber(value, &ref));
     return ref new JsNumberImpl(ref);
 }
 
-IJsNumber^ JsNumber::Of(float64 value)
+IJsNumber^ JsNumber::Create(float64 value)
 {
     JsValueRef ref;
     CHAKRA_CALL(JsDoubleToNumber(value, &ref));

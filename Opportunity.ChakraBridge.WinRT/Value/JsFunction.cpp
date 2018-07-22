@@ -3,6 +3,8 @@
 #include "JsContext\JsContext.h"
 #include <limits>
 #include <vector>
+#include <algorithm>
+#include <sstream>
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
@@ -68,7 +70,7 @@ void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, st
         return;
 
     if (arguments->Size > std::numeric_limits<unsigned short>::max() - 1u)
-        throw ref new Platform::InvalidArgumentException("Too many arguments");
+        throw ref new Platform::InvalidArgumentException(L"Too many arguments");
 
     JsValueRef undef = JS_INVALID_REFERENCE;
 
@@ -103,7 +105,42 @@ IJsObject^ JsFunctionImpl::New(IJsValueVectorView^ arguments)
     return safe_cast<IJsObject^>(JsValue::CreateTyped(result));
 }
 
-IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function)
+string^ JsFunctionImpl::Name::get()
+{
+    return RawStringToPointer(RawGetProperty(Reference, L"name"));
+}
+
+int32 JsFunctionImpl::Length::get()
+{
+    return RawNumberToInt(RawGetProperty(Reference, L"length"));
+}
+
+IJsObject^ JsFunctionImpl::Prototype::get()
+{
+    return dynamic_cast<IJsObject^>(JsValue::CreateTyped(RawGetProperty(Reference, L"prototype")));
+}
+
+void JsFunctionImpl::Prototype::set(IJsObject^ value)
+{
+    if (value == nullptr)
+    {
+        RawSetProperty(Reference, L"prototype", RawUndefined());
+        return;
+    }
+    RawSetProperty(Reference, L"prototype", to_impl(value)->Reference);
+}
+
+string^ JsFunctionImpl::ToString()
+{
+    // for parsed scripts
+    if (Length <0)
+    {
+        return L"function() { [parsed script code] }";
+    }
+    return JsObjectImpl::ToString();
+}
+
+IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function)
 {
     NULL_CHECK(function);
     JsValueRef ref;
@@ -113,10 +150,10 @@ IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function)
     return ref new JsFunctionImpl(ref);
 }
 
-IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function, IJsString^ name)
+IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, IJsString^ name)
 {
     if (name == nullptr)
-        return Of(function);
+        return Create(function);
     NULL_CHECK(function);
     JsValueRef ref;
     auto id = FuncId++;
@@ -125,10 +162,10 @@ IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function, IJsString^ name)
     return ref new JsFunctionImpl(ref);
 }
 
-IJsFunction^ JsFunction::Of(JsFunctionDelegate^ function, string^ name)
+IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, string^ name)
 {
     if (name == nullptr)
-        return Of(function);
+        return Create(function);
     NULL_CHECK(function);
     JsValueRef ref, nameref;
     CHAKRA_CALL(JsPointerToString(name->Data(), name->Length(), &nameref));

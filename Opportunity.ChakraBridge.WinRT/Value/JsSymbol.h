@@ -4,6 +4,9 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+    /// <summary>
+    /// A JavaScript symbol value.
+    /// </summary>
     public interface class IJsSymbol : IJsValue
     {
     };
@@ -39,6 +42,23 @@ namespace Opportunity::ChakraBridge::WinRT
     private:
         JsSymbol() {}
 
+    public:
+        /// <summary>
+        /// Creates a JavaScript symbol. 
+        /// </summary>
+        /// <param name="description">The description of the symbol. Can be <see langword="null"/>.</param>
+        static IJsSymbol^ Create(IJsValue^ description);
+
+        /// <summary>
+        /// Creates a JavaScript symbol. 
+        /// </summary>
+        /// <param name="description">The string description of the symbol.</param>
+        static IJsSymbol^ Create(string^ description);
+
+        /// <summary>
+        /// Creates a JavaScript symbol. 
+        /// </summary>
+        static IJsSymbol^ Create();
     };
 };
 

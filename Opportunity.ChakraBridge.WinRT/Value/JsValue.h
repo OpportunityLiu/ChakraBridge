@@ -126,7 +126,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <para>The projected value can be used by script to call a WinRT object. Hosts are responsible for enforcing COM threading rules. </para>
         /// <para>Requires an active script context. </para>
         /// </remarks>
-        static IJsValue^ Of(object^ inspectable);
+        static IJsValue^ Create(object^ inspectable);
 
         /// <summary>
         /// Converts the value to <see cref="IJsBoolean"/> using regular JavaScript semantics.

@@ -19,6 +19,25 @@ namespace Opportunity::ChakraBridge::WinRT
 
     public interface class IJsFunction : IJsObject
     {
+
+        /// <summary>
+        /// Read-only <c>name</c> property of the <see cref="IJsFunction"/>.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        property string^ Name { string^ get(); }
+
+        /// <summary>
+        /// Read-only <c>length</c> property of the <see cref="IJsFunction"/>.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        property int32 Length { int32 get(); }
+
+        /// <summary>
+        /// <c>prototype</c> property of the <see cref="IJsFunction"/>.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        property IJsObject^ Prototype { IJsObject^ get(); void set(IJsObject^ value); }
+
         /// <summary>
         /// Invokes a function.
         /// </summary>
@@ -45,9 +64,8 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
-        INHERIT_INTERFACE_METHOD(ToString, string^, Windows::Foundation::IStringable);
 
-        INHERIT_INTERFACE_RW_PROPERTY(Prototype, IJsObject^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
         INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
@@ -72,6 +90,10 @@ namespace Opportunity::ChakraBridge::WinRT
     public:
         virtual IJsValue^ Invoke(IJsValue^ caller, IJsValueVectorView^ arguments);
         virtual IJsObject^ New(IJsValueVectorView^ arguments);
+        virtual property string^ Name { string^ get(); }
+        virtual property int32 Length { int32 get(); }
+        virtual property IJsObject^ Prototype { IJsObject^ get(); void set(IJsObject^ value); }
+        virtual string^ ToString() override;
     };
 
     /// <summary>
@@ -91,7 +113,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <returns>A new JavaScript function.</returns>
         /// <remarks>Requires an active script context.</remarks>
         [Overload("OfNativeFunction")]
-        static IJsFunction^ Of(JsNativeFunction^ function);
+        static IJsFunction^ Create(JsNativeFunction^ function);
 
         /// <summary>
         /// Creates a new JavaScript function.
@@ -101,7 +123,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <returns>A new JavaScript function.</returns>
         /// <remarks>Requires an active script context.</remarks>
         [Overload("OfNativeFunctionWithJsName")]
-        static IJsFunction^ Of(JsNativeFunction^ function, IJsString^ name);
+        static IJsFunction^ Create(JsNativeFunction^ function, IJsString^ name);
 
         /// <summary>
         /// Creates a new JavaScript function.
@@ -112,6 +134,6 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <remarks>Requires an active script context.</remarks>
         [DefaultOverload]
         [Overload("OfNativeFunctionWithName")]
-        static IJsFunction^ Of(JsNativeFunction^ function, string^ name);
+        static IJsFunction^ Create(JsNativeFunction^ function, string^ name);
     };
 }

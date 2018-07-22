@@ -20,3 +20,29 @@ string^ JsSymbolImpl::ToString()
     JsValueRef strref = RawCallFunction(tostrFunc, this->Reference);
     return RawStringToPointer(strref);
 }
+
+IJsSymbol^ InnerCreate(JsValueRef description)
+{
+    JsValueRef r;
+    CHAKRA_CALL(JsCreateSymbol(description, &r));
+    return ref new JsSymbolImpl(r);
+}
+
+IJsSymbol^ JsSymbol::Create(IJsValue^ description)
+{
+    if (description == nullptr)
+        return Create();
+    return InnerCreate(to_impl(description)->Reference);
+}
+
+IJsSymbol^ JsSymbol::Create(string^ description)
+{
+    if (description == nullptr)
+        return Create();
+    return InnerCreate(RawPointerToString(description));
+}
+
+IJsSymbol^ JsSymbol::Create()
+{
+    return InnerCreate(JS_INVALID_REFERENCE);
+}
