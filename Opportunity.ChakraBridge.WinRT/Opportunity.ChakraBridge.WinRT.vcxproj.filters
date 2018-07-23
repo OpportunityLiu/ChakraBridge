@@ -27,6 +27,8 @@
     <ClCompile Include="Value\JsArray.cpp" />
     <ClCompile Include="Value\JsExternalObject.cpp" />
     <ClCompile Include="Value\JsArrayBuffer.cpp" />
+    <ClCompile Include="Value\JsDataView.cpp" />
+    <ClCompile Include="Native\NativeBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -52,5 +54,6 @@
     <ClInclude Include="Value\JsArray.h" />
     <ClInclude Include="Value\JsExternalObject.h" />
     <ClInclude Include="Value\JsArrayBuffer.h" />
+    <ClInclude Include="Value\JsDataView.h" />
   </ItemGroup>
 </Project>

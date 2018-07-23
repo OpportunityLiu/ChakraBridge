@@ -8,65 +8,66 @@ namespace Opportunity::ChakraBridge::WinRT
 {
     string^ CHAKRA_LAST_ERROR();
 
-    inline void CHAKRA_CALL(const JsErrorCode result)
+    inline void __CHAKRA_CALL(const JsErrorCode result, const wchar_t* expr, const int line, const wchar_t* file)
     {
-        void GetChakraError();
-        using namespace Platform;
+        void __CHAKRA_CALL_GetChakraError();
+        string^ __CHAKRA_CALL_MakeMessage(const wchar_t* message, const wchar_t* expr, const int line, const wchar_t* file);
+#define THROW(errtype, message) throw ::Platform::Exception::CreateException(errtype, __CHAKRA_CALL_MakeMessage(message, expr, line, file))
         if (result == JsErrorCode::JsNoError)
             return;
         switch (result)
         {
         case JsErrorCode::JsErrorInvalidArgument:
-            throw ref new InvalidArgumentException(L"An argument to a hosting API was invalid.");
+            THROW(E_INVALIDARG, L"An argument to a hosting API was invalid.");
         case JsErrorCode::JsErrorNullArgument:
-            throw ref new InvalidArgumentException(L"An argument to a hosting API was null in a context where null is not allowed.");
+            THROW(E_INVALIDARG, L"An argument to a hosting API was null in a context where null is not allowed.");
         case JsErrorCode::JsErrorNoCurrentContext:
-            throw ref new FailureException(L"The hosting API requires that a context be current, but there is no current context.");
+            THROW(E_NOT_VALID_STATE, L"The hosting API requires that a context be current, but there is no current context.");
         case JsErrorCode::JsErrorInExceptionState:
-            throw ref new FailureException(L"The engine is in an exception state and no APIs can be called until the exception is cleared.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"The engine is in an exception state and no APIs can be called until the exception is cleared.");
         case JsErrorCode::JsErrorNotImplemented:
-            throw ref new NotImplementedException(L"A hosting API is not yet implemented.");
+            THROW(E_NOTIMPL, L"A hosting API is not yet implemented.");
         case JsErrorCode::JsErrorWrongThread:
-            throw ref new WrongThreadException(L"A hosting API was called on the wrong thread.");
+            THROW(RPC_E_WRONG_THREAD, L"A hosting API was called on the wrong thread.");
         case JsErrorCode::JsErrorRuntimeInUse:
-            throw ref new FailureException(L"A runtime that is still in use cannot be disposed.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"A runtime that is still in use cannot be disposed.");
         case JsErrorCode::JsErrorBadSerializedScript:
-            throw ref new InvalidArgumentException(L"A bad serialized script was used, or the serialized script was serialized by a different version of the Chakra engine.");
+            THROW(E_INVALIDARG, L"A bad serialized script was used, or the serialized script was serialized by a different version of the Chakra engine.");
         case JsErrorCode::JsErrorInDisabledState:
-            throw ref new FailureException(L"The runtime is in a disabled state.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"The runtime is in a disabled state.");
         case JsErrorCode::JsErrorCannotDisableExecution:
-            throw ref new FailureException(L"Runtime does not support reliable script interruption.");
+            THROW(E_ILLEGAL_STATE_CHANGE, L"Runtime does not support reliable script interruption.");
         case JsErrorCode::JsErrorAlreadyDebuggingContext:
-            throw ref new FailureException(L"The context cannot be put into a debug state because it is already in a debug state.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"The context cannot be put into a debug state because it is already in a debug state.");
         case JsErrorCode::JsErrorHeapEnumInProgress:
-            throw ref new FailureException(L"A heap enumeration is currently underway in the script context.");
+            THROW(E_CHANGED_STATE, L"A heap enumeration is currently underway in the script context.");
         case JsErrorCode::JsErrorArgumentNotObject:
-            throw ref new InvalidArgumentException(L"A hosting API that operates on object values was called with a non-object value.");
+            THROW(E_INVALIDARG, L"A hosting API that operates on object values was called with a non-object value.");
         case JsErrorCode::JsErrorInProfileCallback:
-            throw ref new FailureException(L"A script context is in the middle of a profile callback.");
+            THROW(E_FAIL, L"A script context is in the middle of a profile callback.");
         case JsErrorCode::JsErrorInThreadServiceCallback:
-            throw ref new FailureException(L"A thread service callback is currently underway.");
+            THROW(E_CHANGED_STATE, L"A thread service callback is currently underway.");
         case JsErrorCode::JsErrorCannotSerializeDebugScript:
-            throw ref new FailureException(L"Scripts cannot be serialized in debug contexts.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"Scripts cannot be serialized in debug contexts.");
         case JsErrorCode::JsErrorAlreadyProfilingContext:
-            throw ref new FailureException(L"The context cannot start profiling because it is already profiling.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"The context cannot start profiling because it is already profiling.");
         case JsErrorCode::JsErrorIdleNotEnabled:
-            throw ref new FailureException(L"Idle notification given when the host did not enable idle processing.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"Idle notification given when the host did not enable idle processing.");
         case JsErrorCode::JsErrorOutOfMemory:
-            throw ref new OutOfMemoryException(L"The Chakra engine has run out of memory.");
+            THROW(E_OUTOFMEMORY, L"The Chakra engine has run out of memory.");
         case JsErrorCode::JsErrorScriptException:
         {
             string^ error;
             try
             {
-                GetChakraError();
+                __CHAKRA_CALL_GetChakraError();
                 error = CHAKRA_LAST_ERROR();
             }
             catch (...)
             {
-                throw ref new FailureException(L"A JavaScript exception occurred while running a script.");
+                THROW(E_FAIL, L"A JavaScript exception occurred while running a script.");
             }
-            throw ref new FailureException(error);
+            THROW(E_FAIL, error->Data());
         }
 
         case JsErrorCode::JsErrorScriptCompile:
@@ -74,41 +75,44 @@ namespace Opportunity::ChakraBridge::WinRT
             string^ error;
             try
             {
-                GetChakraError();
+                __CHAKRA_CALL_GetChakraError();
                 error = CHAKRA_LAST_ERROR();
             }
             catch (...)
             {
-                throw ref new FailureException(L"JavaScript failed to compile.");
+                THROW(E_FAIL, L"JavaScript failed to compile.");
             }
-            throw ref new FailureException(error);
+            THROW(E_FAIL, error->Data());
         }
 
         case JsErrorCode::JsErrorScriptTerminated:
-            throw ref new OperationCanceledException(L"A script was terminated due to a request to suspend a runtime.");
+            THROW(E_ABORT, L"A script was terminated due to a request to suspend a runtime.");
         case JsErrorCode::JsErrorScriptEvalDisabled:
-            throw ref new FailureException(L"A script was terminated because it tried to use 'eval' or 'function' and eval was disabled.");
+            THROW(E_NOT_VALID_STATE, L"A script was terminated because it tried to use 'eval' or 'function' and eval was disabled.");
         case JsErrorCode::JsErrorFatal:
-            throw ref new FailureException(L"A fatal error in the engine has occurred.");
+            THROW(E_FAIL, L"A fatal error in the engine has occurred.");
         case JsErrorCode::JsCannotSetProjectionEnqueueCallback:
-            throw ref new FailureException(L"The context did not accept the enqueue callback.");
+            THROW(E_ILLEGAL_DELEGATE_ASSIGNMENT, L"The context did not accept the enqueue callback.");
         case JsErrorCode::JsErrorCannotStartProjection:
-            throw ref new FailureException(L"Failed to start projection.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"Failed to start projection.");
         case JsErrorCode::JsErrorInObjectBeforeCollectCallback:
-            throw ref new FailureException(L"The operation is not supported in an object before collect callback.");
+            THROW(E_ILLEGAL_METHOD_CALL, L"The operation is not supported in an object before collect callback.");
         case JsErrorCode::JsErrorObjectNotInspectable:
-            throw ref new FailureException(L"Object cannot be unwrapped to 'IInspectable' pointer.");
+            THROW(E_INVALIDARG, L"Object cannot be unwrapped to 'IInspectable' pointer.");
         case JsErrorCode::JsErrorPropertyNotSymbol:
-            throw ref new FailureException(L"A hosting API that operates on symbol property ids but was called with a non-symbol property id.");
+            THROW(E_INVALIDARG, L"A hosting API that operates on symbol property ids but was called with a non-symbol property id.");
         case JsErrorCode::JsErrorPropertyNotString:
-            throw ref new FailureException(L"A hosting API that operates on string property ids but was called with a non-string property id.");
+            THROW(E_INVALIDARG, L"A hosting API that operates on string property ids but was called with a non-string property id.");
         case JsErrorCode::JsErrorWrongRuntime:
-            throw ref new FailureException(L"A hosting API was called with object created on different javascript runtime.");
+            THROW(RPC_E_WRONG_THREAD, L"A hosting API was called with object created on different javascript runtime.");
 
         default:
-            throw ref new FailureException(L"Unknown error.");
+            THROW(E_FAIL, L"Unknown error.");
         }
+#undef THROW
     }
+
+#define CHAKRA_CALL(expr) __CHAKRA_CALL((expr), _CRT_WIDE(_CRT_STRINGIZE(expr)), __LINE__, _CRT_WIDE(__FILE__))
 
     inline JsValueRef RawPointerToString(string^ pointer)
     {

@@ -6,34 +6,36 @@
 namespace Opportunity::ChakraBridge::WinRT
 {
     /// <summary>
-    /// A Javascript ArrayBuffer.
+    /// A Javascript DataView.
     /// </summary>
-    public interface class IJsArrayBuffer : IJsObject
+    public interface class IJsDataView : IJsObject
     {
         using IBuffer = Windows::Storage::Streams::IBuffer;
         /// <summary>
-        /// A <see cref="Windows::Storage::Streams::IBuffer"/> to access data of this <see cref="IJsArrayBuffer"/>.
+        /// A <see cref="Windows::Storage::Streams::IBuffer"/> to access data of this <see cref="IJsDataView"/>.
         /// </summary>
         DECL_R_PROPERTY(IBuffer^, Data);
         /// <summary>
-        /// Represents the length of the <see cref="IJsArrayBuffer"/> in bytes.
+        /// Represents the <see cref="IJsArrayBuffer"/> referenced by the <see cref="IJsDataView"/> at construction time.
+        /// </summary>
+        DECL_R_PROPERTY(IJsArrayBuffer^, Buffer);
+        /// <summary>
+        /// Represents the length of the <see cref="IJsDataView"/> in bytes.
         /// </summary>
         DECL_R_PROPERTY(uint32, ByteLength);
+        /// <summary>
+        /// Represents the offset (in bytes) of this <see cref="IJsDataView"/> from the start of its <see cref="Buffer"/>.
+        /// </summary>
+        DECL_R_PROPERTY(uint32, ByteOffset);
     };
 
-    ref class JsArrayBufferImpl sealed : JsObjectImpl, IJsArrayBuffer
+    ref class JsDataViewImpl sealed : JsObjectImpl, IJsDataView
     {
     internal:
-        // map from reinterpret_cast<void*>(buffer) to reference
-        static std::unordered_map<void*, JsValueRef> ExternalBufferKeyMap;
-        // map from reference to IBuffer^
-        static std::unordered_map<JsValueRef, IJsArrayBuffer::IBuffer^> ExternalBufferDataMap;
-        static void CALLBACK JsFinalizeCallbackImpl(_In_opt_ void *data);
-
-        uint8* BufferPtr;
+        uint8 * BufferPtr;
         unsigned int BufferLen;
 
-        JsArrayBufferImpl(JsValueRef ref);
+        JsDataViewImpl(JsValueRef ref);
 
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
@@ -63,35 +65,44 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
     public:
-        virtual DECL_R_PROPERTY(IJsArrayBuffer::IBuffer^, Data);
+        virtual DECL_R_PROPERTY(IJsDataView::IBuffer^, Data);
+        virtual DECL_R_PROPERTY(IJsArrayBuffer^, Buffer);
         virtual DECL_R_PROPERTY(uint32, ByteLength);
+        virtual DECL_R_PROPERTY(uint32, ByteOffset);
     };
 
     /// <summary>
-    /// Static methods of <see cref="IJsArrayBuffer"/>.
+    /// Static methods of <see cref="IJsDataView"/>.
     /// </summary>
-    public ref class JsArrayBuffer sealed
+    public ref class JsDataView sealed
     {
     private:
-        JsArrayBuffer() {}
+        JsDataView() {}
     public:
-        /// <summary>
-        /// Create a new instance of <see cref="IJsArrayBuffer"/>.
-        /// </summary>
-        /// <param name="length">Length of buffer in bytes.</param>
-        /// <returns>A new instance of <see cref="IJsArrayBuffer"/>.</returns>
-        /// <remarks>Requires an active script context.</remarks>
-        [DefaultOverload]
-        [Overload("Create")]
-        static IJsArrayBuffer^ Create(uint32 length);
 
         /// <summary>
-        /// Create a new instance of <see cref="IJsArrayBuffer"/>.
+        /// Create new instance of <see cref="IJsDataView"/>.
         /// </summary>
-        /// <param name="buffer">A buffer that will be used as backing data storage.</param>
-        /// <returns>A new instance of <see cref="IJsArrayBuffer"/>.</returns>
-        /// <remarks>Requires an active script context.</remarks>
-        [Overload("CreateWithBuffer")]
-        static IJsArrayBuffer^ Create(IJsArrayBuffer::IBuffer^ buffer);
+        /// <param name="buffer">The <see cref="IJsArrayBuffer"/> that the <see cref="IJsDataView"/> will be based on.</param>
+        [Overload("Create")]
+        [DefaultOverload]
+        static IJsDataView^ Create(IJsArrayBuffer^ buffer);
+
+        /// <summary>
+        /// Create new instance of <see cref="IJsDataView"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IJsArrayBuffer"/> that the <see cref="IJsDataView"/> will be based on.</param>
+        /// <param name="byteOffset">The offset (in bytes) of the <see cref="IJsDataView"/> from the start of <paramref name="buffer"/>.</param>
+        [Overload("CreateWithOffset")]
+        static IJsDataView^ Create(IJsArrayBuffer^ buffer, uint32 byteOffset);
+
+        /// <summary>
+        /// Create new instance of <see cref="IJsDataView"/>.
+        /// </summary>
+        /// <param name="buffer">The <see cref="IJsArrayBuffer"/> that the <see cref="IJsDataView"/> will be based on.</param>
+        /// <param name="byteOffset">The offset (in bytes) of the <see cref="IJsDataView"/> from the start of <paramref name="buffer"/>.</param>
+        /// <param name="byteLength">The length of the <see cref="IJsDataView"/> in bytes</param>
+        [Overload("CreateWithOffsetAndLength")]
+        static IJsDataView^ Create(IJsArrayBuffer^ buffer, uint32 byteOffset, uint32 byteLength);
     };
 }

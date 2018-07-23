@@ -5,29 +5,37 @@
 #include <windows.storage.streams.h>
 #include <robuffer.h>
 #include <vector>
+#include <sstream>
+#include <unordered_map>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+
+    struct __NativeBufferStaticStorage
+    {
+        static std::unordered_map<size_t, std::wstring> RuntimeClassname;
+
+        static const wchar_t* GetRuntimeName(const std::type_info& typeInfo);
+    };
+
     template<typename TData>
     class NativeBuffer :
         public Microsoft::WRL::RuntimeClass<Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::RuntimeClassType::WinRtClassicComMix>,
         ABI::Windows::Storage::Streams::IBuffer,
         Windows::Storage::Streams::IBufferByteAccess>
     {
-        InspectableClass(L"NativeBuffer", BaseTrust);
+    private:
+        InspectableClass(__NativeBufferStaticStorage::GetRuntimeName(typeid(TData)), BaseTrust);
     public:
-        using My = NativeBuffer<TData>;
-
         virtual ~NativeBuffer()
         {
-            
+
         }
 
         STDMETHODIMP RuntimeClassInitialize(TData^ data)
         {
             m_data = data;
             m_length = data->BufferLen;
-
             return S_OK;
         }
 
@@ -76,7 +84,7 @@ namespace Opportunity::ChakraBridge::WinRT
 
     private:
         uint32 m_length;
-        weak_ref m_data; 
+        weak_ref m_data;
     };
 
     template<typename TData>

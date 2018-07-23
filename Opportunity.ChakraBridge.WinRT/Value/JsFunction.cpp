@@ -171,7 +171,9 @@ IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function)
     NULL_CHECK(function);
     JsValueRef ref;
     CHAKRA_CALL(JsCreateFunction(JsNativeFunctionImpl, nullptr, &ref));
-    return ref new JsFunctionImpl(ref, function);
+    auto func = ref new JsFunctionImpl(ref);
+    func->InitForNativeFunc(function);
+    return func;
 }
 
 IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, IJsString^ name)
@@ -181,7 +183,9 @@ IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, IJ
     NULL_CHECK(function);
     JsValueRef ref;
     CHAKRA_CALL(JsCreateNamedFunction(to_impl(name)->Reference, JsNativeFunctionImpl, nullptr, &ref));
-    return ref new JsFunctionImpl(ref, function);
+    auto func = ref new JsFunctionImpl(ref);
+    func->InitForNativeFunc(function);
+    return func;
 }
 
 IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, string^ name)
@@ -191,12 +195,13 @@ IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, st
     NULL_CHECK(function);
     JsValueRef ref;
     CHAKRA_CALL(JsCreateNamedFunction(RawPointerToString(name), JsNativeFunctionImpl, nullptr, &ref));
-    return ref new JsFunctionImpl(ref, function);
+    auto func = ref new JsFunctionImpl(ref);
+    func->InitForNativeFunc(function);
+    return func;
 }
 
-JsFunctionImpl::JsFunctionImpl(JsValueRef ref, JsFunctionDelegate^ function)
-    : JsObjectImpl(ref)
+void JsFunctionImpl::InitForNativeFunc(JsFunctionDelegate^ function)
 {
-    FunctionTable[ref] = function;
+    FunctionTable[Reference] = function;
     this->ObjectCollectingCallback = nullptr;
 }

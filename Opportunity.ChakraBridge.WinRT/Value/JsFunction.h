@@ -63,7 +63,8 @@ namespace Opportunity::ChakraBridge::WinRT
         using IJsValueVectorView = Windows::Foundation::Collections::IVectorView<IJsValue^>;
 
         JsFunctionImpl(JsValueRef ref) :JsObjectImpl(ref) {}
-        JsFunctionImpl(JsValueRef ref, JsFunctionDelegate^ function);
+
+        void InitForNativeFunc(JsFunctionDelegate^ function);
 
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);

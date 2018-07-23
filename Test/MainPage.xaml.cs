@@ -53,21 +53,28 @@ namespace Test
                     runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
                     using (var c = runtime.CreateContext())
                     {
-                        using (c.Use(false))
+                        JsContext.Current = c;
+                        try
                         {
-                            try
-                            {
-                                var data = new byte[100];
-                                var buf = JsArrayBuffer.Create(data.AsBuffer(0, 0, 50));
-                                JsValue.GlobalObject["aa"] = buf;
-                                var buf2 = (IJsArrayBuffer)JsValue.GlobalObject["aa"];
-                                var len = buf.ByteLength;
-                            }
-                            catch (Exception)
-                            {
+                            // create an ArrayBuffer with a size in bytes
+                            var buffer = JsArrayBuffer.Create(16);
 
-                                var error = JsContext.LastError;
-                            }
+                            // Create a couple of views
+                            var view1 = JsDataView.Create(buffer);
+                            var view2 = JsDataView.Create(buffer, 12, 4); //from byte 12 for the next 4 bytes
+
+                            var s = view1.Data.AsStream();
+                            s.Position = 12;
+                            s.WriteByte(42);
+                            // put 42 in slot 12
+                            view1.ToInspectable();
+                            var a = view2.Data.GetByte(0);
+                            // expected output: 42
+                        }
+                        catch (Exception)
+                        {
+
+                            var error = JsContext.LastError;
                         }
                     }
                 }

@@ -20,7 +20,7 @@ JsArrayBufferImpl::JsArrayBufferImpl(JsValueRef ref)
     CHAKRA_CALL(JsGetArrayBufferStorage(ref, &BufferPtr, &BufferLen));
 }
 
-IJsArrayBuffer::IBuffer^ JsArrayBufferImpl::Buffer::get()
+IJsArrayBuffer::IBuffer^ JsArrayBufferImpl::Data::get()
 {
     auto extBuf = ExternalBufferDataMap.find(Reference);
     if (extBuf != ExternalBufferDataMap.end())
