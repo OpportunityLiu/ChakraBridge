@@ -58,12 +58,13 @@ namespace Opportunity::ChakraBridge::WinRT
     private:
         static void CALLBACK JsBeforeCollectCallbackImpl(_In_opt_ void *callbackState);
         static bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackState, _In_::JsMemoryEventType allocationEvent, _In_ size_t allocationSize);
+
     internal:
-        std::unordered_map<size_t, JsFunction::JsFunctionDelegate^> FunctionTable;
         JsRuntimeHandle Handle;
         JsRuntime(JsRuntimeHandle handle);
         std::unordered_map<JsContextRef, JsContext^> Contexts;
         static std::unordered_map<JsRuntimeHandle, JsRuntime^> RuntimeDictionary;
+
     public:
         /// <summary>
         /// Performs a full garbage collection.

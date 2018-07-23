@@ -26,11 +26,9 @@ JsContext^ JsValueImpl::Context::get()
     return JsContext::Get(ref);
 }
 
-WinRT::JsValueType JsValueImpl::Type::get()
+JsType JsValueImpl::Type::get()
 {
-    ::JsValueType type;
-    CHAKRA_CALL(JsGetValueType(Reference, &type));
-    return static_cast<WinRT::JsValueType>(type);
+    return RawGetValueType(Reference);
 }
 
 JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
@@ -54,13 +52,20 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
     case ::JsSymbol:
         return ref new JsSymbolImpl(ref);
     case ::JsObject:
-        return ref new JsObjectImpl(ref);
+        bool hasExternalData;
+        CHAKRA_CALL(JsHasExternalData(ref, &hasExternalData));
+        if (hasExternalData)
+            return ref new JsExternalObjectImpl(ref);
+        else
+            return ref new JsObjectImpl(ref);
     case ::JsError:
         return ref new JsErrorImpl(ref);
     case ::JsFunction:
         return ref new JsFunctionImpl(ref);
     case ::JsArray:
         return ref new JsArrayImpl(ref);
+    case ::JsArrayBuffer:
+        return ref new JsArrayBufferImpl(ref);
     }
     return ref new JsObjectImpl(ref);
 }

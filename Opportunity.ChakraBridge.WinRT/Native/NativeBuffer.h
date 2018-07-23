@@ -8,68 +8,85 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-
+    template<typename TData>
     class NativeBuffer :
         public Microsoft::WRL::RuntimeClass<Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::RuntimeClassType::WinRtClassicComMix>,
         ABI::Windows::Storage::Streams::IBuffer,
         Windows::Storage::Streams::IBufferByteAccess>
     {
+        InspectableClass(L"NativeBuffer", BaseTrust);
     public:
-        static Windows::Storage::Streams::IBuffer^ CreateNativeBuffer(byte* buf, int32 size, int32 length)
-        {
-            Microsoft::WRL::ComPtr<NativeBuffer> nativeBuffer;
-            Microsoft::WRL::Details::MakeAndInitialize<NativeBuffer>(&nativeBuffer, buf, size, length);
-            auto iinspectable = reinterpret_cast<IInspectable *>(nativeBuffer.Get());
-            auto buffer = reinterpret_cast<Windows::Storage::Streams::IBuffer^>(iinspectable);
-            return buffer;
-        }
+        using My = NativeBuffer<TData>;
 
         virtual ~NativeBuffer()
         {
+            
         }
 
-        STDMETHODIMP RuntimeClassInitialize(byte *buffer, UINT32 size, UINT32 length)
+        STDMETHODIMP RuntimeClassInitialize(TData^ data)
         {
-            m_length = length;
-            m_size = size;
-            m_buffer = buffer;
+            m_data = data;
+            m_length = data->BufferLen;
 
             return S_OK;
         }
 
-        STDMETHODIMP Buffer(byte **value)
+        STDMETHODIMP Buffer(uint8 **value)
         {
-            *value = m_buffer;
+            auto data = m_data.Resolve<TData>();
+            if (data == nullptr)
+                return RPC_E_DISCONNECTED;
 
+            *value = data->BufferPtr;
             return S_OK;
         }
 
-        STDMETHODIMP get_Capacity(UINT32 *value)
+        STDMETHODIMP get_Capacity(uint32 *value)
         {
+            auto data = m_data.Resolve<TData>();
+            if (data == nullptr)
+                return RPC_E_DISCONNECTED;
+
+            *value = data->BufferLen;
+            return S_OK;
+        }
+
+        STDMETHODIMP get_Length(uint32 *value)
+        {
+            auto data = m_data.Resolve<TData>();
+            if (data == nullptr)
+                return RPC_E_DISCONNECTED;
+
             *value = m_length;
-
             return S_OK;
         }
 
-        STDMETHODIMP get_Length(UINT32 *value)
+        STDMETHODIMP put_Length(uint32 value)
         {
-            *value = m_length;
+            auto data = m_data.Resolve<TData>();
+            if (data == nullptr)
+                return RPC_E_DISCONNECTED;
 
-            return S_OK;
-        }
-
-        STDMETHODIMP put_Length(UINT32 value)
-        {
-            if (m_size < value)
+            if (data->BufferLen < value)
                 return E_INVALIDARG;
-            m_length = value;
 
+            m_length = value;
             return S_OK;
         }
 
     private:
-        UINT32 m_length;
-        UINT32 m_size;
-        byte *m_buffer;
+        uint32 m_length;
+        weak_ref m_data; 
     };
+
+    template<typename TData>
+    static Windows::Storage::Streams::IBuffer^ CreateNativeBuffer(TData^ data)
+    {
+        using My = NativeBuffer<TData>;
+        Microsoft::WRL::ComPtr<My> nativeBuffer;
+        Microsoft::WRL::Details::MakeAndInitialize<My>(&nativeBuffer, data);
+        auto iinspectable = reinterpret_cast<IInspectable *>(nativeBuffer.Get());
+        auto buffer = reinterpret_cast<Windows::Storage::Streams::IBuffer^>(iinspectable);
+        return buffer;
+    }
 };

@@ -5,7 +5,7 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSymbolImpl::~JsSymbolImpl()
 {
-    CHAKRA_CALL(JsRelease(this->Reference, nullptr));
+    JsRelease(this->Reference, nullptr);
 }
 
 JsSymbolImpl::JsSymbolImpl(JsValueRef ref)
@@ -48,8 +48,6 @@ IJsSymbol^ JsSymbol::Create()
 {
     return InnerCreate(JS_INVALID_REFERENCE);
 }
-
-using JsType = Opportunity::ChakraBridge::WinRT::JsValueType;
 
 template<JsType TExpacted>
 JsValueRef GetSymbolProperty(const wchar_t* name)

@@ -10,11 +10,13 @@ typedef uint8 byte;
 // the lifetime of the buffer object that's passed to this method.  
 // When the buffer has been released, the pointer becomes invalid  
 // and must not be used.  
-byte* GetPointerOfBuffer(IBuffer^ buffer, unsigned int *length)
+byte* GetPointerOfBuffer(IBuffer^ buffer, unsigned int *length, unsigned int *capacity)
 {
     NULL_CHECK(buffer);
     if (length != nullptr)
         *length = buffer->Length;
+    if (capacity != nullptr)
+        *capacity = buffer->Capacity;
     // Query the IBufferByteAccess interface.  
     ComPtr<IBufferByteAccess> bufferByteAccess;
     reinterpret_cast<IInspectable*>(buffer)->QueryInterface(IID_PPV_ARGS(&bufferByteAccess));

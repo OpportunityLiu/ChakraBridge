@@ -8,12 +8,12 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-size_t FuncId = 0;
+std::unordered_map<JsValueRef, JsFunctionImpl::JsFunctionDelegate^> JsFunctionImpl::FunctionTable;
 
 _Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void* callbackState)
 {
-    auto& ftable = JsContext::Current->Runtime->FunctionTable;
-    auto funciter = ftable.find(reinterpret_cast<size_t>(callbackState));
+    auto& ftable = JsFunctionImpl::FunctionTable;
+    auto funciter = ftable.find(callee);
     if (funciter == ftable.end())
     {
         JsValueRef error;
@@ -87,6 +87,32 @@ void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, st
     }
 }
 
+void CALLBACK JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState)
+{
+    __try
+    {
+        JsObjectImpl::JsObjectBeforeCollectCallbackImpl(ref, callbackState);
+    }
+    __finally
+    {
+        FunctionTable.erase(ref);
+    }
+}
+
+void JsFunctionImpl::ObjectCollectingCallback::set(JsOBCC^ value)
+{
+    if (FunctionTable.find(Reference) == FunctionTable.end())
+    {
+        JsObjectImpl::ObjectCollectingCallback = value;
+        return;
+    }
+    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference, Reference, JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl));
+    if (value == nullptr)
+        OBCCMap.erase(Reference);
+    else
+        OBCCMap[Reference] = value;
+}
+
 IJsValue^ JsFunctionImpl::Invoke(IJsValue^ caller, IJsValueVectorView^ arguments)
 {
     std::vector<JsValueRef> args;
@@ -140,37 +166,37 @@ string^ JsFunctionImpl::ToString()
     return JsObjectImpl::ToString();
 }
 
-IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function)
+IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function)
 {
     NULL_CHECK(function);
     JsValueRef ref;
-    auto id = FuncId++;
-    JsContext::Current->Runtime->FunctionTable[id] = function;
-    CHAKRA_CALL(JsCreateFunction(JsNativeFunctionImpl, reinterpret_cast<void*>(id), &ref));
-    return ref new JsFunctionImpl(ref);
+    CHAKRA_CALL(JsCreateFunction(JsNativeFunctionImpl, nullptr, &ref));
+    return ref new JsFunctionImpl(ref, function);
 }
 
-IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, IJsString^ name)
+IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, IJsString^ name)
 {
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
     JsValueRef ref;
-    auto id = FuncId++;
-    JsContext::Current->Runtime->FunctionTable[id] = function;
-    CHAKRA_CALL(JsCreateNamedFunction(to_impl(name)->Reference, JsNativeFunctionImpl, reinterpret_cast<void*>(id), &ref));
-    return ref new JsFunctionImpl(ref);
+    CHAKRA_CALL(JsCreateNamedFunction(to_impl(name)->Reference, JsNativeFunctionImpl, nullptr, &ref));
+    return ref new JsFunctionImpl(ref, function);
 }
 
-IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, string^ name)
+IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, string^ name)
 {
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
-    JsValueRef ref, nameref;
-    CHAKRA_CALL(JsPointerToString(name->Data(), name->Length(), &nameref));
-    auto id = FuncId++;
-    JsContext::Current->Runtime->FunctionTable[id] = function;
-    CHAKRA_CALL(JsCreateNamedFunction(nameref, JsNativeFunctionImpl, reinterpret_cast<void*>(id), &ref));
-    return ref new JsFunctionImpl(ref);
+    JsValueRef ref;
+    CHAKRA_CALL(JsCreateNamedFunction(RawPointerToString(name), JsNativeFunctionImpl, nullptr, &ref));
+    return ref new JsFunctionImpl(ref, function);
+}
+
+JsFunctionImpl::JsFunctionImpl(JsValueRef ref, JsFunctionDelegate^ function)
+    : JsObjectImpl(ref)
+{
+    FunctionTable[ref] = function;
+    this->ObjectCollectingCallback = nullptr;
 }

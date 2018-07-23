@@ -2,6 +2,7 @@
 #include "alias.h"
 #include <jsrt.h>
 #include <limits>
+#include <vector>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -181,11 +182,11 @@ namespace Opportunity::ChakraBridge::WinRT
         return g;
     }
 
-    inline Opportunity::ChakraBridge::WinRT::JsValueType RawGetValueType(const JsValueRef value)
+    inline JsType RawGetValueType(const JsValueRef value)
     {
         ::JsValueType type;
         CHAKRA_CALL(JsGetValueType(value, &type));
-        return static_cast<Opportunity::ChakraBridge::WinRT::JsValueType>(type);
+        return static_cast<JsType>(type);
     }
 
     inline JsPropertyIdRef RawGetPropertyId(const wchar_t*const propname)

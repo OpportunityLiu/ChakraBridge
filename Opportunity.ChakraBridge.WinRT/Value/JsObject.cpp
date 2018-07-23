@@ -7,7 +7,7 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsObjectImpl::~JsObjectImpl()
 {
-    CHAKRA_CALL(JsRelease(this->Reference, nullptr));
+    JsRelease(this->Reference, nullptr);
 }
 
 JsObjectImpl::JsObjectImpl(JsValueRef ref)
@@ -195,10 +195,9 @@ void JsObjectImpl::Proto::set(IJsObject^ value)
     CHAKRA_CALL(JsSetPrototype(Reference, to_impl(value)->Reference));
 }
 
-using JsOBCC = Opportunity::ChakraBridge::WinRT::JsObjectBeforeCollectCallback;
-std::unordered_map<JsValueRef, JsOBCC^> OBCCMap;
+std::unordered_map<JsValueRef, JsObjectImpl::JsOBCC^> JsObjectImpl::OBCCMap;
 
-void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState)
+void CALLBACK JsObjectImpl::JsObjectBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState)
 {
     auto v = OBCCMap.find(ref);
     if (v == OBCCMap.end())
@@ -208,7 +207,7 @@ void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *c
     f(safe_cast<IJsObject^>(JsValue::CreateTyped(ref)));
 }
 
-JsOBCC^ JsObjectImpl::ObjectCollectingCallback::get()
+JsObjectImpl::JsOBCC^ JsObjectImpl::ObjectCollectingCallback::get()
 {
     auto v = OBCCMap.find(Reference);
     if (v == OBCCMap.end())
@@ -224,7 +223,7 @@ void JsObjectImpl::ObjectCollectingCallback::set(JsOBCC^ value)
         OBCCMap.erase(Reference);
         return;
     }
-    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference, Reference, JsObjectBeforeCollectCallbackImpl));
+    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference, Reference, JsObjectImpl::JsObjectBeforeCollectCallbackImpl));
     OBCCMap[Reference] = value;
 }
 

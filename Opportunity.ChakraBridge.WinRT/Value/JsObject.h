@@ -11,9 +11,7 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <param name="obj">The object to be collected.</param>
     public delegate void JsObjectBeforeCollectCallback(IJsObject^ obj);
 
-    public interface class IJsObject : IJsValue,
-        Windows::Foundation::Collections::IMap<string^, IJsValue^>,
-        Windows::Foundation::Collections::IMap<IJsSymbol^, IJsValue^>
+    public interface class IJsObject : IJsValue, map<string, IJsValue>, map<IJsSymbol, IJsValue>
     {
         /// <summary>
         /// Gets or sets the prototype of an object, use <see langword="null"/> instead of <see cref="IJsNull"/>.
@@ -42,21 +40,25 @@ namespace Opportunity::ChakraBridge::WinRT
     ref class JsObjectImpl : JsValueImpl, IJsObject
     {
     internal:
-        using IStrMap = Windows::Foundation::Collections::IMap<string^, IJsValue^>;
-        using ISymMap = Windows::Foundation::Collections::IMap<IJsSymbol^, IJsValue^>;
-        using IStrMapView = Windows::Foundation::Collections::IMapView<string^, IJsValue^>;
-        using ISymMapView = Windows::Foundation::Collections::IMapView<IJsSymbol^, IJsValue^>;
-        using IStrKVP = Windows::Foundation::Collections::IKeyValuePair<string^, IJsValue^>;
-        using ISymKVP = Windows::Foundation::Collections::IKeyValuePair<IJsSymbol^, IJsValue^>;
-        using IStrIterator = Windows::Foundation::Collections::IIterator<IStrKVP^>;
-        using ISymIterator = Windows::Foundation::Collections::IIterator<ISymKVP^>;
-        using IStrIterable = Windows::Foundation::Collections::IIterable<IStrKVP^>;
-        using ISymIterable = Windows::Foundation::Collections::IIterable<ISymKVP^>;
+        using IStrMap = map<string^, IJsValue^>;
+        using ISymMap = map<IJsSymbol^, IJsValue^>;
+        using IStrMapView = map_view<string^, IJsValue^>;
+        using ISymMapView = map_view<IJsSymbol^, IJsValue^>;
+        using IStrKVP = kv_pair<string^, IJsValue^>;
+        using ISymKVP = kv_pair<IJsSymbol^, IJsValue^>;
+        using IStrIterator = iterator<IStrKVP^>;
+        using ISymIterator = iterator<ISymKVP^>;
+        using IStrIterable = iterable<IStrKVP^>;
+        using ISymIterable = iterable<ISymKVP^>;
 
         JsObjectImpl(JsValueRef ref);
-        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
+
+        using JsOBCC = Opportunity::ChakraBridge::WinRT::JsObjectBeforeCollectCallback;
+        static std::unordered_map<JsValueRef, JsOBCC^> OBCCMap;
+        static void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState);
 
     public:
         virtual ~JsObjectImpl();

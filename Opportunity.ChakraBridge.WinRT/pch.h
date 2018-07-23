@@ -11,7 +11,7 @@
 #include <memory>
 #include <type_traits>
 
-unsigned char* GetPointerOfBuffer(Windows::Storage::Streams::IBuffer^ buffer, unsigned int *length);
+unsigned char* GetPointerOfBuffer(Windows::Storage::Streams::IBuffer^ buffer, unsigned int *length = nullptr, unsigned int *capacity = nullptr);
 
 inline bool IsNullOrEmpty(Platform::String^ s)
 {

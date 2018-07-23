@@ -9,6 +9,7 @@ namespace Opportunity::ChakraBridge::WinRT
     interface class IJsString;
     interface class IJsBoolean;
     interface class IJsObject;
+    interface class IJsExternalObject;
     interface class IJsFunction;
     interface class IJsError;
     interface class IJsArray;
@@ -24,6 +25,7 @@ namespace Opportunity::ChakraBridge::WinRT
     ref class JsStringImpl;
     ref class JsBooleanImpl;
     ref class JsObjectImpl;
+    ref class JsExternalObjectImpl;
     ref class JsFunctionImpl;
     ref class JsErrorImpl;
     ref class JsArrayImpl;
@@ -39,6 +41,7 @@ namespace Opportunity::ChakraBridge::WinRT
     inline JsStringImpl^ to_impl(IJsString^ inter) { return safe_cast<JsStringImpl^>(inter); }
     inline JsBooleanImpl^ to_impl(IJsBoolean^ inter) { return safe_cast<JsBooleanImpl^>(inter); }
     inline JsObjectImpl^ to_impl(IJsObject^ inter) { return safe_cast<JsObjectImpl^>(inter); }
+    inline JsExternalObjectImpl^ to_impl(IJsExternalObject^ inter) { return safe_cast<JsExternalObjectImpl^>(inter); }
     inline JsFunctionImpl^ to_impl(IJsFunction^ inter) { return safe_cast<JsFunctionImpl^>(inter); }
     inline JsErrorImpl^ to_impl(IJsError^ inter) { return safe_cast<JsErrorImpl^>(inter); }
     inline JsArrayImpl^ to_impl(IJsArray^ inter) { return safe_cast<JsArrayImpl^>(inter); }

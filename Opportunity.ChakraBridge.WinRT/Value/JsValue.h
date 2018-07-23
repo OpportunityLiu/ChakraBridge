@@ -21,10 +21,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
         /// <returns>The type of the value.</returns>
-        property JsValueType Type
-        {
-            JsValueType get();
-        }
+        property JsType Type { JsType get(); }
 
         /// <summary>
         /// Unwraps a JavaScript object to an <c>IInspectable</c> pointer 
@@ -48,10 +45,7 @@ namespace Opportunity::ChakraBridge::WinRT
         JsValueImpl(JsValueRef ref);
     public:
         virtual Platform::String^ ToString() override = 0;
-        virtual property JsValueType Type
-        {
-            JsValueType get();
-        }
+        virtual property JsType Type { JsType get(); }
         virtual object^ ToInspectable();
         virtual property JsContext^ Context {JsContext^ get(); };
     };

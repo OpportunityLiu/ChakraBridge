@@ -5,16 +5,22 @@
 namespace Opportunity::ChakraBridge::WinRT
 {
     /// <summary>
-    /// A JavaScript array value.
+    ///  A JavaScript object that stores some external data.
     /// </summary>
-    public interface class IJsArray : IJsObject, vector<IJsValue>
+    public interface class IJsExternalObject : IJsObject
     {
+
+        /// <summary>
+        /// Gets or sets the data in an external object.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        property object^ ExternalData;
     };
 
-    ref class JsArrayImpl sealed : JsObjectImpl, IJsArray
+    ref class JsExternalObjectImpl sealed : JsObjectImpl, IJsExternalObject
     {
     internal:
-        JsArrayImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsExternalObjectImpl(JsValueRef ref) :JsObjectImpl(ref) {}
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -42,58 +48,27 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
+        static void CALLBACK JsFinalizeCallbackImpl(_In_opt_ void *data);
+
     public:
-        using T = IJsValue;
-        virtual property uint32 ArraySize { uint32 get() = vector<T>::Size::get; }
-        virtual void Append(T^ value);
-        virtual void ArrayClear() = vector<T>::Clear;
-        virtual T^ GetAt(uint32 index);
-        virtual uint32 GetMany(uint32 startIndex, write_only_array<T>^ items);
-        virtual vector_view<T>^ ArrayGetView() = vector<T>::GetView;
-        virtual bool IndexOf(T^ value, uint32* index);
-        virtual void InsertAt(uint32 index, T^ value);
-        virtual void RemoveAt(uint32 index);
-        virtual void RemoveAtEnd();
-        virtual void ReplaceAll(const array<T>^ items);
-        virtual void SetAt(uint32 index, T^ value);
-        virtual iterator<T>^ ArrayFirst() = vector<T>::First;
+        virtual property object^ ExternalData { object^ get(); void set(object^ value); }
     };
 
     /// <summary>
-    /// Static methods of <see cref="IJsArray"/>.
+    /// Static methods of <see cref="IJsExternalObject"/>.
     /// </summary>
-    public ref class JsArray sealed
+    public ref class JsExternalObject sealed
     {
     private:
-        JsArray() {}
+        JsExternalObject() {}
     public:
 
         /// <summary>
-        /// Creates a JavaScript array object.
+        /// Creates a new <see cref="IJsExternalObject"/> that stores some external data.
         /// </summary>
-        /// <param name="length">The initial length of the array.</param>
-        /// <returns>A JavaScript array object.</returns>
+        /// <param name="data">External data that the object will represent. May be <see langword="null"/>.</param>
+        /// <returns>A new <see cref="IJsExternalObject"/> that stores some external data.</returns>
         /// <remarks>Requires an active script context.</remarks>
-        [DefaultOverload]
-        [Overload("CreateWithLength")]
-        static IJsArray^ Create(uint32 length);
-
-        /// <summary>
-        /// Creates a JavaScript array object from items.
-        /// </summary>
-        /// <param name="items">The initial data of the array.</param>
-        /// <returns>A JavaScript array object.</returns>
-        /// <remarks>Requires an active script context.</remarks>
-        [Overload("CreateWithItems")]
-        static IJsArray^ Create(vector_view<IJsValue>^ items);
-
-        /// <summary>
-        /// Creates a JavaScript array object from an array-like or iterable object.
-        /// </summary>
-        /// <param name="arrayLike">An array-like or iterable object to convert to an array.</param>
-        /// <returns>A JavaScript array object.</returns>
-        /// <remarks>Requires an active script context.</remarks>
-        [Overload("CreateWithArrayLike")]
-        static IJsArray^ Create(IJsValue^ arrayLike);
+        static IJsExternalObject^ Create(object^ data);
     };
 }

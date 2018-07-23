@@ -1,20 +1,40 @@
 #pragma once
 #include "JsObject.h"
 #include "JsEnum.h"
+#include <unordered_map>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
     /// <summary>
     /// A JavaScript array value.
     /// </summary>
-    public interface class IJsArray : IJsObject, vector<IJsValue>
+    public interface class IJsArrayBuffer : IJsObject
     {
+        using IBuffer = Windows::Storage::Streams::IBuffer;
+        /// <summary>
+        /// A <see cref="IBuffer"/> to access data of this <see cref="IJsArrayBuffer"/>.
+        /// </summary>
+        DECL_R_PROPERTY(IBuffer^, Buffer);
+        /// <summary>
+        /// Represents the length of the <see cref="IJsArrayBuffer"/> in bytes.
+        /// </summary>
+        DECL_R_PROPERTY(uint32, ByteLength);
     };
 
-    ref class JsArrayImpl sealed : JsObjectImpl, IJsArray
+    ref class JsArrayBufferImpl sealed : JsObjectImpl, IJsArrayBuffer
     {
     internal:
-        JsArrayImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        // map from reinterpret_cast<void*>(buffer) to reference
+        static std::unordered_map<void*, JsValueRef> ExternalBufferKeyMap;
+        // map from reference to IBuffer^
+        static std::unordered_map<JsValueRef, IJsArrayBuffer::IBuffer^> ExternalBufferDataMap;
+        static void CALLBACK JsFinalizeCallbackImpl(_In_opt_ void *data);
+
+        uint8* BufferPtr;
+        unsigned int BufferLen;
+
+        JsArrayBufferImpl(JsValueRef ref);
+
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -43,57 +63,35 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
     public:
-        using T = IJsValue;
-        virtual property uint32 ArraySize { uint32 get() = vector<T>::Size::get; }
-        virtual void Append(T^ value);
-        virtual void ArrayClear() = vector<T>::Clear;
-        virtual T^ GetAt(uint32 index);
-        virtual uint32 GetMany(uint32 startIndex, write_only_array<T>^ items);
-        virtual vector_view<T>^ ArrayGetView() = vector<T>::GetView;
-        virtual bool IndexOf(T^ value, uint32* index);
-        virtual void InsertAt(uint32 index, T^ value);
-        virtual void RemoveAt(uint32 index);
-        virtual void RemoveAtEnd();
-        virtual void ReplaceAll(const array<T>^ items);
-        virtual void SetAt(uint32 index, T^ value);
-        virtual iterator<T>^ ArrayFirst() = vector<T>::First;
+        virtual DECL_R_PROPERTY(IJsArrayBuffer::IBuffer^, Buffer);
+        virtual DECL_R_PROPERTY(uint32, ByteLength);
     };
 
     /// <summary>
-    /// Static methods of <see cref="IJsArray"/>.
+    /// Static methods of <see cref="IJsArrayBuffer"/>.
     /// </summary>
-    public ref class JsArray sealed
+    public ref class JsArrayBuffer sealed
     {
     private:
-        JsArray() {}
+        JsArrayBuffer() {}
     public:
-
         /// <summary>
-        /// Creates a JavaScript array object.
+        /// Create a new instance of <see cref="IJsArrayBuffer"/>.
         /// </summary>
-        /// <param name="length">The initial length of the array.</param>
-        /// <returns>A JavaScript array object.</returns>
+        /// <param name="length">Length of buffer in bytes.</param>
+        /// <returns>A new instance of <see cref="IJsArrayBuffer"/>.</returns>
         /// <remarks>Requires an active script context.</remarks>
         [DefaultOverload]
-        [Overload("CreateWithLength")]
-        static IJsArray^ Create(uint32 length);
+        [Overload("Create")]
+        static IJsArrayBuffer^ Create(uint32 length);
 
         /// <summary>
-        /// Creates a JavaScript array object from items.
+        /// Create a new instance of <see cref="IJsArrayBuffer"/>.
         /// </summary>
-        /// <param name="items">The initial data of the array.</param>
-        /// <returns>A JavaScript array object.</returns>
+        /// <param name="buffer">A buffer that will be used as backing data storage.</param>
+        /// <returns>A new instance of <see cref="IJsArrayBuffer"/>.</returns>
         /// <remarks>Requires an active script context.</remarks>
-        [Overload("CreateWithItems")]
-        static IJsArray^ Create(vector_view<IJsValue>^ items);
-
-        /// <summary>
-        /// Creates a JavaScript array object from an array-like or iterable object.
-        /// </summary>
-        /// <param name="arrayLike">An array-like or iterable object to convert to an array.</param>
-        /// <returns>A JavaScript array object.</returns>
-        /// <remarks>Requires an active script context.</remarks>
-        [Overload("CreateWithArrayLike")]
-        static IJsArray^ Create(IJsValue^ arrayLike);
+        [Overload("CreateWithBuffer")]
+        static IJsArrayBuffer^ Create(IJsArrayBuffer::IBuffer^ buffer);
     };
 }

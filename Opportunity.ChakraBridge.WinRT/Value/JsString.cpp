@@ -5,7 +5,7 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsStringImpl::~JsStringImpl()
 {
-    CHAKRA_CALL(JsRelease(Reference, nullptr));
+    JsRelease(this->Reference, nullptr);
 }
 
 JsStringImpl::JsStringImpl(JsValueRef ref)

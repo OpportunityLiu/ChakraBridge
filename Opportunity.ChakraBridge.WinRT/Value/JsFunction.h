@@ -59,9 +59,13 @@ namespace Opportunity::ChakraBridge::WinRT
     ref class JsFunctionImpl sealed : JsObjectImpl, IJsFunction
     {
     internal:
-        JsFunctionImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        using JsFunctionDelegate = Opportunity::ChakraBridge::WinRT::JsNativeFunction;
         using IJsValueVectorView = Windows::Foundation::Collections::IVectorView<IJsValue^>;
-        INHERIT_INTERFACE_R_PROPERTY(Type, JsValueType, IJsValue);
+
+        JsFunctionImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsFunctionImpl(JsValueRef ref, JsFunctionDelegate^ function);
+
+        INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
@@ -87,6 +91,9 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
+        static std::unordered_map<JsValueRef, JsFunctionDelegate^> FunctionTable;
+        static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState);
+
     public:
         virtual IJsValue^ Invoke(IJsValue^ caller, IJsValueVectorView^ arguments);
         virtual IJsObject^ New(IJsValueVectorView^ arguments);
@@ -94,6 +101,7 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual property int32 Length { int32 get(); }
         virtual property IJsObject^ Prototype { IJsObject^ get(); void set(IJsObject^ value); }
         virtual string^ ToString() override;
+        virtual property JsOBCC^ ObjectCollectingCallback { void set(JsOBCC^ value) override; }
     };
 
     /// <summary>
@@ -103,8 +111,7 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     private:
         JsFunction() {}
-    internal:
-        using JsFunctionDelegate = Opportunity::ChakraBridge::WinRT::JsNativeFunction;
+
     public:
         /// <summary>
         /// Creates a new JavaScript function.

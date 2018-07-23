@@ -32,7 +32,7 @@ JsContext::IBuffer^ JsContext::SerializeScript(string^ script)
     unsigned long bufferSize = 0;
     CHAKRA_CALL(JsSerializeScript(script->Data(), nullptr, &bufferSize));
     auto buf = ref new Windows::Storage::Streams::Buffer(bufferSize);
-    CHAKRA_CALL(JsSerializeScript(script->Data(), GetPointerOfBuffer(buf, nullptr), &bufferSize));
+    CHAKRA_CALL(JsSerializeScript(script->Data(), GetPointerOfBuffer(buf), &bufferSize));
     buf->Length = bufferSize;
     return buf;
 }

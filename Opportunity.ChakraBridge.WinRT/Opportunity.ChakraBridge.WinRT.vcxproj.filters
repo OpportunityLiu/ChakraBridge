@@ -25,6 +25,8 @@
     <ClCompile Include="Value\JsSymbol.cpp" />
     <ClCompile Include="Native\Helper.cpp" />
     <ClCompile Include="Value\JsArray.cpp" />
+    <ClCompile Include="Value\JsExternalObject.cpp" />
+    <ClCompile Include="Value\JsArrayBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -48,5 +50,7 @@
     <ClInclude Include="Native\Helper.h" />
     <ClInclude Include="Native\NativeBuffer.h" />
     <ClInclude Include="Value\JsArray.h" />
+    <ClInclude Include="Value\JsExternalObject.h" />
+    <ClInclude Include="Value\JsArrayBuffer.h" />
   </ItemGroup>
 </Project>
