@@ -37,9 +37,7 @@ uint32 JsArrayImpl::GetMany(uint32 startIndex, write_only_array<T>^ items)
 {
     NULL_CHECK(items);
     ARRAY_INDEX_CHECK(startIndex);
-    ARRAY_INDEX_CHECK(items->Length);
-    ARRAY_INDEX_CHECK(startIndex + items->Length);
-    uint32 end = startIndex + items->Length;
+    auto end = static_cast<uint32>(std::min(static_cast<uint64>(startIndex) + items->Length, static_cast<uint64>(ArraySize)));
     for (uint32 i = startIndex; i < end; i++)
     {
         items[i - startIndex] = GetAt(i);

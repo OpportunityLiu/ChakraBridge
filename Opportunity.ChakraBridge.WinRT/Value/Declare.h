@@ -15,3 +15,4 @@
 
 #include "JsArrayBuffer.h"
 #include "JsDataView.h"
+#include "JsTypedArray.h"

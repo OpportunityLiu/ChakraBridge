@@ -39,16 +39,16 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
     CHAKRA_CALL(JsGetValueType(ref, &type));
     switch (type)
     {
-    case ::JsNull:
-        return ref new JsNullImpl(ref);
     case ::JsUndefined:
         return ref new JsUndefinedImpl(ref);
-    case ::JsBoolean:
-        return ref new JsBooleanImpl(ref);
+    case ::JsNull:
+        return ref new JsNullImpl(ref);
     case ::JsNumber:
         return ref new JsNumberImpl(ref);
     case ::JsString:
         return ref new JsStringImpl(ref);
+    case ::JsBoolean:
+        return ref new JsBooleanImpl(ref);
     case ::JsSymbol:
         return ref new JsSymbolImpl(ref);
     case ::JsObject:
@@ -58,14 +58,18 @@ JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
             return ref new JsExternalObjectImpl(ref);
         else
             return ref new JsObjectImpl(ref);
-    case ::JsError:
-        return ref new JsErrorImpl(ref);
     case ::JsFunction:
         return ref new JsFunctionImpl(ref);
+    case ::JsError:
+        return ref new JsErrorImpl(ref);
     case ::JsArray:
         return ref new JsArrayImpl(ref);
     case ::JsArrayBuffer:
         return ref new JsArrayBufferImpl(ref);
+    case ::JsDataView:
+        return ref new JsDataViewImpl(ref);
+    case ::JsTypedArray:
+        return JsTypedArray::CreateTyped(ref);
     }
     return ref new JsObjectImpl(ref);
 }

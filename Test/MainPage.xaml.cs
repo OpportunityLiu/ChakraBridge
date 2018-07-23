@@ -60,16 +60,14 @@ namespace Test
                             var buffer = JsArrayBuffer.Create(16);
 
                             // Create a couple of views
-                            var view1 = JsDataView.Create(buffer);
-                            var view2 = JsDataView.Create(buffer, 12, 4); //from byte 12 for the next 4 bytes
-
-                            var s = view1.Data.AsStream();
-                            s.Position = 12;
-                            s.WriteByte(42);
-                            // put 42 in slot 12
-                            view1.ToInspectable();
-                            var a = view2.Data.GetByte(0);
-                            // expected output: 42
+                            var view1 = (IJsUint8Array)JsTypedArray.Create(JsTypedArrayType.Uint8, buffer, 10);
+                            var view2 = (IJsUint32Array)JsTypedArray.Create(JsTypedArrayType.Uint32, buffer, 4, 3);
+                            view1[1] = 10;
+                            view2[1] = uint.MaxValue;
+                            var p = view1.IndexOf(10);
+                            var p2 = view1.IndexOf(255);
+                            var l2 = ((IList<uint>)view2).Count;
+                            var l1 = ((IList<byte>)view1).Count;
                         }
                         catch (Exception)
                         {

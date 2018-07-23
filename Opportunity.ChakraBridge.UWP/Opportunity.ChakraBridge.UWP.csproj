@@ -170,11 +170,6 @@
     <Compile Include="Rumtime\JsRuntime.Value.cs" />
     <Compile Include="Value\Data\JsArrayBuffer.cs" />
     <Compile Include="Value\Data\JsDataView.cs" />
-    <Compile Include="Value\Data\JsTypedArrays.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>JsTypedArrays.tt</DependentUpon>
-    </Compile>
     <Compile Include="Value\JsArray.cs" />
     <Compile Include="Value\JsBoolean.cs" />
     <Compile Include="Value\JsError.cs" />
@@ -216,17 +211,20 @@
     <Compile Include="Wrapper\RawString.cs" />
     <Compile Include="Wrapper\RawSymbol.cs" />
     <Compile Include="Wrapper\RawValue.cs" />
+    <None Include="Value\Data\JsTypedArrays.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>JsTypedArrays.cs</LastGenOutput>
+    </None>
+    <Compile Include="Value\Data\JsTypedArrays.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>JsTypedArrays.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.1.5</Version>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Value\Data\JsTypedArrays.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>JsTypedArrays.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
