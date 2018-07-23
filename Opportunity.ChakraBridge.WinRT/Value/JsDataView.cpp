@@ -40,7 +40,7 @@ IJsDataView^ JsDataView::Create(IJsArrayBuffer^ buffer, uint32 byteOffset)
     NULL_CHECK(buffer);
     auto buflen = to_impl(buffer)->ByteLength;
     if (buflen < byteOffset)
-        throw ref new Platform::InvalidArgumentException(L"byteOffset is greater than buffer.ByteLength.");
+        Throw(E_INVALIDARG, L"byteOffset is greater than buffer.ByteLength.");
     return Create(buffer, 0, buflen - byteOffset);
 }
 
@@ -50,7 +50,7 @@ IJsDataView^ JsDataView::Create(IJsArrayBuffer^ buffer, uint32 byteOffset, uint3
     auto bufferImpl = to_impl(buffer);
     auto buflen = bufferImpl->ByteLength;
     if (byteOffset + byteLength > buflen || byteOffset > buflen || byteLength > buflen)
-        throw ref new Platform::InvalidArgumentException(L"(byteOffset + byteLength) is greater than buffer.ByteLength.");
+        Throw(E_INVALIDARG, L"(byteOffset + byteLength) is greater than buffer.ByteLength.");
     JsValueRef r;
     CHAKRA_CALL(JsCreateDataView(bufferImpl->Reference, byteOffset, byteLength, &r));
     return ref new JsDataViewImpl(r);

@@ -113,7 +113,7 @@ uint64 JsRuntime::MemoryLimit::get()
 void JsRuntime::MemoryLimit::set(uint64 value)
 {
     if (value > std::numeric_limits<size_t>::max())
-        throw ref new Platform::InvalidArgumentException();
+        Throw(E_INVALIDARG, L"value is too large.");
     CHAKRA_CALL(JsSetRuntimeMemoryLimit(this->Handle, static_cast<size_t>(value)));
 }
 

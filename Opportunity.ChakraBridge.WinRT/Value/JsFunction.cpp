@@ -70,7 +70,7 @@ void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, st
         return;
 
     if (arguments->Size > std::numeric_limits<unsigned short>::max() - 1u)
-        throw ref new Platform::InvalidArgumentException(L"Too many arguments");
+        Throw(E_INVALIDARG, L"Too many arguments");
 
     JsValueRef undef = JS_INVALID_REFERENCE;
 

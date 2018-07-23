@@ -76,6 +76,11 @@ namespace Opportunity::ChakraBridge::WinRT
     using map_view = typename __winrt_collections_2<K, V>::map_view;
     template<typename K, typename V>
     using kv_pair = typename __winrt_collections_2<K, V>::kv_pair;
+
+    [[noreturn]] inline void Throw(int hresult, string^ message)
+    {
+        throw ::Platform::Exception::CreateException(hresult, message);
+    }
 }
 
 #define NULL_CHECK(prop) \
@@ -83,12 +88,12 @@ do{\
     if constexpr (std::is_same_v<decltype(prop), ::Platform::String^>)\
     {\
         if ((prop) == nullptr)\
-            throw ref new ::Platform::InvalidArgumentException(_CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null or empty.");\
+            Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null or empty.");\
     }\
     else\
     {\
         if ((prop) == nullptr)\
-            throw ref new ::Platform::InvalidArgumentException(_CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.");\
+            Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.");\
     }\
 }while (false)
 

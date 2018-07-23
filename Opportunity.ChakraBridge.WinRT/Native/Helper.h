@@ -12,7 +12,7 @@ namespace Opportunity::ChakraBridge::WinRT
     {
         void __CHAKRA_CALL_GetChakraError();
         string^ __CHAKRA_CALL_MakeMessage(const wchar_t* message, const wchar_t* expr, const int line, const wchar_t* file);
-#define THROW(errtype, message) throw ::Platform::Exception::CreateException(errtype, __CHAKRA_CALL_MakeMessage(message, expr, line, file))
+#define THROW(errtype, message) Throw(errtype, __CHAKRA_CALL_MakeMessage(message, expr, line, file))
         if (result == JsErrorCode::JsNoError)
             return;
         switch (result)

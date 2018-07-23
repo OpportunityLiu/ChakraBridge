@@ -9,7 +9,7 @@ JsValueImpl::JsValueImpl(JsValueRef ref)
     : Reference(ref)
 {
     if (Reference == JS_INVALID_REFERENCE)
-        throw ref new Platform::InvalidArgumentException(L"ref for JsValue is JS_INVALID_REFERENCE");
+        Throw(E_HANDLE, L"ref for JsValue is JS_INVALID_REFERENCE");
 }
 
 object^ JsValueImpl::ToInspectable()

@@ -43,7 +43,7 @@ uint32 JsTypedArrayImpl::BytesPerElement::get()
 
 void JsTypedArrayImpl::ThrowForFixedSize()
 {
-    throw Platform::Exception::CreateException(E_NOTIMPL, L"The typed array is fixed size.");
+    Throw(E_NOTIMPL, L"The typed array is fixed size.");
 }
 
 uint32 JsTypedArrayImpl::ArraySize::get()
@@ -54,7 +54,7 @@ uint32 JsTypedArrayImpl::ArraySize::get()
 void JsTypedArrayImpl::BoundCheck(uint32 index)
 {
     if (index >= ArraySize)
-        throw Platform::Exception::CreateException(E_INVALIDARG, "index is larger than size of the typed array.");
+        Throw(E_INVALIDARG, L"index is larger than the size of the typed array.");
 }
 
 JsTypedArrayImpl^ JsTypedArray::CreateTyped(JsValueRef ref)
@@ -81,7 +81,7 @@ JsTypedArrayImpl^ JsTypedArray::CreateTyped(JsValueRef ref)
         CASE(Float64);
     }
 #undef CASE
-    throw ref new Platform::NotImplementedException("Unknown array type.");
+    Throw(E_NOTIMPL, L"Unknown array type.");
 }
 
 uint32 GetSize(JsTypedArray::JsArrayType arrType)
@@ -102,7 +102,7 @@ uint32 GetSize(JsTypedArray::JsArrayType arrType)
         CASE(Float64);
     }
 #undef CASE
-    throw ref new Platform::NotImplementedException("Unknown array type.");
+    Throw(E_NOTIMPL, L"Unknown array type.");
 }
 
 JsValueRef RawCreateTyped(JsTypedArray::JsArrayType type, JsValueRef base, uint32 byteOffset, uint32 elementLength)

@@ -8,7 +8,7 @@ using namespace Opportunity::ChakraBridge::WinRT;
 #define ARRAY_INDEX_CHECK(prop) \
 do{\
     if ((prop) > static_cast<decltype(prop)>(std::numeric_limits<int>::max()))\
-        throw ref new ::Platform::InvalidArgumentException(_CRT_WIDE(_CRT_STRINGIZE(prop)) L" too large.");\
+        Throw(E_INVALIDARG, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is too large.");\
 }while (false)
 
 uint32 JsArrayImpl::ArraySize::get()
@@ -98,7 +98,7 @@ void JsArrayImpl::ReplaceAll(const array<T>^ items)
     }
     ARRAY_INDEX_CHECK(items->Length);
     if (std::find(items->begin(), items->end(), nullptr) != items->end())
-        throw ref new Platform::InvalidArgumentException(L"items contains null items.");
+        Throw(E_INVALIDARG, L"items contains null items.");
     const auto length = static_cast<int>(items->Length);
     for (int i = 0; i < length; i++)
     {

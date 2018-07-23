@@ -202,9 +202,9 @@ namespace Opportunity::ChakraBridge::WinRT
             :JsTypedArrayImpl(ref, bufferPtr, bufferLen, arrType, elementSize)
         {
             if (arrType != EEle)
-                throw ref new ::Platform::InvalidArgumentException(L"Wrong array type.");
+                Throw(E_INVALIDARG, L"Wrong array type.");
             if (elementSize != sizeof(TEle))
-                throw ref new ::Platform::InvalidArgumentException(L"Wrong element size.");
+                Throw(E_INVALIDARG, L"Wrong element size.");
         }
 
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
