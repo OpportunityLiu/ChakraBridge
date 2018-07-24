@@ -36,18 +36,15 @@ namespace Opportunity::ChakraBridge::WinRT
     {
 #pragma region Instance
     internal:
-        JsContextRef Reference;
-        JsContext(JsContextRef ref);
+        RawContext Reference;
+        JsContext(const RawContext ref);
     public:
         virtual ~JsContext();
 
         /// <summary>
         /// Gets the runtime that the context belongs to.
         /// </summary>
-        property JsRuntime^ Runtime
-        {
-            JsRuntime^ get();
-        }
+        DECL_R_PROPERTY(JsRuntime^, Runtime);
 
         JsContextScope^ Use(bool disposeContext);
 
@@ -55,8 +52,8 @@ namespace Opportunity::ChakraBridge::WinRT
 
 #pragma region Static
     internal:
-        static JsContext^ Get(JsContextRef reference);
-        static JsValueRef LastJsError;
+        static JsContext^ Get(RawContext reference);
+        static RawValue LastJsError;
         static void GetAndClearExceptionCore();
 
     public:
@@ -79,10 +76,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// Requires an active script context.
         /// </para>
         /// </remarks>
-        static property bool HasException
-        {
-            bool get();
-        }
+        static DECL_R_PROPERTY(bool, HasException);
 
         /// <summary>
         /// Sets the runtime of the current context to an exception state.
@@ -114,22 +108,18 @@ namespace Opportunity::ChakraBridge::WinRT
         static IJsError^ GetAndClearException();
 
         /// <summary>
-        ///    Last error returned by <see cref="GetAndClearException"/>.
+        ///    Last error returned by <see cref="GetAndClearException()"/>.
         /// </summary>
         /// <remarks>
         ///     Requires an active script context.
         /// </remarks>
-        static property IJsError^ LastError { IJsError^ get(); }
+        static DECL_R_PROPERTY(IJsError^, LastError);
 
 
         /// <summary>
         /// Gets or sets the current script context on the thread.
         /// </summary>
-        static property JsContext^ Current
-        {
-            JsContext^ get();
-            void set(JsContext^ value);
-        };
+        static DECL_RW_PROPERTY(JsContext^, Current);
 
         /// <summary>
         /// Starts debugging in the current context. 
@@ -171,9 +161,11 @@ namespace Opportunity::ChakraBridge::WinRT
 #pragma region Script
     private:
         using IBuffer = Windows::Storage::Streams::IBuffer;
-        std::queue<JsValueRef> PromiseContinuationQueue;
+
         static JsSourceContext SourceContext;
-        static void CALLBACK JsContext::JsPromiseContinuationCallbackImpl(_In_ JsValueRef task, _In_opt_ void *callbackState);
+
+        std::queue<RawValue> PromiseContinuationQueue;
+        static void CALLBACK JsPromiseContinuationCallbackImpl(_In_ RawValue task, _In_opt_ RawContext callbackState);
     internal:
         static void HandlePromiseContinuation();
 

@@ -4,18 +4,18 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsDataViewImpl::JsDataViewImpl(JsValueRef ref)
-    : JsObjectImpl(ref)
+JsDataViewImpl::JsDataViewImpl(RawValue ref)
+    : JsObjectImpl(std::move(ref))
 {
-    CHAKRA_CALL(JsGetDataViewStorage(ref, &BufferPtr, &BufferLen));
+    CHAKRA_CALL(JsGetDataViewStorage(Reference.Ref, &BufferPtr, &BufferLen));
 }
 
 IJsArrayBuffer^ JsDataViewImpl::Buffer::get()
 {
-    return safe_cast<IJsArrayBuffer^>(JsValue::CreateTyped(RawGetProperty(Reference, L"buffer")));
+    return safe_cast<IJsArrayBuffer^>(JsValue::CreateTyped(Reference[L"buffer"]));
 }
 
-IJsDataView::IBuffer^ JsDataViewImpl::Data::get()
+IBuffer^ JsDataViewImpl::Data::get()
 {
     return CreateNativeBuffer(this);
 }
@@ -27,7 +27,7 @@ uint32 JsDataViewImpl::ByteLength::get()
 
 uint32 JsDataViewImpl::ByteOffset::get()
 {
-    return static_cast<uint32>(RawNumberToInt(RawGetProperty(Reference, L"byteOffset")));;
+    return static_cast<uint32>(Reference[ L"byteOffset"]().ToInt());
 }
 
 IJsDataView^ JsDataView::Create(IJsArrayBuffer^ buffer)
@@ -51,7 +51,5 @@ IJsDataView^ JsDataView::Create(IJsArrayBuffer^ buffer, uint32 byteOffset, uint3
     auto buflen = bufferImpl->ByteLength;
     if (byteOffset + byteLength > buflen || byteOffset > buflen || byteLength > buflen)
         Throw(E_INVALIDARG, L"(byteOffset + byteLength) is greater than buffer.ByteLength.");
-    JsValueRef r;
-    CHAKRA_CALL(JsCreateDataView(bufferImpl->Reference, byteOffset, byteLength, &r));
-    return ref new JsDataViewImpl(r);
+    return ref new JsDataViewImpl(RawValue::CreateDataView(bufferImpl->Reference, byteOffset, byteLength));
 }

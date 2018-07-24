@@ -7,7 +7,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp" />
     <ClCompile Include="JsRuntime\JsRuntime.cpp" />
     <ClCompile Include="JsContext\JsContext.Instance.cpp" />
     <ClCompile Include="JsContext\JsContext.Static.cpp" />
@@ -30,6 +29,9 @@
     <ClCompile Include="Value\JsDataView.cpp" />
     <ClCompile Include="Native\NativeBuffer.cpp" />
     <ClCompile Include="Value\JsTypedArray.cpp" />
+    <ClCompile Include="Native\BufferPointer.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Browser\Console.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -57,5 +59,16 @@
     <ClInclude Include="Value\JsArrayBuffer.h" />
     <ClInclude Include="Value\JsDataView.h" />
     <ClInclude Include="Value\JsTypedArray.h" />
+    <ClInclude Include="Native\BufferPointer.h" />
+    <ClInclude Include="Browser\Console.h" />
+    <ClInclude Include="Wrapper\RawValue.h" />
+    <ClInclude Include="Wrapper\RawContext.h" />
+    <ClInclude Include="Wrapper\Declear.h" />
+    <ClInclude Include="Wrapper\RawRuntime.h" />
+    <ClInclude Include="Wrapper\RawRef.h" />
+    <ClInclude Include="Wrapper\RawPropertyId.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

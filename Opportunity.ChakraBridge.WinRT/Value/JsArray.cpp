@@ -13,24 +13,24 @@ do{\
 
 uint32 JsArrayImpl::ArraySize::get()
 {
-    return RawNumberToInt(RawGetProperty(Reference, L"length"));
+    return Reference[L"length"]().ToInt();
 }
 
 void JsArrayImpl::Append(T^ value)
 {
     NULL_CHECK(value);
-    RawCallFunction(RawGetProperty(Reference, L"push"), Reference, to_impl(value)->Reference);
+    Reference[L"push"]().Invoke(Reference, to_impl(value)->Reference);
 }
 
 void JsArrayImpl::ArrayClear()
 {
-    RawSetProperty(Reference, L"length", RawIntToNumber(0));
+    Reference[L"length"] = RawValue(0);
 }
 
 JsArrayImpl::T^ JsArrayImpl::GetAt(uint32 index)
 {
     ARRAY_INDEX_CHECK(index);
-    return JsValue::CreateTyped(RawGetProperty(Reference, RawIntToNumber(static_cast<int>(index))));
+    return JsValue::CreateTyped(Reference[RawValue(static_cast<int>(index))]);
 }
 
 uint32 JsArrayImpl::GetMany(uint32 startIndex, write_only_array<T>^ items)
@@ -60,8 +60,7 @@ bool JsArrayImpl::IndexOf(T^ value, uint32* index)
 {
     NULL_CHECK(value);
     NULL_CHECK(index);
-    auto indexOf = RawGetProperty(Reference, L"indexOf");
-    auto rindex = RawNumberToInt(RawCallFunction(indexOf, Reference, to_impl(value)->Reference));
+    auto rindex = Reference[L"indexOf"]().Invoke(Reference, to_impl(value)->Reference).ToInt();
     if (rindex < 0)
         return false;
     *index = rindex;
@@ -72,21 +71,18 @@ void JsArrayImpl::InsertAt(uint32 index, T^ value)
 {
     NULL_CHECK(value);
     ARRAY_INDEX_CHECK(index);
-    auto splice = RawGetProperty(Reference, L"splice");
-    RawCallFunction(splice, Reference, RawIntToNumber(static_cast<int>(index)), RawIntToNumber(0), to_impl(value)->Reference);
+    Reference[L"splice"]().Invoke(Reference, RawValue(static_cast<int>(index)), RawValue(0), to_impl(value)->Reference);
 }
 
 void JsArrayImpl::RemoveAt(uint32 index)
 {
     ARRAY_INDEX_CHECK(index);
-    auto splice = RawGetProperty(Reference, L"splice");
-    RawCallFunction(splice, Reference, RawIntToNumber(static_cast<int>(index)), RawIntToNumber(1));
+    Reference[L"splice"]().Invoke(Reference, RawValue(static_cast<int>(index)), RawValue(1));
 }
 
 void JsArrayImpl::RemoveAtEnd()
 {
-    auto pop = RawGetProperty(Reference, L"pop");
-    RawCallFunction(pop, Reference);
+    Reference[L"pop"]().Invoke(Reference);
 }
 
 void JsArrayImpl::ReplaceAll(const array<T>^ items)
@@ -110,7 +106,7 @@ void JsArrayImpl::SetAt(uint32 index, T^ value)
 {
     NULL_CHECK(value);
     ARRAY_INDEX_CHECK(index);
-    RawSetProperty(Reference, RawIntToNumber(static_cast<int>(index)), to_impl(value)->Reference);
+    Reference[RawValue(static_cast<int>(index))] = to_impl(value)->Reference;
 }
 
 iterator<JsArrayImpl::T>^ JsArrayImpl::ArrayFirst()
@@ -119,12 +115,12 @@ iterator<JsArrayImpl::T>^ JsArrayImpl::ArrayFirst()
 }
 
 template<JsType TExpacted>
-JsValueRef GetArrayProperty(const wchar_t* name)
+RawValue GetArrayProperty(const wchar_t* name)
 {
     try
     {
-        auto value = RawGetProperty(RawGlobalObject(), L"Array", name);
-        auto valueType = RawGetValueType(value);
+        RawValue value = RawValue::GlobalObject()[L"Array"][name];
+        auto valueType = value.Type();
         if (valueType != TExpacted)
             goto GET_FALLBACK;
         return value;
@@ -134,16 +130,13 @@ JsValueRef GetArrayProperty(const wchar_t* name)
         goto GET_FALLBACK;
     }
 GET_FALLBACK:
-    JsValueRef arr;
-    CHAKRA_CALL(JsCreateArray(0, &arr));
-    return RawGetProperty(arr, L"constructor", name);
+    const auto arr = RawValue::CreateArray(0);
+    return arr[L"constructor"][name];
 }
 
 IJsArray^ JsArray::Create(uint32 length)
 {
-    JsValueRef r;
-    CHAKRA_CALL(JsCreateArray(length, &r));
-    return ref new JsArrayImpl(r);
+    return ref new JsArrayImpl(RawValue::CreateArray(length));
 }
 
 IJsArray^ JsArray::Create(vector_view<IJsValue>^ items)
@@ -156,6 +149,6 @@ IJsArray^ JsArray::Create(vector_view<IJsValue>^ items)
 IJsArray^ JsArray::Create(IJsValue^ arrayLike)
 {
     NULL_CHECK(arrayLike);
-    auto fromFunc = GetArrayProperty<JsType::Function>(L"from");
-    return safe_cast<IJsArray^>(JsValue::CreateTyped(RawCallFunction(fromFunc, JS_INVALID_REFERENCE, to_impl(arrayLike)->Reference)));
+    const auto fromFunc = GetArrayProperty<JsType::Function>(L"from");
+    return safe_cast<IJsArray^>(JsValue::CreateTyped(fromFunc.Invoke(RawValue::Invalid(), to_impl(arrayLike)->Reference)));
 }

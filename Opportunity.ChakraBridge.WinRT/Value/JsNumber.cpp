@@ -1,40 +1,32 @@
 #include "pch.h"
 #include "JsNumber.h"
-#include <sstream>
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsNumberImpl::JsNumberImpl(JsValueRef ref)
-    :JsValueImpl(ref) {}
+JsNumberImpl::JsNumberImpl(RawValue ref)
+    :JsValueImpl(std::move(ref)) {}
 
 int32 JsNumberImpl::ToInt32()
 {
-    return static_cast<int32>(RawNumberToInt(Reference));
+    return static_cast<int32>(Reference.ToInt());
 }
 
 float64 JsNumberImpl::ToDouble()
 {
-    return static_cast<float64>(RawNumberToDouble(Reference));
+    return static_cast<float64>(Reference.ToDouble());
 }
 
 string^ JsNumberImpl::ToString()
 {
-    std::wostringstream strs;
-    strs << ToDouble();
-    std::wstring str = strs.str();
-    return ref new string(str.c_str());
+    return Reference.ToJsString().ToString();
 }
 
 IJsNumber^ JsNumber::Create(int32 value)
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsIntToNumber(value, &ref));
-    return ref new JsNumberImpl(ref);
+    return ref new JsNumberImpl(RawValue(static_cast<int>(value)));
 }
 
 IJsNumber^ JsNumber::Create(float64 value)
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsDoubleToNumber(value, &ref));
-    return ref new JsNumberImpl(ref);
+    return ref new JsNumberImpl(RawValue(static_cast<double>(value)));
 }

@@ -1,0 +1,33 @@
+
+#define NULL_CHECK(prop) \
+do{\
+    if ((prop) == nullptr)\
+        ::Opportunity::ChakraBridge::WinRT::Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.");\
+}while (false)
+
+#define DECL_R_PROPERTY(propType, propName) property propType propName { propType get(); }
+#define DECL_RW_PROPERTY(propType, propName) property propType propName { propType get(); void set(propType); }
+
+#define INHERIT_INTERFACE_R_PROPERTY(pname, ptype, pint)
+#define INHERIT_INTERFACE_RW_PROPERTY(pname, ptype, pint)
+
+#define INHERIT_INTERFACE_METHOD(pname, ptype, pint)
+#define INHERIT_INTERFACE_METHOD_PARAM1(pname, ptype, pint, p1t)
+#define INHERIT_INTERFACE_METHOD_PARAM2(pname, ptype, pint, p1t, p2t)
+#define INHERIT_INTERFACE_METHOD_PARAM3(pname, ptype, pint, p1t, p2t, p3t)
+
+#define INHERIT_INTERFACE_R_PROPERTY_EXPLICT(pname, ename, ptype, pint)
+#define INHERIT_INTERFACE_RW_PROPERTY_EXPLICT(pname, ename, ptype, pint)
+
+#define INHERIT_INTERFACE_METHOD_EXPLICT(pname, ename, ptype, pint)
+#define INHERIT_INTERFACE_METHOD_PARAM1_EXPLICT(pname, ename, ptype, pint, p1t)
+#define INHERIT_INTERFACE_METHOD_PARAM2_EXPLICT(pname, ename, ptype, pint, p1t, p2t)
+#define INHERIT_INTERFACE_METHOD_PARAM3_EXPLICT(pname, ename, ptype, pint, p1t, p2t, p3t)
+
+#define CALLBACK
+#define _In_
+#define _In_opt_
+#define _In_z_
+#define _In_opt_z_
+#define _In_count_(size)
+#define _Ret_maybenull_

@@ -11,16 +11,19 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     };
 
-    ref class JsSymbolImpl : JsValueImpl, IJsSymbol
+    ref class JsSymbolImpl : JsValueImpl, [Default] IJsSymbol
     {
+    private:
+        ~JsSymbolImpl();
+
     internal:
-        JsSymbolImpl(JsValueRef ref);
+        JsSymbolImpl(RawValue ref);
+
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
     public:
-        virtual ~JsSymbolImpl();
         virtual Platform::String^ ToString() override;
     };
 
@@ -112,10 +115,13 @@ template <> struct ::std::hash<Opportunity::ChakraBridge::WinRT::IJsSymbol^>
 {
     typedef Opportunity::ChakraBridge::WinRT::IJsSymbol^ argument_type;
     typedef size_t result_type;
+
+    using refHash = ::std::hash<Opportunity::ChakraBridge::WinRT::RawValue>;
+
     size_t operator()(Opportunity::ChakraBridge::WinRT::IJsSymbol^ sym) const
     {
         if (sym == nullptr)
             return 0;
-        return reinterpret_cast<size_t>(Opportunity::ChakraBridge::WinRT::to_impl(sym)->Reference);
+        return refHash()(Opportunity::ChakraBridge::WinRT::to_impl(sym)->Reference);
     };
 };

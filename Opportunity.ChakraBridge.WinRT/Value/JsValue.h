@@ -2,6 +2,7 @@
 #include "PreDeclare.h"
 #include "JsEnum.h"
 #include <type_traits>
+#include "Wrapper\Declear.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -21,7 +22,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
         /// <returns>The type of the value.</returns>
-        property JsType Type { JsType get(); }
+        DECL_R_PROPERTY(JsType, Type);
 
         /// <summary>
         /// Unwraps a JavaScript object to an <c>IInspectable</c> pointer 
@@ -34,20 +35,20 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <summary>
         /// Gets the script context that the object belongs to. 
         /// </summary>
-        property JsContext^ Context {JsContext^ get(); };
+        DECL_R_PROPERTY(JsContext^, Context);
     };
 
-    ref class JsValueImpl abstract : IJsValue
+    ref class JsValueImpl abstract : [Default] IJsValue
     {
     private:
     internal:
-        JsValueRef Reference;
-        JsValueImpl(JsValueRef ref);
+        RawValue Reference;
+        JsValueImpl(RawValue ref);
     public:
         virtual Platform::String^ ToString() override = 0;
-        virtual property JsType Type { JsType get(); }
+        virtual DECL_R_PROPERTY(JsType, Type);
         virtual object^ ToInspectable();
-        virtual property JsContext^ Context {JsContext^ get(); };
+        virtual DECL_R_PROPERTY(JsContext^, Context);
     };
 
     /// <summary>
@@ -58,16 +59,13 @@ namespace Opportunity::ChakraBridge::WinRT
     private:
         JsValue() {}
     internal:
-        static JsValueImpl^ CreateTyped(JsValueRef ref);
+        static JsValueImpl^ CreateTyped(RawValue ref);
     public:
         /// <summary>
         /// Gets the global object in the current script context.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        static property IJsObject^ GlobalObject
-        {
-            IJsObject^ get();
-        }
+        static DECL_R_PROPERTY(IJsObject^, GlobalObject);
 
         /// <summary>
         /// Compare two JavaScript values for reference equality.

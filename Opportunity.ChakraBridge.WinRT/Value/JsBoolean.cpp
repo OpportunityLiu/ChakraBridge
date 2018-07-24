@@ -3,38 +3,30 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsBooleanImpl::JsBooleanImpl(JsValueRef ref)
+JsBooleanImpl::JsBooleanImpl(RawValue ref)
     :JsValueImpl(ref) {}
 
 bool JsBooleanImpl::ToBoolean()
 {
-    bool v;
-    CHAKRA_CALL(JsBooleanToBool(Reference, &v));
-    return v;
+    return Reference.ToBoolean();
 }
 
 string^ JsBooleanImpl::ToString()
 {
-    return ToBoolean() ? "true" : "false";
+    return Reference.ToBoolean() ? L"true" : L"false";
 }
 
 IJsBoolean^ JsBoolean::True::get()
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsGetTrueValue(&ref));
-    return ref new JsBooleanImpl(ref);
+    return ref new JsBooleanImpl(RawValue::True());
 }
 
 IJsBoolean^ JsBoolean::False::get()
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsGetFalseValue(&ref));
-    return ref new JsBooleanImpl(ref);
+    return ref new JsBooleanImpl(RawValue::False());
 }
 
-IJsBoolean^ JsBoolean::Create(bool value)
+IJsBoolean^ JsBoolean::Create(const bool value)
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsBoolToBoolean(value, &ref));
-    return ref new JsBooleanImpl(ref);
+    return ref new JsBooleanImpl(RawValue(value));
 }

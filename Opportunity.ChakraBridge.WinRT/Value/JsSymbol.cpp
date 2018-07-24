@@ -5,29 +5,29 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSymbolImpl::~JsSymbolImpl()
 {
-    JsRelease(this->Reference, nullptr);
+    // ignore error.
+    JsRelease(Reference.Ref, nullptr);
 }
 
-JsSymbolImpl::JsSymbolImpl(JsValueRef ref)
-    :JsValueImpl(ref)
+JsSymbolImpl::JsSymbolImpl(RawValue ref)
+    :JsValueImpl(std::move(ref))
 {
-    CHAKRA_CALL(JsAddRef(ref, nullptr));
+    Reference.AddRef();
 }
 
 string^ JsSymbolImpl::ToString()
 {
-    JsValueRef symObj;
-    CHAKRA_CALL(JsConvertValueToObject(Reference, &symObj));
-    auto tostrFunc = RawGetProperty(symObj, L"constructor", L"prototype", L"toString");
-    JsValueRef strref = RawCallFunction(tostrFunc, this->Reference);
-    return RawStringToPointer(strref);
+    return Reference.ToJsObjet().ToJsString().ToString();
+    //const auto symObj;
+    //CHAKRA_CALL(JsConvertValueToObject(Reference, &symObj));
+    //auto tostrFunc = RawGetProperty(symObj, L"constructor", L"prototype", L"toString");
+    //JsValueRef strref = RawCallFunction(tostrFunc, this->Reference);
+    //return RawStringToPointer(strref);
 }
 
-IJsSymbol^ InnerCreate(JsValueRef description)
+IJsSymbol^ InnerCreate(RawValue description)
 {
-    JsValueRef r;
-    CHAKRA_CALL(JsCreateSymbol(description, &r));
-    return ref new JsSymbolImpl(r);
+    return ref new JsSymbolImpl(RawValue::CreateSymbol(description));
 }
 
 IJsSymbol^ JsSymbol::Create(IJsValue^ description)
@@ -41,21 +41,21 @@ IJsSymbol^ JsSymbol::Create(string^ description)
 {
     if (description == nullptr)
         return Create();
-    return InnerCreate(RawPointerToString(description));
+    return InnerCreate(RawValue(description));
 }
 
 IJsSymbol^ JsSymbol::Create()
 {
-    return InnerCreate(JS_INVALID_REFERENCE);
+    return InnerCreate(RawValue::Invalid());
 }
 
 template<JsType TExpacted>
-JsValueRef GetSymbolProperty(const wchar_t* name)
+RawValue GetSymbolProperty(const wchar_t* name)
 {
     try
     {
-        auto value = RawGetProperty(RawGlobalObject(), L"Symbol", name);
-        auto valueType = RawGetValueType(value);
+        RawValue value = RawValue::GlobalObject()[L"Symbol"][name];
+        auto valueType = value.Type();
         if (valueType != TExpacted)
             goto GET_FALLBACK;
         return value;
@@ -65,32 +65,29 @@ JsValueRef GetSymbolProperty(const wchar_t* name)
         goto GET_FALLBACK;
     }
 GET_FALLBACK:
-    JsValueRef csym;
-    CHAKRA_CALL(JsCreateSymbol(JS_INVALID_REFERENCE, &csym));
-    JsValueRef symObj;
-    CHAKRA_CALL(JsConvertValueToObject(csym, &symObj));
-    return RawGetProperty(symObj, L"constructor", name);
+    const auto sym = RawValue::CreateSymbol(RawValue::Invalid()).ToJsObjet();
+    return sym[L"constructor"][name];
 }
 
 IJsSymbol^ JsSymbol::For(IJsValue^ key)
 {
     NULL_CHECK(key);
-    auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
-    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(RawCallFunction(forFunc, RawGlobalObject(), to_impl(key)->Reference)));
+    const auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
+    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(RawValue::Invalid(), to_impl(key)->Reference)));
 }
 
 IJsSymbol^ JsSymbol::For(string^ key)
 {
-    auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
-    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(RawCallFunction(forFunc, RawGlobalObject(), RawPointerToString(key))));
+    const auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
+    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(RawValue::Invalid(), RawValue(key))));
 }
 
 IJsString^ JsSymbol::KeyFor(IJsSymbol^ symbol)
 {
     NULL_CHECK(symbol);
-    auto keyforFunc = GetSymbolProperty<JsType::Function>(L"keyFor");
-    auto key = RawCallFunction(keyforFunc, to_impl(symbol)->Reference, to_impl(symbol)->Reference);
-    if (RawGetValueType(key) != JsType::String)
+    const auto keyforFunc = GetSymbolProperty<JsType::Function>(L"keyFor");
+    const auto key = keyforFunc.Invoke(RawValue::Invalid(), to_impl(symbol)->Reference);
+    if (key.Type() != JsType::String)
         return nullptr;
     return ref new JsStringImpl(key);
 }

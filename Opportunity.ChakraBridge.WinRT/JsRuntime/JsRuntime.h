@@ -2,40 +2,48 @@
 #include <unordered_map>
 #include "JsEnum.h"
 #include "Value\JsFunction.h"
+#include "alias.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
     ref class JsContext;
     ref class JsRuntime;
 
-    /// <summary>
-    /// Event args.
-    /// </summary>
-    public ref class JsMemoryEventArgs sealed
+    public interface struct IJsAllocatingMemoryEventArgs
     {
-    public:
         /// <summary>
         /// The type of type allocation event.
         /// </summary>
-        property JsMemoryEventType EventType { JsMemoryEventType get() { return _EventType; } }
+        DECL_R_PROPERTY(JsMemoryEventType, EventType);
 
         /// <summary>
         /// The size of the allocation.
         /// </summary>
-        property uint64 AllocationSize { uint64 get() { return _AllocationSize; } }
+        DECL_R_PROPERTY(uint64, AllocationSize);
+    };
 
+    /// <summary>
+    /// Event args.
+    /// </summary>
+    ref struct JsMemoryEventArgs sealed : IJsAllocatingMemoryEventArgs
+    {
+    public:
+        virtual property JsMemoryEventType EventType { JsMemoryEventType get() { return _EventType; } }
+        virtual property uint64 AllocationSize { uint64 get() { return _AllocationSize; } }
+
+    internal:
         ///// <summary>
         ///// For the Allocate event, <see langword="false"/> allows the runtime to continue with allocation. 
         ///// <see langword="true"/> indicates the allocation request is rejected. 
         ///// The value is ignored for other allocation events.
         ///// </summary>
         //property bool IsRejected;
-    internal:
         JsMemoryEventArgs(::JsMemoryEventType eventType, size_t allocationSize)
             :_EventType(static_cast<JsMemoryEventType>(eventType)), _AllocationSize(static_cast<uint64>(allocationSize))
         {
             //IsRejected = false;
         }
+
     private:
         const JsMemoryEventType _EventType;
         const uint64 _AllocationSize;
@@ -43,16 +51,28 @@ namespace Opportunity::ChakraBridge::WinRT
 
     public interface struct IJsRuntime
     {
-        /// <summary>
-        /// Raises before gabage collection.
-        /// </summary>
-        event Windows::Foundation::TypedEventHandler<JsRuntime^, object^>^ CollectingGarbage;
-        /// <summary>
-        /// Raises when the charka engine allocating or freeing memories.
-        /// </summary>
-        event Windows::Foundation::TypedEventHandler<JsRuntime^, JsMemoryEventArgs^>^ AllocatingMemory;
+        event typed_event_handler<JsRuntime, object>^ CollectingGarbage;
+        event typed_event_handler<JsRuntime, IJsAllocatingMemoryEventArgs>^ AllocatingMemory;
     };
 
+    /// <summary>
+    /// A Chakra runtime.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Each Chakra runtime has its own independent execution engine, JIT compiler, and garbage 
+    /// collected heap. As such, each runtime is completely isolated from other runtimes.
+    /// </para>
+    /// <para>
+    /// Runtimes can be used on any thread, but only one thread can call into a runtime at any 
+    /// time.
+    /// </para>
+    /// <para>
+    /// NOTE: A JsRuntime, unlike other objects in the Chakra hosting API, is not 
+    /// garbage collected since it contains the garbage collected heap itself. A runtime will 
+    /// continue to exist until Dispose is called.
+    /// </para>
+    /// </remarks>
     public ref class JsRuntime sealed : [Default] IJsRuntime
     {
     private:
@@ -60,16 +80,18 @@ namespace Opportunity::ChakraBridge::WinRT
         static bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackState, _In_::JsMemoryEventType allocationEvent, _In_ size_t allocationSize);
 
     internal:
-        JsRuntimeHandle Handle;
-        JsRuntime(JsRuntimeHandle handle);
-        std::unordered_map<JsContextRef, JsContext^> Contexts;
-        static std::unordered_map<JsRuntimeHandle, JsRuntime^> RuntimeDictionary;
+        const RawRuntime Handle;
+        JsRuntime(RawRuntime handle);
+        std::unordered_map<RawContext, JsContext^> Contexts;
+        static std::unordered_map<RawRuntime, JsRuntime^> RuntimeDictionary;
+
+        static bool CALLBACK JsThreadServiceCallbackImpl(_In_ JsBackgroundWorkItemCallback callback, _In_opt_ void *callbackState);
 
     public:
         /// <summary>
         /// Performs a full garbage collection.
         /// </summary>
-        void CollectGarbage() { CHAKRA_CALL(JsCollectGarbage(this->Handle)); }
+        void CollectGarbage();
 
         /// <summary>
         /// Creates a script context for running scripts.
@@ -95,11 +117,11 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <summary>
         /// Raises before gabage collection.
         /// </summary>
-        virtual event Windows::Foundation::TypedEventHandler<JsRuntime^, object^>^ CollectingGarbage;
+        virtual event typed_event_handler<JsRuntime, object>^ CollectingGarbage;
         /// <summary>
         /// Raises when the charka engine allocating or freeing memories.
         /// </summary>
-        virtual event Windows::Foundation::TypedEventHandler<JsRuntime^, JsMemoryEventArgs^>^ AllocatingMemory;
+        virtual event typed_event_handler<JsRuntime, IJsAllocatingMemoryEventArgs>^ AllocatingMemory;
 
         /// <summary>
         /// Gets the current memory usage for a runtime.
@@ -108,10 +130,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// Memory usage can be always be retrieved, regardless of whether or not the runtime is active
         /// on another thread.
         /// </remarks>
-        property uint64 MemoryUsage
-        {
-            uint64 get();
-        };
+        DECL_R_PROPERTY(uint64, MemoryUsage);
 
         /// <summary>
         /// Gets or sets the current memory limit for a runtime.
@@ -120,20 +139,14 @@ namespace Opportunity::ChakraBridge::WinRT
         /// The memory limit of a runtime can be always be retrieved, regardless of whether or not the 
         /// runtime is active on another thread.
         /// </remarks>
-        property uint64 MemoryLimit
-        {
-            uint64 get();
-            void set(uint64 value);
-        };
+        DECL_RW_PROPERTY(uint64, MemoryLimit);
 
         /// <summary>
         /// Gets or sets a value indicating whether script execution is enabled in the runtime.
         /// </summary>
-        property bool IsEnabled
-        {
-            bool get();
-            void set(bool value);
-        };
+        DECL_RW_PROPERTY(bool, IsEnabled);
+
+        using JsRtAttr = ::Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes;
 
         /// <summary>
         /// Creates a new runtime.
@@ -141,14 +154,14 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <param name="attributes">The attributes of the runtime to be created.</param>
         /// <returns>The runtime created.</returns>
         [Overload("CreateWithAttributes")]
-        static JsRuntime^ Create(Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes attributes);
+        static JsRuntime^ Create(JsRtAttr attributes);
         /// <summary>
         /// Creates a new runtime.
         /// </summary>
         /// <returns>The runtime created.</returns>
         [Overload("Create")]
         [DefaultOverload]
-        static JsRuntime^ Create() { return Create(Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes::None); }
+        static JsRuntime^ Create() { return Create(JsRtAttr::None); }
         /// <summary>
         /// Gets created runtimes.
         /// </summary>

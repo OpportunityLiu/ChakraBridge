@@ -21,19 +21,19 @@ namespace Opportunity::ChakraBridge::WinRT
         DECL_R_PROPERTY(uint32, ByteLength);
     };
 
-    ref class JsArrayBufferImpl sealed : JsObjectImpl, IJsArrayBuffer
+    ref class JsArrayBufferImpl sealed : JsObjectImpl, [Default] IJsArrayBuffer
     {
     internal:
         // map from reinterpret_cast<void*>(buffer) to reference
-        static std::unordered_map<void*, JsValueRef> ExternalBufferKeyMap;
+        static std::unordered_map<void*, RawValue> ExternalBufferKeyMap;
         // map from reference to IBuffer^
-        static std::unordered_map<JsValueRef, IJsArrayBuffer::IBuffer^> ExternalBufferDataMap;
+        static std::unordered_map<RawValue, IJsArrayBuffer::IBuffer^> ExternalBufferDataMap;
         static void CALLBACK JsFinalizeCallbackImpl(_In_opt_ void *data);
 
         uint8* BufferPtr;
         unsigned int BufferLen;
 
-        JsArrayBufferImpl(JsValueRef ref);
+        JsArrayBufferImpl(RawValue ref);
 
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
@@ -43,7 +43,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);

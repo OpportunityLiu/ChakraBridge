@@ -14,21 +14,23 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
         /// <returns>The length of the string.</returns>
-        property uint32 Length { uint32 get(); }
+        DECL_R_PROPERTY(uint32, Length);
     };
 
-    ref class JsStringImpl sealed : JsValueImpl, IJsString
+    ref class JsStringImpl sealed : JsValueImpl, [Default] IJsString
     {
+    private:
+        ~JsStringImpl();
     internal:
-        JsStringImpl(JsValueRef ref);
+        JsStringImpl(RawValue ref);
+
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
     public:
-        virtual ~JsStringImpl();
         virtual string^ ToString() override;
-        virtual property uint32 Length { uint32 get(); }
+        virtual DECL_R_PROPERTY(uint32, Length);
     };
 
     /// <summary>

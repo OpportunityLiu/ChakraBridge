@@ -1,11 +1,12 @@
 #include "pch.h"
+#include "Native\BufferPointer.h"
 #include "JsArrayBuffer.h"
 #include "Native\NativeBuffer.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-std::unordered_map<void*, JsValueRef> JsArrayBufferImpl::ExternalBufferKeyMap;
-std::unordered_map<JsValueRef, IJsArrayBuffer::IBuffer^> JsArrayBufferImpl::ExternalBufferDataMap;
+std::unordered_map<void*, RawValue> JsArrayBufferImpl::ExternalBufferKeyMap;
+std::unordered_map<RawValue, IBuffer^> JsArrayBufferImpl::ExternalBufferDataMap;
 
 void CALLBACK JsArrayBufferImpl::JsFinalizeCallbackImpl(_In_opt_ void *data)
 {
@@ -14,13 +15,13 @@ void CALLBACK JsArrayBufferImpl::JsFinalizeCallbackImpl(_In_opt_ void *data)
     ExternalBufferKeyMap.erase(data);
 }
 
-JsArrayBufferImpl::JsArrayBufferImpl(JsValueRef ref)
-    : JsObjectImpl(ref)
+JsArrayBufferImpl::JsArrayBufferImpl(RawValue ref)
+    : JsObjectImpl(std::move(ref))
 {
-    CHAKRA_CALL(JsGetArrayBufferStorage(ref, &BufferPtr, &BufferLen));
+    CHAKRA_CALL(JsGetArrayBufferStorage(Reference.Ref, &BufferPtr, &BufferLen));
 }
 
-IJsArrayBuffer::IBuffer^ JsArrayBufferImpl::Data::get()
+IBuffer^ JsArrayBufferImpl::Data::get()
 {
     auto extBuf = ExternalBufferDataMap.find(Reference);
     if (extBuf != ExternalBufferDataMap.end())
@@ -35,19 +36,16 @@ uint32 JsArrayBufferImpl::ByteLength::get()
 
 IJsArrayBuffer^ JsArrayBuffer::Create(uint32 length)
 {
-    JsValueRef r;
-    CHAKRA_CALL(JsCreateArrayBuffer(length, &r));
-    return ref new JsArrayBufferImpl(r);
+    return ref new JsArrayBufferImpl(RawValue::CreateArrayBuffer(length));
 }
 
-IJsArrayBuffer^ JsArrayBuffer::Create(IJsArrayBuffer::IBuffer^ buffer)
+IJsArrayBuffer^ JsArrayBuffer::Create(IBuffer^ buffer)
 {
     uint32 buflen;
     auto bufptr = GetPointerOfBuffer(buffer, nullptr, &buflen);
     buffer->Length = buflen;
     auto cb = reinterpret_cast<void*>(buffer);
-    JsValueRef r;
-    CHAKRA_CALL(JsCreateExternalArrayBuffer(bufptr, buflen, JsArrayBufferImpl::JsFinalizeCallbackImpl, cb, &r));
+    const auto r = RawValue::CreateArrayBuffer(bufptr, buflen, JsArrayBufferImpl::JsFinalizeCallbackImpl, cb);
     JsArrayBufferImpl::ExternalBufferKeyMap[cb] = r;
     JsArrayBufferImpl::ExternalBufferDataMap[r] = buffer;
     return ref new JsArrayBufferImpl(r);

@@ -9,40 +9,37 @@ using namespace Opportunity::ChakraBridge::WinRT;
 /// </summary>
 /// <param name="reference">The reference.</param>
 /// <returns>The instance of the <see cref="JsContext"/></returns>
-JsContext^ JsContext::Get(JsContextRef reference)
+JsContext^ JsContext::Get(RawContext reference)
 {
-    if (reference == JS_INVALID_REFERENCE)
+    if (!reference.IsValid())
         return nullptr;
-    JsRuntimeHandle rth;
-    CHAKRA_CALL(JsGetRuntime(reference, &rth));
+    const auto rth = reference.Runtime();
     auto rt = JsRuntime::RuntimeDictionary[rth];
     return rt->Contexts[reference];
 }
 
 void JsContext::StartDebugging()
 {
-    CHAKRA_CALL(JsStartDebugging());
+    RawContext::StartDebugging();
 }
 
 uint32 JsContext::Idle()
 {
-    unsigned int ticks;
-    CHAKRA_CALL(JsIdle(&ticks));
-    return static_cast<uint32>(ticks);
+    return static_cast<uint32>(RawContext::Idle());
 }
 
 void JsContext::SetException(IJsError^ exception)
 {
     NULL_CHECK(exception);
-    CHAKRA_CALL(JsSetException(to_impl(exception)->Reference));
+    RawContext::SetException(to_impl(exception)->Reference);
 }
 
-JsValueRef JsContext::LastJsError = JS_INVALID_REFERENCE;
+RawValue JsContext::LastJsError;
 
 void JsContext::GetAndClearExceptionCore()
 {
-    if (JsGetAndClearException(&LastJsError) != ::JsNoError)
-        LastJsError = JS_INVALID_REFERENCE;
+    if (JsGetAndClearException(&LastJsError.Ref) != ::JsNoError)
+        LastJsError = RawValue::Invalid();
 }
 
 IJsError^ JsContext::GetAndClearException()
@@ -53,49 +50,34 @@ IJsError^ JsContext::GetAndClearException()
 
 IJsError^ JsContext::LastError::get()
 {
-    if (LastJsError == JS_INVALID_REFERENCE)
-        return nullptr;
-    try
-    {
-        return safe_cast<IJsError^>(JsValue::CreateTyped(LastJsError));
-    }
-    catch (...)
-    {
-        return nullptr;
-    }
+    return dynamic_cast<IJsError^>(JsValue::CreateTyped(LastJsError));
 }
 
 void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
 {
     NULL_CHECK(namespaceName);
-    CHAKRA_CALL(JsProjectWinRTNamespace(namespaceName->Data()));
+    RawContext::ProjectWinRTNamespace(namespaceName->Data());
 }
 
 JsContext^ JsContext::Current::get()
 {
-    JsContextRef c;
-    CHAKRA_CALL(JsGetCurrentContext(&c));
-    return Get(c);
+    return Get(RawContext::Current());
 }
 
 void JsContext::Current::set(JsContext^ value)
 {
-    LastJsError = JS_INVALID_REFERENCE;
-    if (value == nullptr || value->Reference == JS_INVALID_REFERENCE)
+    LastJsError = RawValue::Invalid();
+    RawContext v;
+    if (value != nullptr)
+        v = value->Reference;
+    RawContext::Current(v);
+    if (v.IsValid())
     {
-        CHAKRA_CALL(JsSetCurrentContext(JS_INVALID_REFERENCE));
-    }
-    else
-    {
-        CHAKRA_CALL(JsSetCurrentContext(value->Reference));
-        CHAKRA_CALL(JsSetPromiseContinuationCallback(JsPromiseContinuationCallbackImpl, value->Reference));
-        return;
+        CHAKRA_CALL(JsSetPromiseContinuationCallback(reinterpret_cast<JsPromiseContinuationCallback>(JsPromiseContinuationCallbackImpl), v.Ref));
     }
 }
 
 bool JsContext::HasException::get()
 {
-    bool hasException;
-    CHAKRA_CALL(JsHasException(&hasException));
-    return hasException;
+    return RawContext::HasException();
 }

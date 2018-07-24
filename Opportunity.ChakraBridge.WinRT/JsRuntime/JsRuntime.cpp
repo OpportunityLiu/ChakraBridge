@@ -10,10 +10,10 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-std::unordered_map<JsRuntimeHandle, JsRuntime^> JsRuntime::RuntimeDictionary;
+std::unordered_map<RawRuntime, JsRuntime^> JsRuntime::RuntimeDictionary;
 std::mutex mx;
 
-bool CALLBACK JsThreadServiceCallbackImpl(_In_ JsBackgroundWorkItemCallback callback, _In_opt_ void *callbackState)
+bool JsRuntime::JsThreadServiceCallbackImpl(const JsBackgroundWorkItemCallback callback, void * const callbackState)
 {
     using namespace Windows::System::Threading;
     auto wih = ref new WorkItemHandler([callback, callbackState](Windows::Foundation::IAsyncAction^ workItem)
@@ -40,19 +40,45 @@ bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackS
     return true;// !args->IsRejected;
 }
 
-JsRuntime::JsRuntime(JsRuntimeHandle handle)
-    : Handle(handle)
+JsRuntime::JsRuntime(RawRuntime handle)
+    : Handle(std::move(handle))
+{
+    if (!Handle.IsValid())
+        Throw(E_HANDLE, L"handle for JsRuntime is JS_INVALID_RUNTIME_HANDLE");
+    std::lock_guard<std::mutex> lock(mx);
+
+    RuntimeDictionary.insert(std::make_pair(Handle, this));
+    const auto& rawH = Handle.Ref;
+    CHAKRA_CALL(JsSetRuntimeBeforeCollectCallback(rawH, rawH, JsBeforeCollectCallbackImpl));
+    CHAKRA_CALL(JsSetRuntimeMemoryAllocationCallback(rawH, rawH, JsMemoryAllocationCallbackImpl));
+}
+
+JsRuntime::~JsRuntime()
 {
     std::lock_guard<std::mutex> lock(mx);
-    RuntimeDictionary.insert(std::make_pair(handle, this));
-    CHAKRA_CALL(JsSetRuntimeBeforeCollectCallback(handle, handle, JsBeforeCollectCallbackImpl));
-    CHAKRA_CALL(JsSetRuntimeMemoryAllocationCallback(handle, handle, JsMemoryAllocationCallbackImpl));
+
+    const auto cc = RawContext::Current();
+    if (cc.IsValid())
+    {
+        RawRuntime cr = cc.Runtime();
+        if (cr == Handle)
+            RawContext::Current(RawContext::Invalid());
+    }
+    CHAKRA_CALL(JsDisposeRuntime(Handle.Ref));
+    RuntimeDictionary.erase(Handle);
+    std::for_each(this->Contexts.begin(), this->Contexts.end(), [](auto& item) { item.second->Reference = RawContext::Invalid(); });
+    this->Contexts.clear();
+}
+
+void JsRuntime::CollectGarbage()
+{
+    Handle.CollectGarbage();
 }
 
 JsContext^ JsRuntime::CreateContext()
 {
-    JsContextRef ref;
-    CHAKRA_CALL(JsCreateContext(this->Handle, &ref));
+    RawContext ref;
+    CHAKRA_CALL(JsCreateContext(Handle.Ref, &ref.Ref));
     auto context = ref new JsContext(ref);
     this->Contexts.insert(std::make_pair(ref, context));
     return context;
@@ -66,30 +92,7 @@ Windows::Foundation::Collections::IIterable<JsContext^>^ JsRuntime::GetContexts(
     return ref new Platform::Collections::VectorView<JsContext^>(std::move(vec));
 }
 
-JsRuntime::~JsRuntime()
-{
-    if (this->Handle == JS_INVALID_RUNTIME_HANDLE)
-        return;
-    std::lock_guard<std::mutex> lock(mx);
-    if (this->Handle == JS_INVALID_RUNTIME_HANDLE)
-        return;
-    JsContextRef cc;
-    CHAKRA_CALL(JsGetCurrentContext(&cc));
-    if (cc != JS_INVALID_REFERENCE)
-    {
-        JsRuntimeHandle cr;
-        CHAKRA_CALL(JsGetRuntime(cc, &cr));
-        if (cr == this->Handle)
-            CHAKRA_CALL(JsSetCurrentContext(JS_INVALID_REFERENCE));
-    }
-    CHAKRA_CALL(JsDisposeRuntime(this->Handle));
-    RuntimeDictionary.erase(this->Handle);
-    std::for_each(this->Contexts.begin(), this->Contexts.end(), [](auto& item) { item.second->Reference = JS_INVALID_REFERENCE; });
-    this->Contexts.clear();
-    this->Handle = JS_INVALID_RUNTIME_HANDLE;
-}
-
-JsRuntime^ JsRuntime::Create(Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes attributes)
+JsRuntime^ JsRuntime::Create(JsRtAttr attributes)
 {
     JsRuntimeHandle handle;
     CHAKRA_CALL(JsCreateRuntime(static_cast<::JsRuntimeAttributes>(attributes), JsThreadServiceCallbackImpl, &handle));
@@ -98,38 +101,29 @@ JsRuntime^ JsRuntime::Create(Opportunity::ChakraBridge::WinRT::JsRuntimeAttribut
 
 uint64 JsRuntime::MemoryUsage::get()
 {
-    size_t memoryUsage;
-    CHAKRA_CALL(JsGetRuntimeMemoryUsage(this->Handle, &memoryUsage));
-    return memoryUsage;
+    return Handle.MemoryUsage();
 }
 
 uint64 JsRuntime::MemoryLimit::get()
 {
-    size_t memoryLimit;
-    CHAKRA_CALL(JsGetRuntimeMemoryLimit(this->Handle, &memoryLimit));
-    return memoryLimit;
+    return Handle.MemoryLimit();
 }
 
 void JsRuntime::MemoryLimit::set(uint64 value)
 {
     if (value > std::numeric_limits<size_t>::max())
         Throw(E_INVALIDARG, L"value is too large.");
-    CHAKRA_CALL(JsSetRuntimeMemoryLimit(this->Handle, static_cast<size_t>(value)));
+    Handle.MemoryLimit(static_cast<size_t>(value));
 }
 
 bool JsRuntime::IsEnabled::get()
 {
-    bool isDisabled;
-    CHAKRA_CALL(JsIsRuntimeExecutionDisabled(this->Handle, &isDisabled));
-    return !isDisabled;
+    return Handle.Enabled();
 }
 
 void JsRuntime::IsEnabled::set(bool value)
 {
-    if (value)
-        CHAKRA_CALL(JsEnableRuntimeExecution(this->Handle));
-    else
-        CHAKRA_CALL(JsDisableRuntimeExecution(this->Handle));
+    Handle.Enabled(value);
 }
 
 Windows::Foundation::Collections::IIterable<JsRuntime^>^ JsRuntime::GetRuntimes()

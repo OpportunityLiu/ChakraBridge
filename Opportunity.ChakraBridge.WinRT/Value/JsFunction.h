@@ -15,28 +15,31 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <param name="isConstructCall">Indicates whether this is a regular call or a 'new' call.</param>
     /// <param name="arguments">The arguments to the call.</param>
     /// <returns>The result of the call, if any.</returns>
-    public delegate IJsValue^ JsNativeFunction(IJsFunction^ callee, IJsObject^ caller, bool isConstructCall, Windows::Foundation::Collections::IVectorView<IJsValue^>^ arguments);
+    public delegate IJsValue^ JsNativeFunction(IJsFunction^ callee, IJsObject^ caller, bool isConstructCall, vector_view<IJsValue>^ arguments);
+    using JsFunctionDelegate = ::Opportunity::ChakraBridge::WinRT::JsNativeFunction;
 
+    /// <summary>
+    /// A JavaScript function object.
+    /// </summary>
     public interface class IJsFunction : IJsObject
     {
-
         /// <summary>
         /// Read-only <c>name</c> property of the <see cref="IJsFunction"/>.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property string^ Name { string^ get(); }
+        DECL_R_PROPERTY(string^, Name);
 
         /// <summary>
         /// Read-only <c>length</c> property of the <see cref="IJsFunction"/>.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property int32 Length { int32 get(); }
+        DECL_R_PROPERTY(int32, Length);
 
         /// <summary>
         /// <c>prototype</c> property of the <see cref="IJsFunction"/>.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property IJsObject^ Prototype { IJsObject^ get(); void set(IJsObject^ value); }
+        DECL_RW_PROPERTY(IJsObject^, Prototype);
 
         /// <summary>
         /// Invokes a function.
@@ -45,7 +48,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <param name="caller">The object that the thisArg is.</param>
         /// <param name="arguments">The arguments to the call.</param>
         /// <returns>The <c>Value</c> returned from the function invocation, if any.</returns>
-        IJsValue^ Invoke(IJsValue^ caller, Windows::Foundation::Collections::IVectorView<IJsValue^>^ arguments);
+        IJsValue^ Invoke(IJsValue^ caller, vector_view<IJsValue>^ arguments);
 
         /// <summary>
         /// Invokes a function as a constructor.
@@ -53,16 +56,13 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <remarks>Requires an active script context.</remarks>
         /// <param name="arguments">The arguments to the call.</param>
         /// <returns>The <c>Value</c> returned from the function invocation.</returns>
-        IJsObject^ New(Windows::Foundation::Collections::IVectorView<IJsValue^>^ arguments);
+        IJsObject^ New(vector_view<IJsValue>^ arguments);
     };
 
-    ref class JsFunctionImpl sealed : JsObjectImpl, IJsFunction
+    ref class JsFunctionImpl sealed : JsObjectImpl, [Default] IJsFunction
     {
     internal:
-        using JsFunctionDelegate = Opportunity::ChakraBridge::WinRT::JsNativeFunction;
-        using IJsValueVectorView = Windows::Foundation::Collections::IVectorView<IJsValue^>;
-
-        JsFunctionImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsFunctionImpl(RawValue ref) :JsObjectImpl(std::move(ref)) {}
 
         void InitForNativeFunc(JsFunctionDelegate^ function);
 
@@ -73,7 +73,6 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -92,17 +91,18 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
-        static std::unordered_map<JsValueRef, JsFunctionDelegate^> FunctionTable;
-        static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState);
+        static std::unordered_map<RawValue, JsFunctionDelegate^> FunctionTable;
+        static _Ret_maybenull_ RawValue CALLBACK JsNativeFunctionImpl(_In_ const RawValue callee, _In_ const bool isConstructCall, _In_ const RawValue*const arguments, _In_ const unsigned short argumentCount, _In_opt_ void*const callbackState);
+        static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ const RawValue ref, _In_opt_ void *const callbackState);
 
     public:
-        virtual IJsValue^ Invoke(IJsValue^ caller, IJsValueVectorView^ arguments);
-        virtual IJsObject^ New(IJsValueVectorView^ arguments);
-        virtual property string^ Name { string^ get(); }
-        virtual property int32 Length { int32 get(); }
-        virtual property IJsObject^ Prototype { IJsObject^ get(); void set(IJsObject^ value); }
+        virtual IJsValue^ Invoke(IJsValue^ caller, vector_view<IJsValue>^ arguments);
+        virtual IJsObject^ New(vector_view<IJsValue>^ arguments);
+        virtual DECL_R_PROPERTY(string^, Name);
+        virtual DECL_R_PROPERTY(int32, Length);
+        virtual DECL_RW_PROPERTY(IJsObject^, Prototype);
         virtual string^ ToString() override;
-        virtual property JsOBCC^ ObjectCollectingCallback { void set(JsOBCC^ value) override; }
+        virtual property JsOBCC^ ObjectCollectingCallback { JsOBCC^ get() override; void set(JsOBCC^ value) override; }
     };
 
     /// <summary>
@@ -121,7 +121,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <returns>A new JavaScript function.</returns>
         /// <remarks>Requires an active script context.</remarks>
         [Overload("OfNativeFunction")]
-        static IJsFunction^ Create(JsNativeFunction^ function);
+        static IJsFunction^ Create(JsFunctionDelegate^ function);
 
         /// <summary>
         /// Creates a new JavaScript function.
@@ -131,7 +131,7 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <returns>A new JavaScript function.</returns>
         /// <remarks>Requires an active script context.</remarks>
         [Overload("OfNativeFunctionWithJsName")]
-        static IJsFunction^ Create(JsNativeFunction^ function, IJsString^ name);
+        static IJsFunction^ Create(JsFunctionDelegate^ function, IJsString^ name);
 
         /// <summary>
         /// Creates a new JavaScript function.
@@ -142,6 +142,6 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <remarks>Requires an active script context.</remarks>
         [DefaultOverload]
         [Overload("OfNativeFunctionWithName")]
-        static IJsFunction^ Create(JsNativeFunction^ function, string^ name);
+        static IJsFunction^ Create(JsFunctionDelegate^ function, string^ name);
     };
 }

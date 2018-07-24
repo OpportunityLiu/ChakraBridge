@@ -10,7 +10,6 @@ namespace Opportunity::ChakraBridge::WinRT
     /// </summary>
     public interface class IJsDataView : IJsObject
     {
-        using IBuffer = Windows::Storage::Streams::IBuffer;
         /// <summary>
         /// A <see cref="Windows::Storage::Streams::IBuffer"/> to access data of this <see cref="IJsDataView"/>.
         /// </summary>
@@ -29,13 +28,13 @@ namespace Opportunity::ChakraBridge::WinRT
         DECL_R_PROPERTY(uint32, ByteOffset);
     };
 
-    ref class JsDataViewImpl sealed : JsObjectImpl, IJsDataView
+    ref class JsDataViewImpl sealed : JsObjectImpl, [Default] IJsDataView
     {
     internal:
         uint8 * BufferPtr;
         unsigned int BufferLen;
 
-        JsDataViewImpl(JsValueRef ref);
+        JsDataViewImpl(RawValue ref);
 
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
@@ -45,7 +44,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -65,7 +64,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
     public:
-        virtual DECL_R_PROPERTY(IJsDataView::IBuffer^, Data);
+        virtual DECL_R_PROPERTY(IBuffer^, Data);
         virtual DECL_R_PROPERTY(IJsArrayBuffer^, Buffer);
         virtual DECL_R_PROPERTY(uint32, ByteLength);
         virtual DECL_R_PROPERTY(uint32, ByteOffset);

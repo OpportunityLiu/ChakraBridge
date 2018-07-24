@@ -4,16 +4,14 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-string^ Opportunity::ChakraBridge::WinRT::CHAKRA_LAST_ERROR()
+string_ref Opportunity::ChakraBridge::WinRT::CHAKRA_LAST_ERROR()
 {
     const auto error = JsContext::LastJsError;
-    if (error == JS_INVALID_REFERENCE)
+    if (!error.IsValid())
         return nullptr;
     try
     {
-        JsValueRef str;
-        CHAKRA_CALL(JsConvertValueToString(error, &str));
-        return RawStringToPointer(str);
+        return error.ToJsString().ToString();
     }
     catch (...)
     {

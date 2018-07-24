@@ -1,4 +1,5 @@
 #pragma once
+#include "Wrapper\Declear.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {

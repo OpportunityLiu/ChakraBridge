@@ -3,10 +3,12 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsNullImpl::JsNullImpl(JsValueRef ref)
-    :JsValueImpl(ref) {}
+JsNullImpl::JsNullImpl(RawValue ref)
+    :JsValueImpl(std::move(ref)) {}
+
+string^ JsNullImpl::ToString() { return L"null"; }
 
 IJsNull^ JsNull::Instance::get()
 {
-    return ref new JsNullImpl(RawNull());
+    return ref new JsNullImpl(RawValue::Null());
 }

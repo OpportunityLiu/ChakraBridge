@@ -11,10 +11,10 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     };
 
-    ref class JsArrayImpl sealed : JsObjectImpl, IJsArray
+    ref class JsArrayImpl sealed : JsObjectImpl, [Default] IJsArray
     {
     internal:
-        JsArrayImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsArrayImpl(RawValue ref) :JsObjectImpl(std::move(ref)) {}
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -23,7 +23,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);

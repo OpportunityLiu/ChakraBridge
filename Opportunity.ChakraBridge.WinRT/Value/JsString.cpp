@@ -5,30 +5,27 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsStringImpl::~JsStringImpl()
 {
-    JsRelease(this->Reference, nullptr);
+    // ignore error.
+    JsRelease(Reference.Ref, nullptr);
 }
 
-JsStringImpl::JsStringImpl(JsValueRef ref)
-    :JsValueImpl(ref)
+JsStringImpl::JsStringImpl(RawValue ref)
+    :JsValueImpl(std::move(ref))
 {
-    CHAKRA_CALL(JsAddRef(ref, nullptr));
+    Reference.AddRef();
 }
 
 uint32 JsStringImpl::Length::get()
 {
-    int l;
-    CHAKRA_CALL(JsGetStringLength(Reference, &l));
-    return static_cast<uint32>(l);
+    return static_cast<uint32>(Reference.StrLength());
 }
 
 string^ JsStringImpl::ToString()
 {
-    return RawStringToPointer(Reference);
+    return Reference.ToString();
 }
 
 IJsString^ JsString::Create(string^ value)
 {
-    JsValueRef ref;
-    CHAKRA_CALL(JsPointerToString(value->Data(), value->Length(), &ref));
-    return ref new JsStringImpl(ref);
+    return ref new JsStringImpl(RawValue(value));
 }

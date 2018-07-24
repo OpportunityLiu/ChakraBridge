@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "Native\BufferPointer.h"
 #include "JsContext.h"
 #include "Value\Declare.h"
 
@@ -6,27 +7,27 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSourceContext JsContext::SourceContext = 0;
 
-void CALLBACK JsContext::JsPromiseContinuationCallbackImpl(_In_ JsValueRef task, _In_opt_ void *callbackState)
+void JsContext::JsPromiseContinuationCallbackImpl(const RawValue task, const RawContext callbackState)
 {
-    auto current = Get(reinterpret_cast<JsContextRef>(callbackState));
-    CHAKRA_CALL(JsAddRef(task, nullptr));
+    auto current = Get(callbackState);
+    task.AddRef();
     current->PromiseContinuationQueue.push(task);
 }
 
 void JsContext::HandlePromiseContinuation()
 {
     auto current = Current;
-    JsValueRef global = RawGlobalObject();
+    const RawValue global = RawValue::GlobalObject();
     while (!current->PromiseContinuationQueue.empty())
     {
         auto task = current->PromiseContinuationQueue.front();
         current->PromiseContinuationQueue.pop();
-        RawCallFunction(task, global);
-        CHAKRA_CALL(JsRelease(task, nullptr));
+        task.Invoke(global);
+        task.Release();
     }
 }
 
-JsContext::IBuffer^ JsContext::SerializeScript(string^ script)
+IBuffer^ JsContext::SerializeScript(string^ script)
 {
     NULL_CHECK(script);
     unsigned long bufferSize = 0;

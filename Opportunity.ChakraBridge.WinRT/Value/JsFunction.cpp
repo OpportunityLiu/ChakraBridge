@@ -8,18 +8,18 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-std::unordered_map<JsValueRef, JsFunctionImpl::JsFunctionDelegate^> JsFunctionImpl::FunctionTable;
+std::unordered_map<RawValue, JsFunctionDelegate^> JsFunctionImpl::FunctionTable;
 
-_Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void* callbackState)
+RawValue JsFunctionImpl::JsNativeFunctionImpl(
+    const RawValue callee, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, void* callbackState)
 {
     auto& ftable = JsFunctionImpl::FunctionTable;
     auto funciter = ftable.find(callee);
     if (funciter == ftable.end())
     {
-        JsValueRef error;
-        CHAKRA_CALL(JsCreateError(RawPointerToString(L"Specific native function is not found."), &error));
-        CHAKRA_CALL(JsSetException(error));
-        return JS_INVALID_REFERENCE;
+        const auto error = RawValue::CreateError(RawValue(L"Specific native function is not found."));
+        RawContext::SetException(error);
+        return RawValue::Invalid();
     }
     try
     {
@@ -45,24 +45,22 @@ _Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee,
     }
     catch (Platform::Exception^ ex)
     {
-        JsValueRef error;
-        CHAKRA_CALL(JsCreateError(RawPointerToString(ex->Message), &error));
-        CHAKRA_CALL(JsSetException(error));
-        return JS_INVALID_REFERENCE;
+        const auto error = RawValue::CreateError(RawValue(ex->Message));
+        RawContext::SetException(error);
+        return RawValue::Invalid();
     }
     catch (...)
     {
-        JsValueRef error;
-        CHAKRA_CALL(JsCreateError(RawPointerToString(L"Unknown exception in native function."), &error));
-        CHAKRA_CALL(JsSetException(error));
-        return JS_INVALID_REFERENCE;
+        const auto error = RawValue::CreateError(RawValue(L"Unknown exception in native function."));
+        RawContext::SetException(error);
+        return RawValue::Invalid();
     }
 }
 
-void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, std::vector<JsValueRef>& args)
+void getArgs(IJsValue^ caller, vector_view<IJsValue>^ arguments, std::vector<RawValue>& args)
 {
-    if (caller == nullptr || to_impl(caller)->Reference == JS_INVALID_REFERENCE)
-        args.push_back(RawGlobalObject());
+    if (caller == nullptr)
+        args.push_back(RawValue::GlobalObject());
     else
         args.push_back(to_impl(caller)->Reference);
 
@@ -72,22 +70,32 @@ void getArgs(IJsValue^ caller, JsFunctionImpl::IJsValueVectorView^ arguments, st
     if (arguments->Size > std::numeric_limits<unsigned short>::max() - 1u)
         Throw(E_INVALIDARG, L"Too many arguments");
 
-    JsValueRef undef = JS_INVALID_REFERENCE;
+    RawValue undef;
 
     for each (auto var in arguments)
     {
-        if (var == nullptr || to_impl(var)->Reference == JS_INVALID_REFERENCE)
+        if (var == nullptr)
+            goto SET_UNDEF;
         {
-            if (undef == JS_INVALID_REFERENCE)
-                undef = RawUndefined();
-            args.push_back(undef);
+            const auto ref = to_impl(var)->Reference;
+            if (!ref.IsValid())
+                goto SET_UNDEF;
+
+            args.push_back(ref);
+            continue; 
         }
-        else
-            args.push_back(to_impl(var)->Reference);
+
+    SET_UNDEF:
+        {
+            if (!undef.IsValid())
+                undef = RawValue::Undefined();
+            args.push_back(undef);
+            continue; 
+        }
     }
 }
 
-void CALLBACK JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState)
+void JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(const RawValue ref, void *const callbackState)
 {
     __try
     {
@@ -99,6 +107,11 @@ void CALLBACK JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(_In_ JsRef ref
     }
 }
 
+JsFunctionImpl::JsOBCC^ JsFunctionImpl::ObjectCollectingCallback::get()
+{
+    return JsObjectImpl::ObjectCollectingCallback;
+}
+
 void JsFunctionImpl::ObjectCollectingCallback::set(JsOBCC^ value)
 {
     if (FunctionTable.find(Reference) == FunctionTable.end())
@@ -106,54 +119,52 @@ void JsFunctionImpl::ObjectCollectingCallback::set(JsOBCC^ value)
         JsObjectImpl::ObjectCollectingCallback = value;
         return;
     }
-    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference, Reference, JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl));
+    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr, reinterpret_cast<::JsObjectBeforeCollectCallback>(JsFunctionBeforeCollectCallbackImpl)));
     if (value == nullptr)
         OBCCMap.erase(Reference);
     else
         OBCCMap[Reference] = value;
 }
 
-IJsValue^ JsFunctionImpl::Invoke(IJsValue^ caller, IJsValueVectorView^ arguments)
+IJsValue^ JsFunctionImpl::Invoke(IJsValue^ caller, vector_view<IJsValue>^ arguments)
 {
-    std::vector<JsValueRef> args;
+    std::vector<RawValue> args;
     getArgs(caller, arguments, args);
-    JsValueRef result;
-    CHAKRA_CALL(JsCallFunction(Reference, &args[0], static_cast<unsigned int>(args.size()), &result));
-    return JsValue::CreateTyped(result);
+    const auto r = Reference.Invoke(&args[0], static_cast<unsigned int>(args.size()));
+    return JsValue::CreateTyped(r);
 }
 
-IJsObject^ JsFunctionImpl::New(IJsValueVectorView^ arguments)
+IJsObject^ JsFunctionImpl::New(vector_view<IJsValue>^ arguments)
 {
-    std::vector<JsValueRef> args;
+    std::vector<RawValue> args;
     getArgs(nullptr, arguments, args);
-    JsValueRef result;
-    CHAKRA_CALL(JsConstructObject(Reference, &args[0], static_cast<unsigned int>(args.size()), &result));
-    return safe_cast<IJsObject^>(JsValue::CreateTyped(result));
+    const auto r = Reference.New(&args[0], static_cast<unsigned int>(args.size()));
+    return safe_cast<IJsObject^>(JsValue::CreateTyped(r));
 }
 
 string^ JsFunctionImpl::Name::get()
 {
-    return RawStringToPointer(RawGetProperty(Reference, L"name"));
+    return Reference[L"name"]().ToString();
 }
 
 int32 JsFunctionImpl::Length::get()
 {
-    return RawNumberToInt(RawGetProperty(Reference, L"length"));
+    return Reference[L"length"]().ToInt();
 }
 
 IJsObject^ JsFunctionImpl::Prototype::get()
 {
-    return dynamic_cast<IJsObject^>(JsValue::CreateTyped(RawGetProperty(Reference, L"prototype")));
+    return dynamic_cast<IJsObject^>(JsValue::CreateTyped(Reference[L"prototype"]));
 }
 
 void JsFunctionImpl::Prototype::set(IJsObject^ value)
 {
     if (value == nullptr)
     {
-        RawSetProperty(Reference, L"prototype", RawUndefined());
+        Reference[L"prototype"] = RawValue::Undefined();
         return;
     }
-    RawSetProperty(Reference, L"prototype", to_impl(value)->Reference);
+    Reference[L"prototype"] = to_impl(value)->Reference;
 }
 
 string^ JsFunctionImpl::ToString()
@@ -166,35 +177,35 @@ string^ JsFunctionImpl::ToString()
     return JsObjectImpl::ToString();
 }
 
-IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function)
+IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function)
 {
     NULL_CHECK(function);
     JsValueRef ref;
-    CHAKRA_CALL(JsCreateFunction(JsNativeFunctionImpl, nullptr, &ref));
+    CHAKRA_CALL(JsCreateFunction(reinterpret_cast<::JsNativeFunction>(JsFunctionImpl::JsNativeFunctionImpl), nullptr, &ref));
     auto func = ref new JsFunctionImpl(ref);
     func->InitForNativeFunc(function);
     return func;
 }
 
-IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, IJsString^ name)
+IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, IJsString^ name)
 {
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
     JsValueRef ref;
-    CHAKRA_CALL(JsCreateNamedFunction(to_impl(name)->Reference, JsNativeFunctionImpl, nullptr, &ref));
+    CHAKRA_CALL(JsCreateNamedFunction(to_impl(name)->Reference.Ref, reinterpret_cast<::JsNativeFunction>(JsFunctionImpl::JsNativeFunctionImpl), nullptr, &ref));
     auto func = ref new JsFunctionImpl(ref);
     func->InitForNativeFunc(function);
     return func;
 }
 
-IJsFunction^ JsFunction::Create(JsFunctionImpl::JsFunctionDelegate^ function, string^ name)
+IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, string^ name)
 {
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
     JsValueRef ref;
-    CHAKRA_CALL(JsCreateNamedFunction(RawPointerToString(name), JsNativeFunctionImpl, nullptr, &ref));
+    CHAKRA_CALL(JsCreateNamedFunction(RawValue(name).Ref, reinterpret_cast<::JsNativeFunction>(JsFunctionImpl::JsNativeFunctionImpl), nullptr, &ref));
     auto func = ref new JsFunctionImpl(ref);
     func->InitForNativeFunc(function);
     return func;

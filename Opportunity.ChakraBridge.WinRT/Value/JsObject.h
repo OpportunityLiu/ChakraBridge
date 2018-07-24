@@ -1,4 +1,5 @@
 #pragma once
+#include "JsNull.h"
 #include "JsValue.h"
 #include "JsEnum.h"
 #include "JsSymbol.h"
@@ -11,13 +12,16 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <param name="obj">The object to be collected.</param>
     public delegate void JsObjectBeforeCollectCallback(IJsObject^ obj);
 
+    /// <summary>
+    /// A JavaScript object.
+    /// </summary>
     public interface class IJsObject : IJsValue, map<string, IJsValue>, map<IJsSymbol, IJsValue>
     {
         /// <summary>
         /// Gets or sets the prototype of an object, use <see langword="null"/> instead of <see cref="IJsNull"/>.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property IJsObject^ Proto;
+        DECL_RW_PROPERTY(IJsObject^, Proto);
 
         /// <summary>
         /// Sets an object to not be extensible.
@@ -29,45 +33,48 @@ namespace Opportunity::ChakraBridge::WinRT
         /// Gets a value indicating whether an object is extensible or not.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property bool IsExtensionAllowed { bool get(); };
+        DECL_R_PROPERTY(bool, IsExtensionAllowed);
 
         /// <summary>
         /// A callback function that is called by the runtime before garbage collection of the object. 
         /// </summary>
-        property JsObjectBeforeCollectCallback^ ObjectCollectingCallback;
+        DECL_RW_PROPERTY(JsObjectBeforeCollectCallback^, ObjectCollectingCallback);
     };
 
-    ref class JsObjectImpl : JsValueImpl, IJsObject
+    ref class JsObjectImpl : JsValueImpl, [Default] IJsObject
     {
-    internal:
-        using IStrMap = map<string^, IJsValue^>;
-        using ISymMap = map<IJsSymbol^, IJsValue^>;
-        using IStrMapView = map_view<string^, IJsValue^>;
-        using ISymMapView = map_view<IJsSymbol^, IJsValue^>;
-        using IStrKVP = kv_pair<string^, IJsValue^>;
-        using ISymKVP = kv_pair<IJsSymbol^, IJsValue^>;
-        using IStrIterator = iterator<IStrKVP^>;
-        using ISymIterator = iterator<ISymKVP^>;
-        using IStrIterable = iterable<IStrKVP^>;
-        using ISymIterable = iterable<ISymKVP^>;
+    protected private:
+        ~JsObjectImpl();
 
-        JsObjectImpl(JsValueRef ref);
+    internal:
+        using IStrMap = map<string, IJsValue>;
+        using ISymMap = map<IJsSymbol, IJsValue>;
+        using IStrMapView = map_view<string, IJsValue>;
+        using ISymMapView = map_view<IJsSymbol, IJsValue>;
+        using IStrKVP = kv_pair<string, IJsValue>;
+        using ISymKVP = kv_pair<IJsSymbol, IJsValue>;
+        using IStrIterator = iterator<IStrKVP>;
+        using ISymIterator = iterator<ISymKVP>;
+        using IStrIterable = iterable<IStrKVP>;
+        using ISymIterable = iterable<ISymKVP>;
+
+        using JsOBCC = ::Opportunity::ChakraBridge::WinRT::JsObjectBeforeCollectCallback;
+
+        JsObjectImpl(RawValue ref);
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
-        using JsOBCC = Opportunity::ChakraBridge::WinRT::JsObjectBeforeCollectCallback;
-        static std::unordered_map<JsValueRef, JsOBCC^> OBCCMap;
-        static void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsRef ref, _In_opt_ void *callbackState);
+        static std::unordered_map<RawValue, JsOBCC^> OBCCMap;
+        static void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ const RawValue ref, _In_opt_ void * const callbackState);
 
     public:
-        virtual ~JsObjectImpl();
         virtual Platform::String^ ToString() override;
 
-        virtual property IJsObject^ Proto { IJsObject^ get(); void set(IJsObject^ value); }
+        virtual DECL_RW_PROPERTY(IJsObject^, Proto);
         virtual void PreventExtension();
-        virtual property bool IsExtensionAllowed { bool get(); };
-        virtual property JsObjectBeforeCollectCallback^ ObjectCollectingCallback { JsObjectBeforeCollectCallback^ get(); void set(JsObjectBeforeCollectCallback^ value); }
+        virtual DECL_R_PROPERTY(bool, IsExtensionAllowed);
+        virtual DECL_RW_PROPERTY(JsOBCC^, ObjectCollectingCallback);
 
         virtual IJsValue^ Lookup(string^ key);
         virtual void Remove(string^ key);
@@ -135,20 +142,20 @@ namespace Opportunity::ChakraBridge::WinRT
         static bool DefineProperty(IJsObject^ obj, IJsSymbol^ propertyId, IJsObject^ descriptor);
 
         /// <summary>
-        /// Gets the list of all symbol properties on the object. 
-        /// </summary>
-        /// <param name="obj">The object to get the list on.</param>
-        /// <returns>An array of property symbols. </returns>
-        /// <remarks>Requires an active script context.</remarks>
-        static IJsArray^ GetOwnPropertySymbols(IJsObject^ obj);
-
-        /// <summary>
         /// Gets the list of all named properties on the object.
         /// </summary>
         /// <param name="obj">The object to get the list on.</param>
         /// <returns>An array of property names.</returns>
         /// <remarks>Requires an active script context.</remarks>
         static IJsArray^ GetOwnPropertyNames(IJsObject^ obj);
+
+        /// <summary>
+        /// Gets the list of all symbol properties on the object. 
+        /// </summary>
+        /// <param name="obj">The object to get the list on.</param>
+        /// <returns>An array of property symbols. </returns>
+        /// <remarks>Requires an active script context.</remarks>
+        static IJsArray^ GetOwnPropertySymbols(IJsObject^ obj);
 
         /// <summary>
         /// Gets a property descriptor for an object's own property.

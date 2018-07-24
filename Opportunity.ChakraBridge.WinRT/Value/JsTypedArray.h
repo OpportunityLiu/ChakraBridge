@@ -10,8 +10,6 @@ namespace Opportunity::ChakraBridge::WinRT
     /// </summary>
     public interface class IJsTypedArray : IJsObject
     {
-        using IBuffer = Windows::Storage::Streams::IBuffer;
-        using JsArrayType = Opportunity::ChakraBridge::WinRT::JsTypedArrayType;
         /// <summary>
         /// A <see cref="Windows::Storage::Streams::IBuffer"/> to access data of this <see cref="IJsTypedArray"/>.
         /// </summary>
@@ -38,16 +36,15 @@ namespace Opportunity::ChakraBridge::WinRT
         DECL_R_PROPERTY(uint32, ByteOffset);
     };
 
-    ref class JsTypedArrayImpl abstract : JsObjectImpl, IJsTypedArray
+    ref class JsTypedArrayImpl abstract : JsObjectImpl, [Default] IJsTypedArray
     {
     internal:
-        using JsArrayType = Opportunity::ChakraBridge::WinRT::JsTypedArrayType;
         uint8 * const BufferPtr;
-        const unsigned int BufferLen;
+        const uint32 BufferLen;
         const JsArrayType ArrType;
-        const unsigned int ElementSize;
+        const uint32 ElementSize;
 
-        JsTypedArrayImpl(JsValueRef ref, uint8* bufferPtr, unsigned int bufferLen, JsArrayType arrType, unsigned int elementSize);
+        JsTypedArrayImpl(RawValue ref, uint8*const bufferPtr, const uint32 bufferLen, const JsArrayType arrType, const uint32 elementSize);
 
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
@@ -57,7 +54,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -80,7 +77,7 @@ namespace Opportunity::ChakraBridge::WinRT
         property uint32 ArraySize { uint32 get(); }
         void BoundCheck(uint32 index);
     public:
-        virtual DECL_R_PROPERTY(IJsTypedArray::IBuffer^, Data);
+        virtual DECL_R_PROPERTY(IBuffer^, Data);
         virtual DECL_R_PROPERTY(IJsArrayBuffer^, Buffer);
         virtual DECL_R_PROPERTY(JsArrayType, ArrayType);
         virtual DECL_R_PROPERTY(uint32, BytesPerElement);
@@ -97,8 +94,7 @@ namespace Opportunity::ChakraBridge::WinRT
         JsTypedArray() {}
 
     internal:
-        using JsArrayType = Opportunity::ChakraBridge::WinRT::JsTypedArrayType;
-        static JsTypedArrayImpl^ CreateTyped(JsValueRef ref);
+        static JsTypedArrayImpl^ CreateTyped(RawValue ref);
 
     public:
         /// <summary>
@@ -163,12 +159,12 @@ namespace Opportunity::ChakraBridge::WinRT
 #pragma push_macro("interface")
 #undef interface
 
-    template<IJsTypedArray::JsArrayType EEle>
+    template<JsArrayType EEle>
     struct JsTypedArrayTempInfo {};
 
 #define __TYPED_ARRAY_INTERFACE_DECL(name, type) \
     public interface class IJs##name##Array :IJsTypedArray, vector<type>{}; \
-    template<>struct JsTypedArrayTempInfo<IJsTypedArray::JsArrayType::name>{using t_ele = type;using t_int = IJs##name##Array;}
+    template<>struct JsTypedArrayTempInfo<JsArrayType::name>{using t_ele = type;using t_int = IJs##name##Array;}
 
     /// <summary>A Javascript Int8Array.</summary>
     __TYPED_ARRAY_INTERFACE_DECL(Int8, uint8);
@@ -192,18 +188,18 @@ namespace Opportunity::ChakraBridge::WinRT
 #undef __TYPED_ARRAY_INTERFACE_DECL
 #pragma pop_macro("interface")
 
-    template<IJsTypedArray::JsArrayType EEle, typename TEle = typename JsTypedArrayTempInfo<EEle>::t_ele, typename TInterface = typename JsTypedArrayTempInfo<EEle>::t_int>
-    ref class JsTypedArrayTempImpl sealed : JsTypedArrayImpl, TInterface
+    template<JsArrayType EEle,
+        typename T = typename JsTypedArrayTempInfo<EEle>::t_ele,
+        typename TInterface = typename JsTypedArrayTempInfo<EEle>::t_int>
+    ref class JsTypedArrayTempImpl sealed : JsTypedArrayImpl, [Default] TInterface
     {
     internal:
-        using T = TEle;
-
-        JsTypedArrayTempImpl(JsValueRef ref, uint8* bufferPtr, unsigned int bufferLen, JsArrayType arrType, unsigned int elementSize)
-            :JsTypedArrayImpl(ref, bufferPtr, bufferLen, arrType, elementSize)
+        JsTypedArrayTempImpl(RawValue ref, uint8*const bufferPtr, const uint32 bufferLen, const JsArrayType arrType, const uint32 elementSize)
+            :JsTypedArrayImpl(std::move(ref), bufferPtr, bufferLen, arrType, elementSize)
         {
             if (arrType != EEle)
                 Throw(E_INVALIDARG, L"Wrong array type.");
-            if (elementSize != sizeof(TEle))
+            if (elementSize != sizeof(T))
                 Throw(E_INVALIDARG, L"Wrong element size.");
         }
 
@@ -215,7 +211,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -234,14 +230,15 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
-        INHERIT_INTERFACE_R_PROPERTY(Data, IJsTypedArray::IBuffer^, IJsTypedArray);
+        INHERIT_INTERFACE_R_PROPERTY(Data, IBuffer^, IJsTypedArray);
         INHERIT_INTERFACE_R_PROPERTY(Buffer, IJsArrayBuffer^, IJsTypedArray);
-        INHERIT_INTERFACE_R_PROPERTY(ArrayType, IJsTypedArray::JsArrayType, IJsTypedArray);
+        INHERIT_INTERFACE_R_PROPERTY(ArrayType, JsArrayType, IJsTypedArray);
         INHERIT_INTERFACE_R_PROPERTY(BytesPerElement, uint32, IJsTypedArray);
         INHERIT_INTERFACE_R_PROPERTY(ByteLength, uint32, IJsTypedArray);
         INHERIT_INTERFACE_R_PROPERTY(ByteOffset, uint32, IJsTypedArray);
 
         INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, ArraySize, uint32, vector<T>);
+
     public:
         virtual void Append(T value) { ThrowForFixedSize(); }
         virtual void ArrayClear() = vector<T>::Clear{ ThrowForFixedSize(); }

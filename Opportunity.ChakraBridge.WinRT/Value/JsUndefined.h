@@ -11,16 +11,16 @@ namespace Opportunity::ChakraBridge::WinRT
     {
     };
 
-    ref class JsUndefinedImpl sealed : JsValueImpl, IJsUndefined
+    ref class JsUndefinedImpl sealed : JsValueImpl, [Default] IJsUndefined
     {
     internal:
-        JsUndefinedImpl(JsValueRef ref);
+        JsUndefinedImpl(RawValue ref);
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
     public:
-        virtual string^ ToString() override { return "undefined"; }
+        virtual string^ ToString() override;
     };
 
     /// <summary>
@@ -32,12 +32,9 @@ namespace Opportunity::ChakraBridge::WinRT
         JsUndefined() {}
     public:
         /// <summary>
-        /// Gets the value of <see href="IJsUndefined"/> in the current script context.
+        /// Gets the value of <see langword="undefined"/> in the current script context.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        static property IJsUndefined^ Instance
-        {
-            IJsUndefined^ get();
-        }
+        static DECL_R_PROPERTY(IJsUndefined^, Instance);
     };
 }

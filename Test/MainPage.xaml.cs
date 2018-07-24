@@ -40,7 +40,7 @@ namespace Test
         /// 
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnNavigatedTo(NavigationEventArgs e)
+        protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
             try
@@ -49,25 +49,20 @@ namespace Test
                 using (var runtime = JsRuntime.Create())
                 {
                     var rt = JsRuntime.GetRuntimes().ToList();
-                    //runtime.AllocatingMemory += this.Runtime_MemoryEvent;
+                    runtime.AllocatingMemory += this.Runtime_MemoryEvent;
                     runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
-                    using (var c = runtime.CreateContext())
+                    using (runtime.CreateContext().Use(true))
                     {
-                        JsContext.Current = c;
                         try
                         {
-                            // create an ArrayBuffer with a size in bytes
-                            var buffer = JsArrayBuffer.Create(16);
-
-                            // Create a couple of views
-                            var view1 = (IJsUint8Array)JsTypedArray.Create(JsTypedArrayType.Uint8, buffer, 10);
-                            var view2 = (IJsUint32Array)JsTypedArray.Create(JsTypedArrayType.Uint32, buffer, 4, 3);
-                            view1[1] = 10;
-                            view2[1] = uint.MaxValue;
-                            var p = view1.IndexOf(10);
-                            var p2 = view1.IndexOf(255);
-                            var l2 = ((IList<uint>)view2).Count;
-                            var l1 = ((IList<byte>)view1).Count;
+                            var s1 = JsSymbol.For("234");
+                            var s2 = JsSymbol.For("234");
+                            var s3 = JsSymbol.Create("234");
+                            var al = JsObject.Create();
+                            al["length"] = JsNumber.Create(10);
+                            var a1 = JsArray.Create(1);
+                            var a2 = JsArray.Create(al);
+                            var a3 = JsArray.Create(new[] { a1, a2 });
                         }
                         catch (Exception)
                         {
@@ -123,7 +118,7 @@ new Promise(
             Debug.WriteLine("Charka GC");
         }
 
-        private void Runtime_MemoryEvent(JsRuntime sender, JsMemoryEventArgs args)
+        private void Runtime_MemoryEvent(JsRuntime sender, IJsAllocatingMemoryEventArgs args)
         {
             Debug.WriteLine($"{args.EventType} {args.AllocationSize} bytes");
             //args.IsRejected = true;

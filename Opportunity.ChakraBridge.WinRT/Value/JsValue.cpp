@@ -5,70 +5,62 @@
 using namespace Opportunity::ChakraBridge::WinRT;
 using namespace Opportunity::ChakraBridge;
 
-JsValueImpl::JsValueImpl(JsValueRef ref)
-    : Reference(ref)
+JsValueImpl::JsValueImpl(RawValue ref)
+    : Reference(std::move(ref))
 {
-    if (Reference == JS_INVALID_REFERENCE)
+    if (!Reference.IsValid())
         Throw(E_HANDLE, L"ref for JsValue is JS_INVALID_REFERENCE");
 }
 
 object^ JsValueImpl::ToInspectable()
 {
-    IInspectable* v;
-    CHAKRA_CALL(JsObjectToInspectable(Reference, &v));
-    return reinterpret_cast<object^>(v);
+    return reinterpret_cast<object^>(Reference.ToInspectable());
 }
 
 JsContext^ JsValueImpl::Context::get()
 {
-    JsContextRef ref;
-    CHAKRA_CALL(JsGetContextOfObject(Reference, &ref));
-    return JsContext::Get(ref);
+    return JsContext::Get(Reference.Context());
 }
 
 JsType JsValueImpl::Type::get()
 {
-    return RawGetValueType(Reference);
+    return Reference.Type();
 }
 
-JsValueImpl^ JsValue::CreateTyped(JsValueRef ref)
+JsValueImpl^ JsValue::CreateTyped(RawValue ref)
 {
-    if (ref == JS_INVALID_REFERENCE)
+    if (!ref.IsValid())
         return nullptr;
-    ::JsValueType type;
-    CHAKRA_CALL(JsGetValueType(ref, &type));
-    switch (type)
+    switch (ref.Type())
     {
-    case ::JsUndefined:
+    case JsType::Undefined:
         return ref new JsUndefinedImpl(ref);
-    case ::JsNull:
+    case JsType::Null:
         return ref new JsNullImpl(ref);
-    case ::JsNumber:
+    case JsType::Number:
         return ref new JsNumberImpl(ref);
-    case ::JsString:
+    case JsType::String:
         return ref new JsStringImpl(ref);
-    case ::JsBoolean:
+    case JsType::Boolean:
         return ref new JsBooleanImpl(ref);
-    case ::JsSymbol:
+    case JsType::Symbol:
         return ref new JsSymbolImpl(ref);
-    case ::JsObject:
-        bool hasExternalData;
-        CHAKRA_CALL(JsHasExternalData(ref, &hasExternalData));
-        if (hasExternalData)
+    case JsType::Object:
+        if (ref.ObjHasExternalData())
             return ref new JsExternalObjectImpl(ref);
         else
             return ref new JsObjectImpl(ref);
-    case ::JsFunction:
+    case JsType::Function:
         return ref new JsFunctionImpl(ref);
-    case ::JsError:
+    case JsType::Error:
         return ref new JsErrorImpl(ref);
-    case ::JsArray:
+    case JsType::Array:
         return ref new JsArrayImpl(ref);
-    case ::JsArrayBuffer:
+    case JsType::ArrayBuffer:
         return ref new JsArrayBufferImpl(ref);
-    case ::JsDataView:
+    case JsType::DataView:
         return ref new JsDataViewImpl(ref);
-    case ::JsTypedArray:
+    case JsType::TypedArray:
         return JsTypedArray::CreateTyped(ref);
     }
     return ref new JsObjectImpl(ref);
@@ -90,7 +82,7 @@ bool JsValue::Equals(IJsValue^ v1, IJsValue^ v2)
     if (v2 == nullptr)
         return false;
     bool r;
-    CHAKRA_CALL(JsEquals(to_impl(v1)->Reference, to_impl(v2)->Reference, &r));
+    CHAKRA_CALL(JsEquals(to_impl(v1)->Reference.Ref, to_impl(v2)->Reference.Ref, &r));
     return r;
 }
 
@@ -101,16 +93,14 @@ bool JsValue::StrictEquals(IJsValue^ v1, IJsValue^ v2)
     if (v2 == nullptr)
         return false;
     bool r;
-    CHAKRA_CALL(JsStrictEquals(to_impl(v1)->Reference, to_impl(v2)->Reference, &r));
+    CHAKRA_CALL(JsStrictEquals(to_impl(v1)->Reference.Ref, to_impl(v2)->Reference.Ref, &r));
     return r;
 }
 
 IJsValue^ JsValue::Create(object^ inspectable)
 {
     NULL_CHECK(inspectable);
-    JsValueRef v;
-    CHAKRA_CALL(JsInspectableToObject(reinterpret_cast<IInspectable*>(inspectable), &v));
-    return CreateTyped(v);
+    return CreateTyped(RawValue(reinterpret_cast<IInspectable*>(inspectable)));
 }
 
 IJsBoolean^ JsValue::ToJsBoolean(IJsValue^ value)
@@ -119,9 +109,7 @@ IJsBoolean^ JsValue::ToJsBoolean(IJsValue^ value)
     auto cv = dynamic_cast<IJsBoolean^>(value);
     if (cv != nullptr)
         return cv;
-    JsValueRef ref;
-    CHAKRA_CALL(JsConvertValueToBoolean(to_impl(value)->Reference, &ref));
-    return ref new JsBooleanImpl(ref);
+    return ref new JsBooleanImpl(to_impl(value)->Reference.ToJsBoolean());
 }
 
 IJsNumber^ JsValue::ToJsNumber(IJsValue^ value)
@@ -130,9 +118,7 @@ IJsNumber^ JsValue::ToJsNumber(IJsValue^ value)
     auto cv = dynamic_cast<IJsNumber^>(value);
     if (cv != nullptr)
         return cv;
-    JsValueRef ref;
-    CHAKRA_CALL(JsConvertValueToNumber(to_impl(value)->Reference, &ref));
-    return ref new JsNumberImpl(ref);
+    return ref new JsNumberImpl(to_impl(value)->Reference.ToJsNumber());
 }
 
 IJsString^ JsValue::ToJsString(IJsValue^ value)
@@ -141,9 +127,7 @@ IJsString^ JsValue::ToJsString(IJsValue^ value)
     auto cv = dynamic_cast<IJsString^>(value);
     if (cv != nullptr)
         return cv;
-    JsValueRef ref;
-    CHAKRA_CALL(JsConvertValueToString(to_impl(value)->Reference, &ref));
-    return ref new JsStringImpl(ref);
+    return ref new JsStringImpl(to_impl(value)->Reference.ToJsString());
 }
 
 IJsObject^ JsValue::ToJsObject(IJsValue^ value)
@@ -152,12 +136,10 @@ IJsObject^ JsValue::ToJsObject(IJsValue^ value)
     auto cv = dynamic_cast<IJsObject^>(value);
     if (cv != nullptr)
         return cv;
-    JsValueRef ref;
-    CHAKRA_CALL(JsConvertValueToObject(to_impl(value)->Reference, &ref));
-    return safe_cast<IJsObject^>(CreateTyped(ref));
+    return safe_cast<IJsObject^>(CreateTyped(to_impl(value)->Reference.ToJsObjet()));
 }
 
 IJsObject^ JsValue::GlobalObject::get()
 {
-    return ref new JsObjectImpl(RawGlobalObject());
+    return ref new JsObjectImpl(RawValue::GlobalObject());
 }

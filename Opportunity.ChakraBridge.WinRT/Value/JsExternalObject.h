@@ -14,13 +14,13 @@ namespace Opportunity::ChakraBridge::WinRT
         /// Gets or sets the data in an external object.
         /// </summary>
         /// <remarks>Requires an active script context.</remarks>
-        property object^ ExternalData;
+        DECL_RW_PROPERTY(object^, ExternalData);
     };
 
-    ref class JsExternalObjectImpl sealed : JsObjectImpl, IJsExternalObject
+    ref class JsExternalObjectImpl sealed : JsObjectImpl, [Default] IJsExternalObject
     {
     internal:
-        JsExternalObjectImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsExternalObjectImpl(RawValue ref) :JsObjectImpl(std::move(ref)) {}
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -29,7 +29,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -51,7 +51,7 @@ namespace Opportunity::ChakraBridge::WinRT
         static void CALLBACK JsFinalizeCallbackImpl(_In_opt_ void *data);
 
     public:
-        virtual property object^ ExternalData { object^ get(); void set(object^ value); }
+        virtual DECL_RW_PROPERTY(object^, ExternalData);
     };
 
     /// <summary>

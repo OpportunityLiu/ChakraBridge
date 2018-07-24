@@ -4,20 +4,23 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+    /// <summary>
+    /// A JavaScript <see langword="null"/> value.
+    /// </summary>
     public interface class IJsNull : IJsValue
     {
     };
 
-    ref class JsNullImpl sealed : JsValueImpl, IJsNull
+    ref class JsNullImpl sealed : JsValueImpl, [Default] IJsNull
     {
     internal:
-        JsNullImpl(JsValueRef ref);
+        JsNullImpl(RawValue ref);
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
     public:
-        virtual Platform::String^ ToString() override { return "null"; }
+        virtual string^ ToString() override;
     };
 
     /// <summary>
@@ -28,9 +31,10 @@ namespace Opportunity::ChakraBridge::WinRT
     private:
         JsNull() {}
     public:
-        static property IJsNull^ Instance
-        {
-            IJsNull^ get();
-        }
+        /// <summary>
+        /// Gets the value of <see langword="null"/> in the current script context.
+        /// </summary>
+        /// <remarks>Requires an active script context.</remarks>
+        static DECL_R_PROPERTY(IJsNull^, Instance);
     };
 }

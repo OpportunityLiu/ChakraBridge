@@ -1,13 +1,17 @@
 #pragma once
 #include <type_traits>
+#include "JsEnum.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    using OverloadAttribute = Windows::Foundation::Metadata::OverloadAttribute;
-    using DefaultOverloadAttribute = Windows::Foundation::Metadata::DefaultOverloadAttribute;
-    using DefaultAttribute = Windows::Foundation::Metadata::DefaultAttribute;
+    using OverloadAttribute = ::Windows::Foundation::Metadata::OverloadAttribute;
+    using DefaultOverloadAttribute = ::Windows::Foundation::Metadata::DefaultOverloadAttribute;
+    using DefaultAttribute = ::Windows::Foundation::Metadata::DefaultAttribute;
 
-    using JsType = Opportunity::ChakraBridge::WinRT::JsValueType;
+    using IBuffer = ::Windows::Storage::Streams::IBuffer;
+
+    using JsType = ::Opportunity::ChakraBridge::WinRT::JsValueType;
+    using JsArrayType = Opportunity::ChakraBridge::WinRT::JsTypedArrayType;
 
     template<typename T>
     using remove_hat_t = typename ::Platform::Details::__remove_hat<T>::type;
@@ -34,28 +38,31 @@ namespace Opportunity::ChakraBridge::WinRT
     using add_hat_t = typename __add_hat_if_winrt<T>::type;
 
     template<typename T>
-    struct __winrt_collections
+    struct __winrt_generic_alias
     {
-        using element_t = add_hat_t<T>;
-        using vector = ::Windows::Foundation::Collections::IVector<element_t>;
-        using vector_view = ::Windows::Foundation::Collections::IVectorView<element_t>;
-        using iterable = ::Windows::Foundation::Collections::IIterable<element_t>;
-        using iterator = ::Windows::Foundation::Collections::IIterator<element_t>;
+        using t_t = add_hat_t<T>;
+        using vector = ::Windows::Foundation::Collections::IVector<t_t>;
+        using vector_view = ::Windows::Foundation::Collections::IVectorView<t_t>;
+        using iterable = ::Windows::Foundation::Collections::IIterable<t_t>;
+        using iterator = ::Windows::Foundation::Collections::IIterator<t_t>;
+        using event_handler = ::Windows::Foundation::EventHandler<t_t>;
     };
-    template<typename K, typename V>
-    struct __winrt_collections_2
+    template<typename T1, typename T2>
+    struct __winrt_generic_alias_2
     {
-        using k_t = add_hat_t<K>;
-        using v_t = add_hat_t<V>;
-        using map = ::Windows::Foundation::Collections::IMap<k_t, v_t>;
-        using map_view = ::Windows::Foundation::Collections::IMapView<k_t, v_t>;
-        using kv_pair = ::Windows::Foundation::Collections::IKeyValuePair<k_t, v_t>;
+        using t1_t = add_hat_t<T1>;
+        using t2_t = add_hat_t<T2>;
+        using map = ::Windows::Foundation::Collections::IMap<t1_t, t2_t>;
+        using map_view = ::Windows::Foundation::Collections::IMapView<t1_t, t2_t>;
+        using kv_pair = ::Windows::Foundation::Collections::IKeyValuePair<t1_t, t2_t>;
+        using typed_event_handler = ::Windows::Foundation::TypedEventHandler<t1_t, t2_t>;
     };
 
     using weak_ref = typename ::Platform::WeakReference;
 
     using object = ::Platform::Object;
     using string = ::Platform::String;
+    using string_ref = ::Platform::StringReference;
 
     template<typename T>
     using array = typename ::Platform::Array<add_hat_t<T>>;
@@ -63,19 +70,25 @@ namespace Opportunity::ChakraBridge::WinRT
     using write_only_array = typename ::Platform::WriteOnlyArray<add_hat_t<T>>;
 
     template<typename T>
-    using vector = typename __winrt_collections<T>::vector;
+    using vector = typename __winrt_generic_alias<T>::vector;
     template<typename T>
-    using vector_view = typename __winrt_collections<T>::vector_view;
+    using vector_view = typename __winrt_generic_alias<T>::vector_view;
     template<typename T>
-    using iterable = typename __winrt_collections<T>::iterable;
+    using iterable = typename __winrt_generic_alias<T>::iterable;
     template<typename T>
-    using iterator = typename __winrt_collections<T>::iterator;
+    using iterator = typename __winrt_generic_alias<T>::iterator;
     template<typename K, typename V>
-    using map = typename __winrt_collections_2<K, V>::map;
+    using map = typename __winrt_generic_alias_2<K, V>::map;
     template<typename K, typename V>
-    using map_view = typename __winrt_collections_2<K, V>::map_view;
+    using map_view = typename __winrt_generic_alias_2<K, V>::map_view;
     template<typename K, typename V>
-    using kv_pair = typename __winrt_collections_2<K, V>::kv_pair;
+    using kv_pair = typename __winrt_generic_alias_2<K, V>::kv_pair;
+
+    template<typename T>
+    using event_handler = typename __winrt_generic_alias<T>::event_handler;
+
+    template<typename TSender, typename TArgs>
+    using typed_event_handler = typename __winrt_generic_alias_2<TSender, TArgs>::typed_event_handler;
 
     [[noreturn]] inline void Throw(int hresult, string^ message)
     {
@@ -88,17 +101,17 @@ do{\
     if constexpr (std::is_same_v<decltype(prop), ::Platform::String^>)\
     {\
         if ((prop) == nullptr)\
-            Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null or empty.");\
+            ::Opportunity::ChakraBridge::WinRT::Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null or empty.");\
     }\
     else\
     {\
         if ((prop) == nullptr)\
-            Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.");\
+            ::Opportunity::ChakraBridge::WinRT::Throw(E_POINTER, _CRT_WIDE(_CRT_STRINGIZE(prop)) L" is null.");\
     }\
 }while (false)
 
 #define DECL_R_PROPERTY(propType, propName) property propType propName { propType get(); }
-#define DECL_RW_PROPERTY(propType, propName) property propType propName { propType get(); void set(propType); }
+#define DECL_RW_PROPERTY(propType, propName) property propType propName { propType get(); void set(propType value); }
 
 #define PP_CAT(a, b) PP_CAT_I(a, b)
 #define PP_CAT_I(a, b) PP_CAT_II(~, a ## b)

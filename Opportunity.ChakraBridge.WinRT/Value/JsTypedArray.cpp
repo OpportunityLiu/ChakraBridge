@@ -4,17 +4,17 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsTypedArrayImpl::JsTypedArrayImpl(JsValueRef ref, uint8* bufferPtr, unsigned int bufferLen, JsArrayType arrType, unsigned int elementSize)
-    : JsObjectImpl(ref), BufferPtr(bufferPtr), BufferLen(bufferLen), ArrType(arrType), ElementSize(elementSize) {}
+JsTypedArrayImpl::JsTypedArrayImpl(RawValue ref, uint8*const bufferPtr, const uint32 bufferLen, const JsArrayType arrType, const uint32 elementSize)
+    : JsObjectImpl(std::move(ref)), BufferPtr(bufferPtr), BufferLen(bufferLen), ArrType(arrType), ElementSize(elementSize) {}
 
 IJsArrayBuffer^ JsTypedArrayImpl::Buffer::get()
 {
     JsValueRef buf;
-    CHAKRA_CALL(JsGetTypedArrayInfo(Reference, nullptr, &buf, nullptr, nullptr));
+    CHAKRA_CALL(JsGetTypedArrayInfo(Reference.Ref, nullptr, &buf, nullptr, nullptr));
     return safe_cast<IJsArrayBuffer^>(JsValue::CreateTyped(buf));
 }
 
-IJsTypedArray::IBuffer^ JsTypedArrayImpl::Data::get()
+IBuffer^ JsTypedArrayImpl::Data::get()
 {
     return CreateNativeBuffer(this);
 }
@@ -27,11 +27,11 @@ uint32 JsTypedArrayImpl::ByteLength::get()
 uint32 JsTypedArrayImpl::ByteOffset::get()
 {
     uint32 offset;
-    CHAKRA_CALL(JsGetTypedArrayInfo(Reference, nullptr, nullptr, &offset, nullptr));
+    CHAKRA_CALL(JsGetTypedArrayInfo(Reference.Ref, nullptr, nullptr, &offset, nullptr));
     return offset;
 }
 
-JsTypedArrayImpl::JsArrayType JsTypedArrayImpl::ArrayType::get()
+JsArrayType JsTypedArrayImpl::ArrayType::get()
 {
     return ArrType;
 }
@@ -57,14 +57,14 @@ void JsTypedArrayImpl::BoundCheck(uint32 index)
         Throw(E_INVALIDARG, L"index is larger than the size of the typed array.");
 }
 
-JsTypedArrayImpl^ JsTypedArray::CreateTyped(JsValueRef ref)
+JsTypedArrayImpl^ JsTypedArray::CreateTyped(RawValue ref)
 {
     using AT = JsArrayType;
     uint8* bufferPtr;
     unsigned int bufferLen;
     AT arrType;
     int elementSize;
-    CHAKRA_CALL(JsGetTypedArrayStorage(ref, &bufferPtr, &bufferLen, reinterpret_cast<::JsTypedArrayType*>(&arrType), &elementSize));
+    CHAKRA_CALL(JsGetTypedArrayStorage(ref.Ref, &bufferPtr, &bufferLen, reinterpret_cast<::JsTypedArrayType*>(&arrType), &elementSize));
 #define CASE(name) \
     case AT::name: return ref new JsTypedArrayTempImpl<AT::name>(ref, bufferPtr, bufferLen, arrType, static_cast<unsigned int>(elementSize))
 
@@ -84,9 +84,9 @@ JsTypedArrayImpl^ JsTypedArray::CreateTyped(JsValueRef ref)
     Throw(E_NOTIMPL, L"Unknown array type.");
 }
 
-uint32 GetSize(JsTypedArray::JsArrayType arrType)
+uint32 GetSize(JsArrayType arrType)
 {
-    using AT = JsTypedArray::JsArrayType;
+    using AT = JsArrayType;
 
 #define CASE(name) case AT::name: return sizeof(typename JsTypedArrayTempInfo<AT::name>::t_ele)
     switch (arrType)
@@ -105,27 +105,20 @@ uint32 GetSize(JsTypedArray::JsArrayType arrType)
     Throw(E_NOTIMPL, L"Unknown array type.");
 }
 
-JsValueRef RawCreateTyped(JsTypedArray::JsArrayType type, JsValueRef base, uint32 byteOffset, uint32 elementLength)
-{
-    JsValueRef r;
-    CHAKRA_CALL(JsCreateTypedArray(static_cast<::JsTypedArrayType>(type), base, byteOffset, elementLength, &r));
-    return r;
-}
-
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType)
 {
-    return CreateTyped(RawCreateTyped(arrayType, JS_INVALID_REFERENCE, 0, 0));
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, RawValue::Invalid(), 0, 0));
 }
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, uint32 length)
 {
-    return CreateTyped(RawCreateTyped(arrayType, JS_INVALID_REFERENCE, 0, length));
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, RawValue::Invalid(), 0, length));
 }
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsValue^ arrayLike)
 {
     NULL_CHECK(arrayLike);
-    return CreateTyped(RawCreateTyped(arrayType, to_impl(arrayLike)->Reference, 0, 0));
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, to_impl(arrayLike)->Reference, 0, 0));
 }
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsArrayBuffer^ buffer)
@@ -142,5 +135,5 @@ IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsArrayBuffer^ buffe
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsArrayBuffer^ buffer, uint32 byteOffset, uint32 length)
 {
     NULL_CHECK(buffer);
-    return CreateTyped(RawCreateTyped(arrayType, to_impl(buffer)->Reference, byteOffset, length));
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, to_impl(buffer)->Reference, byteOffset, length));
 }

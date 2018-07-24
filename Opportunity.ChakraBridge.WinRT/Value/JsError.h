@@ -13,23 +13,23 @@ namespace Opportunity::ChakraBridge::WinRT
         /// <summary>
         /// <c>message</c> property of Error.
         /// </summary>
-        property Platform::String^ Message;
+        DECL_RW_PROPERTY(string^, Message);
 
         /// <summary>
         /// <c>name</c> property of Error.
         /// </summary>
-        property Platform::String^ Name;
+        DECL_RW_PROPERTY(string^, Name);
 
         /// <summary>
         /// <c>stack</c> property of Error.
         /// </summary>
-        property Platform::String^ Stack;
+        DECL_RW_PROPERTY(string^, Stack);
     };
 
-    ref class JsErrorImpl sealed : JsObjectImpl, IJsError
+    ref class JsErrorImpl sealed : JsObjectImpl, [Default] IJsError
     {
     internal:
-        JsErrorImpl(JsValueRef ref) :JsObjectImpl(ref) {}
+        JsErrorImpl(RawValue ref) :JsObjectImpl(std::move(ref)) {}
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -38,7 +38,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
-        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsObjectBeforeCollectCallback^, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -58,9 +58,9 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
     public:
-        virtual property string^ Message { string^ get(); void set(string^ value); };
-        virtual property string^ Name { string^ get(); void set(string^ value); }
-        virtual property string^ Stack { string^ get(); void set(string^ value); }
+        virtual DECL_RW_PROPERTY(string^, Message)
+        virtual DECL_RW_PROPERTY(string^, Name);
+        virtual DECL_RW_PROPERTY(string^, Stack);
     };
 
     /// <summary>

@@ -3,10 +3,12 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsContext::JsContext(JsContextRef ref)
-    :Reference(ref)
+JsContext::JsContext(const RawContext ref)
+    :Reference(std::move(ref))
 {
-    CHAKRA_CALL(JsAddRef(ref, nullptr));
+    if(!Reference.IsValid())
+        Throw(E_HANDLE, L"ref for JsContext is JS_INVALID_REFERENCE");
+    Reference.AddRef();
 }
 
 /// <summary>
@@ -14,21 +16,18 @@ JsContext::JsContext(JsContextRef ref)
 /// </summary>
 JsContext::~JsContext()
 {
-    if (this->Reference == JS_INVALID_REFERENCE)
+    if (!Reference.IsValid())
+        // has been set to invalid by JsRuntime::~JsRuntime
         return;
-    JsContextRef ct;
-    CHAKRA_CALL(JsGetCurrentContext(&ct));
-    if (this->Reference == ct)
-        Throw(E_ILLEGAL_METHOD_CALL, L"Can not dispose JsContexts in using.");
-    this->Runtime->Contexts.erase(this->Reference);
-    CHAKRA_CALL(JsRelease(this->Reference, nullptr));
-    this->Reference = JS_INVALID_REFERENCE;
+    if (RawContext::Current() == Reference)
+        RawContext::Current(RawContext::Invalid());
+    this->Runtime->Contexts.erase(Reference);
+    Reference.Release();
 }
 
 JsRuntime^ JsContext::Runtime::get()
 {
-    JsRuntimeHandle rth;
-    CHAKRA_CALL(JsGetRuntime(this->Reference, &rth));
+    const auto rth = Reference.Runtime();
     return JsRuntime::RuntimeDictionary[rth];
 }
 
