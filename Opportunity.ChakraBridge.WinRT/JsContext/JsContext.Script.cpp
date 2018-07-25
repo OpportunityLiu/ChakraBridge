@@ -22,7 +22,7 @@ void JsContext::HandlePromiseContinuation()
     {
         auto task = current->PromiseContinuationQueue.front();
         current->PromiseContinuationQueue.pop();
-        task.Invoke(global);
+        void(task.Invoke(global));
         task.Release();
     }
 }

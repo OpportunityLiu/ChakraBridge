@@ -24,7 +24,8 @@ IJsValue^ JsObjectImpl::Lookup(string^ key)
 
 IJsValue^ JsObjectImpl::Lookup(IJsSymbol^ key)
 {
-    return JsValue::CreateTyped(Reference[to_impl(key)->Reference]);
+    NULL_CHECK(key);
+    return JsValue::CreateTyped(Reference[get_ref(key)]);
 }
 
 bool JsObjectImpl::HasKey(string^ key)
@@ -35,37 +36,35 @@ bool JsObjectImpl::HasKey(string^ key)
 bool JsObjectImpl::HasKey(IJsSymbol^ key)
 {
     NULL_CHECK(key);
-    return Reference[to_impl(key)->Reference].Exist();
+    return Reference[get_ref(key)].Exist();
 }
 
 bool JsObjectImpl::Insert(string^ key, IJsValue^ value)
 {
     const auto prop = Reference[key->Data()];
     bool r = prop.Exist();
-    auto vref = value != nullptr ? to_impl(value)->Reference : RawValue::Undefined();
-    prop = vref;
+    prop = get_ref_or_undefined(value);
     return r;
 }
 
 bool JsObjectImpl::Insert(IJsSymbol^ key, IJsValue^ value)
 {
     NULL_CHECK(key);
-    const auto prop = Reference[to_impl(key)->Reference];
+    const auto prop = Reference[get_ref(key)];
     bool r = prop.Exist();
-    auto vref = value != nullptr ? to_impl(value)->Reference : RawValue::Undefined();
-    prop = vref;
+    prop = get_ref_or_undefined(value);
     return r;
 }
 
 void JsObjectImpl::Remove(string^ key)
 {
-    Reference[key->Data()].Delete();
+    void(Reference[key->Data()].Delete());
 }
 
 void JsObjectImpl::Remove(IJsSymbol^ key)
 {
     NULL_CHECK(key);
-    Reference[to_impl(key)->Reference].Delete();
+    Reference[get_ref(key)].Delete();
 }
 
 void JsObjectImpl::StrClear()
@@ -210,56 +209,94 @@ IJsObject^ JsObject::Create()
     return ref new JsObjectImpl(RawValue::CreateObject());
 }
 
+IJsObject^ JsObject::Create(map_view<string, IJsValue>^ properties)
+{
+    auto obj = Create();
+    if (properties == nullptr)
+        return obj;
+    const auto ref = get_ref(obj);
+    const auto udf = RawValue::Undefined();
+    for (const auto var : properties)
+    {
+        const auto value = var->Value;
+        if (value == nullptr)
+            ref[var->Key->Data()] = udf;
+        else
+            ref[var->Key->Data()] = get_ref(value);
+    }
+    return obj;
+}
+
+IJsObject^ JsObject::Create(map_view<IJsValue, IJsValue>^ properties)
+{
+    auto obj = Create();
+    if (properties == nullptr)
+        return obj;
+    const auto ref = get_ref(obj);
+    const auto udf = RawValue::Undefined();
+    for (const auto var : properties)
+    {
+        const auto key = var->Key;
+        const auto keyref = get_ref_or_null(key);
+        const auto value = var->Value;
+        if (value == nullptr)
+            ref[keyref] = udf;
+        else
+            ref[keyref] = get_ref(value);
+    }
+    return obj;
+}
+
 bool JsObject::InstanceOf(IJsObject^ obj, IJsFunction^ constructor)
 {
     NULL_CHECK(obj);
     NULL_CHECK(constructor);
-    return to_impl(obj)->Reference.ObjInstanceOf(to_impl(obj)->Reference);
+    return get_ref(obj).ObjInstanceOf(get_ref(constructor));
 }
 
 bool InnerDefineProperty(IJsObject^ obj, RawPropertyId propertyId, IJsObject^ descriptor)
 {
     NULL_CHECK(obj);
     NULL_CHECK(descriptor);
-    return to_impl(obj)->Reference[propertyId].Define(to_impl(descriptor)->Reference);
+    return get_ref(obj)[propertyId].Define(get_ref(descriptor));
 }
 
 bool JsObject::DefineProperty(IJsObject^ obj, string^ propertyId, IJsObject^ descriptor)
 {
-    return InnerDefineProperty(obj, propertyId->Data(), descriptor);
+    return InnerDefineProperty(obj, RawPropertyId(propertyId->Data()), descriptor);
 }
 
 bool JsObject::DefineProperty(IJsObject^ obj, IJsSymbol^ propertyId, IJsObject^ descriptor)
 {
     NULL_CHECK(propertyId);
-    return InnerDefineProperty(obj, to_impl(propertyId)->Reference, descriptor);
+    return InnerDefineProperty(obj, RawPropertyId(get_ref(propertyId)), descriptor);
 }
 
 IJsArray^ JsObject::GetOwnPropertyNames(IJsObject^ obj)
 {
     NULL_CHECK(obj);
-    return ref new JsArrayImpl(to_impl(obj)->Reference.ObjGetOwnPropertyNames());
+    return ref new JsArrayImpl(get_ref(obj).ObjGetOwnPropertyNames());
 }
 
 IJsArray^ JsObject::GetOwnPropertySymbols(IJsObject^ obj)
 {
     NULL_CHECK(obj);
-    return ref new JsArrayImpl(to_impl(obj)->Reference.ObjGetOwnPropertySymbols());
+    return ref new JsArrayImpl(get_ref(obj).ObjGetOwnPropertySymbols());
 }
 
 IJsObject^ InnerGetOwnPropertyDescriptor(IJsObject^ obj, RawPropertyId propertyId)
 {
     NULL_CHECK(obj);
-    return safe_cast<IJsObject^>(JsValue::CreateTyped(to_impl(obj)->Reference[propertyId].Descriptor()));
+    return safe_cast<IJsObject^>(JsValue::CreateTyped(get_ref(obj)[propertyId].Descriptor()));
 }
 
 IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, string^ propertyId)
 {
-    return InnerGetOwnPropertyDescriptor(obj, propertyId->Data());
+    return InnerGetOwnPropertyDescriptor(obj, propertyId);
 }
 
 IJsObject^ JsObject::GetOwnPropertyDescriptor(IJsObject^ obj, IJsSymbol^ propertyId)
 {
     NULL_CHECK(propertyId);
-    return InnerGetOwnPropertyDescriptor(obj, to_impl(propertyId)->Reference);
+    return InnerGetOwnPropertyDescriptor(obj, get_ref(propertyId));
 }

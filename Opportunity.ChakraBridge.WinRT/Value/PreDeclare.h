@@ -35,19 +35,19 @@ namespace Opportunity::ChakraBridge::WinRT
     ref class JsTypedArrayImpl;
     ref class JsDataViewImpl;
 
-    inline JsValueImpl^ to_impl(IJsValue^ inter) { return safe_cast<JsValueImpl^>(inter); }
-    inline JsUndefinedImpl^ to_impl(IJsUndefined^ inter) { return safe_cast<JsUndefinedImpl^>(inter); }
-    inline JsNullImpl^ to_impl(IJsNull^ inter) { return safe_cast<JsNullImpl^>(inter); }
-    inline JsNumberImpl^ to_impl(IJsNumber^ inter) { return safe_cast<JsNumberImpl^>(inter); }
-    inline JsStringImpl^ to_impl(IJsString^ inter) { return safe_cast<JsStringImpl^>(inter); }
-    inline JsBooleanImpl^ to_impl(IJsBoolean^ inter) { return safe_cast<JsBooleanImpl^>(inter); }
-    inline JsObjectImpl^ to_impl(IJsObject^ inter) { return safe_cast<JsObjectImpl^>(inter); }
-    inline JsExternalObjectImpl^ to_impl(IJsExternalObject^ inter) { return safe_cast<JsExternalObjectImpl^>(inter); }
-    inline JsFunctionImpl^ to_impl(IJsFunction^ inter) { return safe_cast<JsFunctionImpl^>(inter); }
-    inline JsErrorImpl^ to_impl(IJsError^ inter) { return safe_cast<JsErrorImpl^>(inter); }
-    inline JsArrayImpl^ to_impl(IJsArray^ inter) { return safe_cast<JsArrayImpl^>(inter); }
-    inline JsSymbolImpl^ to_impl(IJsSymbol^ inter) { return safe_cast<JsSymbolImpl^>(inter); }
-    inline JsArrayBufferImpl^ to_impl(IJsArrayBuffer^ inter) { return safe_cast<JsArrayBufferImpl^>(inter); }
-    inline JsTypedArrayImpl^ to_impl(IJsTypedArray^ inter) { return safe_cast<JsTypedArrayImpl^>(inter); }
-    inline JsDataViewImpl^ to_impl(IJsDataView^ inter) { return safe_cast<JsDataViewImpl^>(inter); }
+    [[nodiscard]]inline JsValueImpl^ to_impl(IJsValue^ inter) { return safe_cast<JsValueImpl^>(inter); }
+    [[nodiscard]]inline JsUndefinedImpl^ to_impl(IJsUndefined^ inter) { return safe_cast<JsUndefinedImpl^>(inter); }
+    [[nodiscard]]inline JsNullImpl^ to_impl(IJsNull^ inter) { return safe_cast<JsNullImpl^>(inter); }
+    [[nodiscard]]inline JsNumberImpl^ to_impl(IJsNumber^ inter) { return safe_cast<JsNumberImpl^>(inter); }
+    [[nodiscard]]inline JsStringImpl^ to_impl(IJsString^ inter) { return safe_cast<JsStringImpl^>(inter); }
+    [[nodiscard]]inline JsBooleanImpl^ to_impl(IJsBoolean^ inter) { return safe_cast<JsBooleanImpl^>(inter); }
+    [[nodiscard]]inline JsObjectImpl^ to_impl(IJsObject^ inter) { return safe_cast<JsObjectImpl^>(inter); }
+    [[nodiscard]]inline JsExternalObjectImpl^ to_impl(IJsExternalObject^ inter) { return safe_cast<JsExternalObjectImpl^>(inter); }
+    [[nodiscard]]inline JsFunctionImpl^ to_impl(IJsFunction^ inter) { return safe_cast<JsFunctionImpl^>(inter); }
+    [[nodiscard]]inline JsErrorImpl^ to_impl(IJsError^ inter) { return safe_cast<JsErrorImpl^>(inter); }
+    [[nodiscard]]inline JsArrayImpl^ to_impl(IJsArray^ inter) { return safe_cast<JsArrayImpl^>(inter); }
+    [[nodiscard]]inline JsSymbolImpl^ to_impl(IJsSymbol^ inter) { return safe_cast<JsSymbolImpl^>(inter); }
+    [[nodiscard]]inline JsArrayBufferImpl^ to_impl(IJsArrayBuffer^ inter) { return safe_cast<JsArrayBufferImpl^>(inter); }
+    [[nodiscard]]inline JsTypedArrayImpl^ to_impl(IJsTypedArray^ inter) { return safe_cast<JsTypedArrayImpl^>(inter); }
+    [[nodiscard]]inline JsDataViewImpl^ to_impl(IJsDataView^ inter) { return safe_cast<JsDataViewImpl^>(inter); }
 };

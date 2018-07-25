@@ -17,7 +17,7 @@ string^ JsErrorImpl::Message::get()
 
 void JsErrorImpl::Message::set(string^ value)
 {
-    Reference[L"message"] = RawValue(value);
+    Reference[L"message"] = RawValue(value->Data(), value->Length());
 }
 
 string^ JsErrorImpl::Name::get()
@@ -34,7 +34,7 @@ string^ JsErrorImpl::Name::get()
 
 void JsErrorImpl::Name::set(string^ value)
 {
-    Reference[L"name"] = RawValue(value);
+    Reference[L"name"] = RawValue(value->Data(), value->Length());
 }
 
 string^ JsErrorImpl::Stack::get()
@@ -51,20 +51,19 @@ string^ JsErrorImpl::Stack::get()
 
 void JsErrorImpl::Stack::set(string^ value)
 {
-    Reference[L"stack"] = RawValue(value);
+    Reference[L"stack"] = RawValue(value->Data(), value->Length());
 }
 
 #define CREATE_ERROR_WITH_JSSTRING(methodName)                                                    \
 IJsError^ JsError::methodName(IJsString^ message)                                                 \
 {                                                                                                 \
-    const auto ref = message == nullptr ? RawValue::Undefined() : to_impl(message)->Reference;    \
-    return ref new JsErrorImpl(RawValue::methodName(ref));                                        \
+    return ref new JsErrorImpl(RawValue::methodName(get_ref_or_undefined(message)));              \
 }
 
 #define CREATE_ERROR_WITH_STRING(methodName)                                                       \
 IJsError^ JsError::methodName(string^ message)                                                     \
 {                                                                                                  \
-    return ref new JsErrorImpl(RawValue::methodName(RawValue(message)));                           \
+    return ref new JsErrorImpl(RawValue::methodName(RawValue(message->Data(), message->Length())));\
 }
 
 CREATE_ERROR_WITH_JSSTRING(CreateError);

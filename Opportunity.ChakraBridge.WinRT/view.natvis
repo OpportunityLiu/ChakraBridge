@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="Opportunity::ChakraBridge::WinRT::RawRef&lt;*&gt;" Inheritable="true">
+    <DisplayString Condition="Ref == nullptr">[&lt;Invalid Reference&gt;]</DisplayString>
+    <DisplayString>[{Ref}]</DisplayString>
+    <Expand HideRawView="true">
+      <Item Name="Ref">Ref</Item>
+    </Expand>
+  </Type>
+  <Type Name="Opportunity::ChakraBridge::WinRT::JsValueImpl" Inheritable="true">
+    <DisplayString>{{Ref={Reference}}}</DisplayString>
+    <Expand>
+      <Item Name="Reference">Reference</Item>
+    </Expand>
+  </Type>
+  <Type Name="Opportunity::ChakraBridge::WinRT::JsContext">
+    <DisplayString>{{Ref={Reference}}}</DisplayString>
+  </Type>
+  <Type Name="Opportunity::ChakraBridge::WinRT::JsRuntime">
+    <DisplayString>{{Handle={Handle}}}</DisplayString>
+  </Type>
+</AutoVisualizer>

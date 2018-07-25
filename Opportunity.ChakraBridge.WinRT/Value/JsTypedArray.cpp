@@ -118,7 +118,10 @@ IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, uint32 length)
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsValue^ arrayLike)
 {
     NULL_CHECK(arrayLike);
-    return CreateTyped(RawValue::CreateTypedArray(arrayType, to_impl(arrayLike)->Reference, 0, 0));
+    auto ref = to_impl(arrayLike)->Reference;
+    if (dynamic_cast<IJsObject^>(arrayLike) == nullptr)
+        ref = ref.ToJsObjet();
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, ref, 0, 0));
 }
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsArrayBuffer^ buffer)

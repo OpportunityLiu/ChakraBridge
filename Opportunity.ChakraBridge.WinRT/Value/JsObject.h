@@ -108,7 +108,27 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         /// <returns>A new <see cref="IJsObject"/>.</returns>
         /// <remarks>Requires an active script context.</remarks>
+        [DefaultOverload]
+        [Overload("Create")]
         static IJsObject^ Create();
+
+        /// <summary>
+        /// Creates a new <see cref="IJsObject"/> with properties.
+        /// </summary>
+        /// <param name="properties">Properties to inintialize the new <see cref="IJsObject"/>.</param>
+        /// <returns>A new <see cref="IJsObject"/> with properties.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        [Overload("CreateWithStringMap")]
+        static IJsObject^ Create(map_view<string, IJsValue>^ properties);
+
+        /// <summary>
+        /// Creates a new <see cref="IJsObject"/> with properties.
+        /// </summary>
+        /// <param name="properties">Properties to inintialize the new <see cref="IJsObject"/>.</param>
+        /// <returns>A new <see cref="IJsObject"/> with properties.</returns>
+        /// <remarks>Requires an active script context.</remarks>
+        [Overload("CreateWithJsValueMap")]
+        static IJsObject^ Create(map_view<IJsValue, IJsValue>^ properties);
 
         /// <summary>
         /// Performs JavaScript "instanceof" operator test. 

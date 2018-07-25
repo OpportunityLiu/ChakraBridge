@@ -79,7 +79,7 @@ Console^ Console::GetOrCreate()
         return Console;
     })()
 )"));
-    auto console = func->Reference.New(to_impl(jsCon)->Reference, to_impl(callback)->Reference);
+    auto console = get_ref(func).New(get_ref(jsCon), get_ref(callback));
     RawValue::GlobalObject()[L"console"] = console;
     return con;
 }

@@ -6,7 +6,7 @@ namespace Opportunity::ChakraBridge::WinRT
 {
     struct RawValue;
 
-    struct RawContext sealed : public RawRcRef
+    struct[[nodiscard]] RawContext sealed : public RawRcRef
     {
         static constexpr RawContext Invalid() { return RawContext(); }
 

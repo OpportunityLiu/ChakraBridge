@@ -3,7 +3,7 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    struct RawRuntime sealed :public RawRef<JsRuntimeHandle>
+    struct[[nodiscard]] RawRuntime sealed :public RawRef<JsRuntimeHandle>
     {
         static constexpr RawRuntime Invalid() { return RawRuntime(); }
 

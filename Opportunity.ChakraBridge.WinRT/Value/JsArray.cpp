@@ -18,8 +18,7 @@ uint32 JsArrayImpl::ArraySize::get()
 
 void JsArrayImpl::Append(T^ value)
 {
-    NULL_CHECK(value);
-    Reference[L"push"]().Invoke(Reference, to_impl(value)->Reference);
+    void(Reference[L"push"]().Invoke(Reference, get_ref_or_undefined(value)));
 }
 
 void JsArrayImpl::ArrayClear()
@@ -58,9 +57,8 @@ vector_view<JsArrayImpl::T>^ JsArrayImpl::ArrayGetView()
 
 bool JsArrayImpl::IndexOf(T^ value, uint32* index)
 {
-    NULL_CHECK(value);
     NULL_CHECK(index);
-    auto rindex = Reference[L"indexOf"]().Invoke(Reference, to_impl(value)->Reference).ToInt();
+    auto rindex = Reference[L"indexOf"]().Invoke(Reference, get_ref_or_undefined(value)).ToInt();
     if (rindex < 0)
         return false;
     *index = rindex;
@@ -69,20 +67,19 @@ bool JsArrayImpl::IndexOf(T^ value, uint32* index)
 
 void JsArrayImpl::InsertAt(uint32 index, T^ value)
 {
-    NULL_CHECK(value);
     ARRAY_INDEX_CHECK(index);
-    Reference[L"splice"]().Invoke(Reference, RawValue(static_cast<int>(index)), RawValue(0), to_impl(value)->Reference);
+    void(Reference[L"splice"]().Invoke(Reference, RawValue(static_cast<int>(index)), RawValue(0), get_ref_or_undefined(value)));
 }
 
 void JsArrayImpl::RemoveAt(uint32 index)
 {
     ARRAY_INDEX_CHECK(index);
-    Reference[L"splice"]().Invoke(Reference, RawValue(static_cast<int>(index)), RawValue(1));
+    void(Reference[L"splice"]().Invoke(Reference, RawValue(static_cast<int>(index)), RawValue(1)));
 }
 
 void JsArrayImpl::RemoveAtEnd()
 {
-    Reference[L"pop"]().Invoke(Reference);
+    void(Reference[L"pop"]().Invoke(Reference));
 }
 
 void JsArrayImpl::ReplaceAll(const array<T>^ items)
@@ -93,8 +90,6 @@ void JsArrayImpl::ReplaceAll(const array<T>^ items)
         return;
     }
     ARRAY_INDEX_CHECK(items->Length);
-    if (std::find(items->begin(), items->end(), nullptr) != items->end())
-        Throw(E_INVALIDARG, L"items contains null items.");
     const auto length = static_cast<int>(items->Length);
     for (int i = 0; i < length; i++)
     {
@@ -104,9 +99,8 @@ void JsArrayImpl::ReplaceAll(const array<T>^ items)
 
 void JsArrayImpl::SetAt(uint32 index, T^ value)
 {
-    NULL_CHECK(value);
     ARRAY_INDEX_CHECK(index);
-    Reference[RawValue(static_cast<int>(index))] = to_impl(value)->Reference;
+    Reference[RawValue(static_cast<int>(index))] = get_ref_or_undefined(value);
 }
 
 iterator<JsArrayImpl::T>^ JsArrayImpl::ArrayFirst()
@@ -150,5 +144,5 @@ IJsArray^ JsArray::Create(IJsValue^ arrayLike)
 {
     NULL_CHECK(arrayLike);
     const auto fromFunc = GetArrayProperty<JsType::Function>(L"from");
-    return safe_cast<IJsArray^>(JsValue::CreateTyped(fromFunc.Invoke(RawValue::Invalid(), to_impl(arrayLike)->Reference)));
+    return safe_cast<IJsArray^>(JsValue::CreateTyped(fromFunc.Invoke(RawValue::Invalid(), get_ref(arrayLike))));
 }

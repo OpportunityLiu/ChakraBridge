@@ -6,8 +6,9 @@
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    struct RawValue sealed :public RawRcRef
+    struct[[nodiscard]] RawValue sealed :public RawRcRef
     {
+
 #pragma region Static Objects
 
         static RawValue GlobalObject()
@@ -138,11 +139,6 @@ static RawValue methodName(const RawValue& message)         \
         explicit RawValue(const double v)
         {
             CHAKRA_CALL(JsDoubleToNumber(v, &Ref));
-        }
-
-        explicit RawValue(string^const v)
-        {
-            CHAKRA_CALL(JsPointerToString(v->Data(), v->Length(), &Ref));
         }
 
         template<size_t Len>
@@ -318,14 +314,14 @@ static RawValue methodName(const RawValue& message)         \
 
 #pragma region Funtion Call
 
-        RawValue New(const RawValue*invalidCallerAndArgs, unsigned int len) const
+        RawValue New(const RawValue*callerAndArgs, unsigned int len) const
         {
             RawValue r;
-            CHAKRA_CALL(JsConstructObject(Ref, reinterpret_cast<JsValueRef*>(const_cast<RawValue*>(invalidCallerAndArgs)), len, &r.Ref));
+            CHAKRA_CALL(JsConstructObject(Ref, reinterpret_cast<JsValueRef*>(const_cast<RawValue*>(callerAndArgs)), len, &r.Ref));
             return r;
         }
 
-        RawValue Invoke(const RawValue*callerAndArgs, unsigned int len) const
+        [[maybe_unused]]RawValue Invoke(const RawValue*callerAndArgs, unsigned int len) const
         {
             RawValue r;
             CHAKRA_CALL(JsCallFunction(Ref, reinterpret_cast<JsValueRef*>(const_cast<RawValue*>(callerAndArgs)), len, &r.Ref));
@@ -333,13 +329,13 @@ static RawValue methodName(const RawValue& message)         \
         }
 
         template<unsigned short len>
-        RawValue New(const RawValue(&invalidCallerAndArgs)[len]) const
+        RawValue New(const RawValue(&callerAndArgs)[len]) const
         {
-            return New(invalidCallerAndArgs, len);
+            return New(callerAndArgs, len);
         }
 
         template<unsigned short len>
-        RawValue Invoke(const RawValue(&callerAndArgs)[len]) const
+        [[maybe_unused]]RawValue Invoke(const RawValue(&callerAndArgs)[len]) const
         {
             return Invoke(callerAndArgs, len);
         }
@@ -352,7 +348,7 @@ static RawValue methodName(const RawValue& message)         \
             return r;
         }
 
-        RawValue Invoke(const RawValue& caller) const
+        [[maybe_unused]]RawValue Invoke(const RawValue& caller) const
         {
             if (caller.IsValid())
             {
@@ -366,12 +362,12 @@ static RawValue methodName(const RawValue& message)         \
         template<typename... TArgs>
         RawValue New(const RawValue& arg0, const TArgs&... args) const
         {
-            const RawValue argsv[] = { RawValue::Invalid(), arg0, args... };
+            const RawValue argsv[] = { RawValue::GlobalObject(), arg0, args... };
             return New(argsv);
         }
 
         template<typename... TArgs>
-        RawValue Invoke(const RawValue& caller, const RawValue& arg0, const TArgs&... args) const
+        [[maybe_unused]]RawValue Invoke(const RawValue& caller, const RawValue& arg0, const TArgs&... args) const
         {
             const RawValue argsv[] = { caller.IsValid() ? caller : RawValue::GlobalObject(), arg0, args... };
             return Invoke(argsv);
@@ -383,7 +379,7 @@ static RawValue methodName(const RawValue& message)         \
 #pragma region Object Property Operation
 
         struct IndexedPropertyStub;
-        struct PropertyStub
+        struct[[nodiscard]] PropertyStub sealed
         {
             PropertyStub(const PropertyStub&) = delete;
             PropertyStub(PropertyStub&&) = delete;
@@ -398,7 +394,7 @@ static RawValue methodName(const RawValue& message)         \
 
             RawValue operator()() const
             {
-                return static_cast<RawValue>(*this);
+                return RawValue(*this);
             }
             operator RawValue() const
             {
@@ -416,19 +412,19 @@ static RawValue methodName(const RawValue& message)         \
                 CHAKRA_CALL(JsSetProperty(Parent, PropIdRef, value.Ref, true));
                 return *this;
             }
-            PropertyStub operator[](const wchar_t* key) const
+            PropertyStub operator[](const wchar_t*const key) const
             {
-                return PropertyStub(static_cast<RawValue>(*this), key);
+                return PropertyStub(RawValue(*this), key);
             }
             PropertyStub operator[](const RawPropertyId& key) const
             {
-                return PropertyStub(static_cast<RawValue>(*this), key);
+                return PropertyStub(RawValue(*this), key);
             }
             IndexedPropertyStub operator[](const RawValue& key) const
             {
-                return IndexedPropertyStub(static_cast<RawValue>(*this), key);
+                return IndexedPropertyStub(RawValue(*this), key);
             }
-            bool Exist() const
+            [[nodiscard]] bool Exist() const
             {
                 bool r;
                 CHAKRA_CALL(JsHasProperty(Parent, PropIdRef, &r));
@@ -446,7 +442,7 @@ static RawValue methodName(const RawValue& message)         \
                 CHAKRA_CALL(JsGetOwnPropertyDescriptor(Parent, PropIdRef, &r.Ref));
                 return r;
             }
-            RawValue Delete() const
+            [[maybe_unused]]RawValue Delete() const
             {
                 RawValue r;
                 CHAKRA_CALL(JsDeleteProperty(Parent, PropIdRef, true, &r.Ref));
@@ -454,7 +450,7 @@ static RawValue methodName(const RawValue& message)         \
             }
         };
 
-        struct IndexedPropertyStub
+        struct[[nodiscard]] IndexedPropertyStub sealed
         {
             IndexedPropertyStub(const IndexedPropertyStub&) = delete;
             IndexedPropertyStub(IndexedPropertyStub&&) = delete;
@@ -486,19 +482,19 @@ static RawValue methodName(const RawValue& message)         \
                 CHAKRA_CALL(JsSetIndexedProperty(Parent, PropIdRef, value.Ref));
                 return *this;
             }
-            PropertyStub operator[](const wchar_t* key) const
+            PropertyStub operator[](const wchar_t*const key) const
             {
-                return PropertyStub(static_cast<RawValue>(*this), key);
+                return PropertyStub(RawValue(*this), key);
             }
             PropertyStub operator[](const RawPropertyId& key) const
             {
-                return PropertyStub(static_cast<RawValue>(*this), key);
+                return PropertyStub(RawValue(*this), key);
             }
             IndexedPropertyStub operator[](const RawValue& key) const
             {
-                return IndexedPropertyStub(static_cast<RawValue>(*this), key);
+                return IndexedPropertyStub(RawValue(*this), key);
             }
-            bool Exist() const
+            [[nodiscard]] bool Exist() const
             {
                 bool r;
                 CHAKRA_CALL(JsHasIndexedProperty(Parent, PropIdRef, &r));
@@ -510,7 +506,7 @@ static RawValue methodName(const RawValue& message)         \
             }
         };
 
-        PropertyStub operator[](const wchar_t* key) const
+        PropertyStub operator[](const wchar_t*const key) const
         {
             return PropertyStub(*this, key);
         }

@@ -5,7 +5,7 @@ namespace Opportunity::ChakraBridge::WinRT
 {
     struct RawValue;
 
-    struct RawPropertyId sealed : public RawRcRef
+    struct[[nodiscard]] RawPropertyId sealed : public RawRcRef
     {
         static constexpr RawPropertyId Invalid() { return RawPropertyId(); }
 
@@ -16,6 +16,8 @@ namespace Opportunity::ChakraBridge::WinRT
         {
             CHAKRA_CALL(JsGetPropertyIdFromName(name, &Ref));
         }
+        RawPropertyId(string^ const name)
+            :RawPropertyId(name->Data()) {}
         RawPropertyId(const RawValue& symbol);
 
         const wchar_t* Name() const

@@ -27,5 +27,5 @@ string^ JsStringImpl::ToString()
 
 IJsString^ JsString::Create(string^ value)
 {
-    return ref new JsStringImpl(RawValue(value));
+    return ref new JsStringImpl(RawValue(value->Data(),value->Length()));
 }

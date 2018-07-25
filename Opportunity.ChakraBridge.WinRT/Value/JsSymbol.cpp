@@ -18,11 +18,6 @@ JsSymbolImpl::JsSymbolImpl(RawValue ref)
 string^ JsSymbolImpl::ToString()
 {
     return Reference.ToJsObjet().ToJsString().ToString();
-    //const auto symObj;
-    //CHAKRA_CALL(JsConvertValueToObject(Reference, &symObj));
-    //auto tostrFunc = RawGetProperty(symObj, L"constructor", L"prototype", L"toString");
-    //JsValueRef strref = RawCallFunction(tostrFunc, this->Reference);
-    //return RawStringToPointer(strref);
 }
 
 IJsSymbol^ InnerCreate(RawValue description)
@@ -41,7 +36,7 @@ IJsSymbol^ JsSymbol::Create(string^ description)
 {
     if (description == nullptr)
         return Create();
-    return InnerCreate(RawValue(description));
+    return InnerCreate(RawValue(description->Data(), description->Length()));
 }
 
 IJsSymbol^ JsSymbol::Create()
@@ -79,7 +74,7 @@ IJsSymbol^ JsSymbol::For(IJsValue^ key)
 IJsSymbol^ JsSymbol::For(string^ key)
 {
     const auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
-    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(RawValue::Invalid(), RawValue(key))));
+    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(RawValue::Invalid(), RawValue(key->Data(), key->Length()))));
 }
 
 IJsString^ JsSymbol::KeyFor(IJsSymbol^ symbol)

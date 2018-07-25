@@ -1,5 +1,5 @@
 ﻿using Opportunity.ChakraBridge.WinRT;
-using Opportunity.ChakraBridge.UWP.Browser;
+using Opportunity.ChakraBridge.WinRT.Browser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,7 +25,18 @@ using Windows.Web.Http;
 
 namespace Test
 {
-    public class ib { public string get() => "124"; }
+    public class JsArrayDebugView
+    {
+        private readonly IJsArray array;
+
+        public JsArrayDebugView(object array)
+        {
+            this.array = (IJsArray)array;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public IJsValue[] Items => ((IList<IJsValue>)this.array).ToArray();
+    }
 
     /// <summary>
     /// 可用于自身或导航至 Frame 内部的空白页。
@@ -55,14 +66,10 @@ namespace Test
                     {
                         try
                         {
-                            var s1 = JsSymbol.For("234");
-                            var s2 = JsSymbol.For("234");
-                            var s3 = JsSymbol.Create("234");
-                            var al = JsObject.Create();
-                            al["length"] = JsNumber.Create(10);
-                            var a1 = JsArray.Create(1);
-                            var a2 = JsArray.Create(al);
-                            var a3 = JsArray.Create(new[] { a1, a2 });
+                            var console = Console.GetOrCreate();
+                            console.Logging += Con_Logging;
+                            var c2 = Console.GetOrCreate();
+                            JsContext.RunScript("console.log(1)");
                         }
                         catch (Exception)
                         {
@@ -99,7 +106,7 @@ new Promise(
             return true;
         }
 
-        private void Con_Logging(Console sender, ConsoleLoggingEventArgs args)
+        private void Con_Logging(Console sender, IConsoleLoggingEventArgs args)
         {
         }
 

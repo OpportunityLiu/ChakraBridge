@@ -1,4 +1,5 @@
 #pragma once
+#define NOMINMAX
 #include "JsObject.h"
 #include "JsEnum.h"
 #include <unordered_map>
@@ -162,34 +163,35 @@ namespace Opportunity::ChakraBridge::WinRT
     template<JsArrayType EEle>
     struct JsTypedArrayTempInfo {};
 
-#define __TYPED_ARRAY_INTERFACE_DECL(name, type) \
-    public interface class IJs##name##Array :IJsTypedArray, vector<type>{}; \
-    template<>struct JsTypedArrayTempInfo<JsArrayType::name>{using t_ele = type;using t_int = IJs##name##Array;}
+#define __TYPED_ARRAY_INTERFACE_DECL(name, actualType, rtType) \
+    public interface class IJs##name##Array :IJsTypedArray, vector<rtType>{}; \
+    template<>struct JsTypedArrayTempInfo<JsArrayType::name>{using t_ele = actualType;using t_winrt = rtType; using t_int = IJs##name##Array;}
 
     /// <summary>A Javascript Int8Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Int8, uint8);
+    __TYPED_ARRAY_INTERFACE_DECL(Int8, int8, int16);
     /// <summary>A Javascript Uint8Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Uint8, uint8);
+    __TYPED_ARRAY_INTERFACE_DECL(Uint8, uint8, uint8);
     /// <summary>A Javascript Uint8ClampedArray.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Uint8Clamped, uint8);
+    __TYPED_ARRAY_INTERFACE_DECL(Uint8Clamped, uint8, uint8);
     /// <summary>A Javascript Int16Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Int16, int16);
+    __TYPED_ARRAY_INTERFACE_DECL(Int16, int16, int16);
     /// <summary>A Javascript Uint16Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Uint16, uint16);
+    __TYPED_ARRAY_INTERFACE_DECL(Uint16, uint16, uint16);
     /// <summary>A Javascript Int32Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Int32, int32);
+    __TYPED_ARRAY_INTERFACE_DECL(Int32, int32, int32);
     /// <summary>A Javascript Uint32Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Uint32, uint32);
+    __TYPED_ARRAY_INTERFACE_DECL(Uint32, uint32, uint32);
     /// <summary>A Javascript Float32Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Float32, float32);
+    __TYPED_ARRAY_INTERFACE_DECL(Float32, float32, float32);
     /// <summary>A Javascript Float64Array.</summary>
-    __TYPED_ARRAY_INTERFACE_DECL(Float64, float64);
+    __TYPED_ARRAY_INTERFACE_DECL(Float64, float64, float64);
 
 #undef __TYPED_ARRAY_INTERFACE_DECL
 #pragma pop_macro("interface")
 
     template<JsArrayType EEle,
-        typename T = typename JsTypedArrayTempInfo<EEle>::t_ele,
+        typename TAct = typename JsTypedArrayTempInfo<EEle>::t_ele,
+        typename TRt = typename JsTypedArrayTempInfo<EEle>::t_winrt,
         typename TInterface = typename JsTypedArrayTempInfo<EEle>::t_int>
     ref class JsTypedArrayTempImpl sealed : JsTypedArrayImpl, [Default] TInterface
     {
@@ -197,9 +199,12 @@ namespace Opportunity::ChakraBridge::WinRT
         JsTypedArrayTempImpl(RawValue ref, uint8*const bufferPtr, const uint32 bufferLen, const JsArrayType arrType, const uint32 elementSize)
             :JsTypedArrayImpl(std::move(ref), bufferPtr, bufferLen, arrType, elementSize)
         {
+            static_assert(std::numeric_limits<TRt>::max() >= std::numeric_limits<TAct>::max());
+            static_assert(std::numeric_limits<TRt>::min() <= std::numeric_limits<TAct>::min());
+            static_assert(sizeof(TRt) >= sizeof(TAct));
             if (arrType != EEle)
                 Throw(E_INVALIDARG, L"Wrong array type.");
-            if (elementSize != sizeof(T))
+            if (elementSize != sizeof(TAct))
                 Throw(E_INVALIDARG, L"Wrong element size.");
         }
 
@@ -237,53 +242,72 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_R_PROPERTY(ByteLength, uint32, IJsTypedArray);
         INHERIT_INTERFACE_R_PROPERTY(ByteOffset, uint32, IJsTypedArray);
 
-        INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, ArraySize, uint32, vector<T>);
+        INHERIT_INTERFACE_R_PROPERTY_EXPLICT(Size, ArraySize, uint32, vector<TRt>);
 
-    public:
-        virtual void Append(T value) { ThrowForFixedSize(); }
-        virtual void ArrayClear() = vector<T>::Clear{ ThrowForFixedSize(); }
-        virtual void InsertAt(uint32 index, T value) { ThrowForFixedSize(); }
-        virtual void RemoveAt(uint32 index) { ThrowForFixedSize(); }
-        virtual void RemoveAtEnd() { ThrowForFixedSize(); }
-        virtual void ReplaceAll(const array<T>^ items) { ThrowForFixedSize(); }
-
-        virtual T GetAt(uint32 index)
+        static TAct InElementCheck(TRt value)
         {
-            BoundCheck(index);
-            return reinterpret_cast<T*>(BufferPtr)[index];
+            if constexpr(std::numeric_limits<TRt>::max() != std::numeric_limits<TAct>::max()
+                || std::numeric_limits<TRt>::min() != std::numeric_limits<TAct>::min())
+            {
+                if (value > std::numeric_limits<TAct>::max() || value < std::numeric_limits<TAct>::min())
+                {
+                    std::wstringstream stream;
+                    stream << L"value is too large of too small for the element in this tyepd array, a value in range of "
+                        << std::numeric_limits<TAct>::min() << " ~ " << std::numeric_limits<TAct>::max() << " is expected.";
+                    auto str = stream.str();
+                    Throw(E_INVALIDARG, string_ref(str.c_str(), str.length()));
+                }
+            }
+            return static_cast<TAct>(value);
         }
 
-        virtual uint32 GetMany(uint32 startIndex, write_only_array<T>^ items)
+    public:
+        virtual void Append(TRt value) { ThrowForFixedSize(); }
+        virtual void ArrayClear() = vector<TRt>::Clear{ ThrowForFixedSize(); }
+        virtual void InsertAt(uint32 index, TRt value) { ThrowForFixedSize(); }
+        virtual void RemoveAt(uint32 index) { ThrowForFixedSize(); }
+        virtual void RemoveAtEnd() { ThrowForFixedSize(); }
+        virtual void ReplaceAll(const array<TRt>^ items) { ThrowForFixedSize(); }
+
+        virtual TRt GetAt(uint32 index)
+        {
+            BoundCheck(index);
+            return reinterpret_cast<TAct*>(BufferPtr)[index];
+        }
+
+        virtual uint32 GetMany(uint32 startIndex, write_only_array<TRt>^ items)
         {
             NULL_CHECK(items);
             BoundCheck(startIndex);
             auto end = static_cast<uint32>(std::min(static_cast<uint64>(startIndex) + items->Length, static_cast<uint64>(ArraySize)));
-            std::copy_n(reinterpret_cast<T*>(BufferPtr) + startIndex, end - startIndex, items->begin());
+            std::copy_n(reinterpret_cast<TAct*>(BufferPtr) + startIndex, end - startIndex, items->begin());
             return end - startIndex;
         }
 
-        virtual bool IndexOf(T value, uint32* index)
+        virtual bool IndexOf(TRt value, uint32* index)
         {
-            const auto first = reinterpret_cast<T*>(BufferPtr);
+            const auto actualValue = InElementCheck(value);
+            const auto first = reinterpret_cast<TAct*>(BufferPtr);
             const auto last = first + ArraySize;
-            auto p = std::find(first, last, value);
+            auto p = std::find(first, last, actualValue);
             if (p == last)
                 return false;
             *index = static_cast<uint32>(p - first);
             return true;
         }
 
-        virtual void SetAt(uint32 index, T value)
+        virtual void SetAt(uint32 index, TRt value)
         {
             BoundCheck(index);
-            reinterpret_cast<T*>(BufferPtr)[index] = value;
+            reinterpret_cast<TAct*>(BufferPtr)[index] = InElementCheck(value);
         }
 
-        virtual vector_view<T>^ ArrayGetView() = vector<T>::GetView
+        virtual vector_view<TRt>^ ArrayGetView() = vector<TRt>::GetView
         {
-            return ref new Platform::Collections::VectorView<T>(reinterpret_cast<T*>(BufferPtr), ArraySize);
+            auto vec = std::vector<TRt>(reinterpret_cast<TAct*>(BufferPtr), reinterpret_cast<TAct*>(BufferPtr) + ArraySize);
+            return ref new Platform::Collections::VectorView<TRt>(std::move(vec));
         }
 
-        virtual iterator<T>^ ArrayFirst() = vector<T>::First{ return ArrayGetView()->First(); }
+        virtual iterator<TRt>^ ArrayFirst() = vector<TRt>::First{ return ArrayGetView()->First(); }
     };
 }

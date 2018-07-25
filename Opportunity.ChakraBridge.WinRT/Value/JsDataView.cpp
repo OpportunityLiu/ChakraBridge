@@ -51,5 +51,5 @@ IJsDataView^ JsDataView::Create(IJsArrayBuffer^ buffer, uint32 byteOffset, uint3
     auto buflen = bufferImpl->ByteLength;
     if (byteOffset + byteLength > buflen || byteOffset > buflen || byteLength > buflen)
         Throw(E_INVALIDARG, L"(byteOffset + byteLength) is greater than buffer.ByteLength.");
-    return ref new JsDataViewImpl(RawValue::CreateDataView(bufferImpl->Reference, byteOffset, byteLength));
+    return ref new JsDataViewImpl(RawValue::CreateDataView(get_ref(bufferImpl), byteOffset, byteLength));
 }

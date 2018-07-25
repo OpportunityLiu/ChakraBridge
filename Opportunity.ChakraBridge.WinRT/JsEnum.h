@@ -5,7 +5,7 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <summary>
     ///     Attributes of a runtime.
     /// </summary>
-    public enum class JsRuntimeAttributes
+    public enum class[[nodiscard]] JsRuntimeAttributes
     {
         /// <summary>
         ///     No special attributes.
@@ -48,7 +48,7 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <summary>
     ///     The type of a typed JavaScript array.
     /// </summary>
-    public enum class JsTypedArrayType
+    public enum class[[nodiscard]] JsTypedArrayType
     {
         /// <summary>
         ///     An int8 array.
@@ -91,7 +91,7 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <summary>
     ///     Allocation callback event type.
     /// </summary>
-    public enum class JsMemoryEventType
+    public enum class[[nodiscard]] JsMemoryEventType
     {
         /// <summary>
         ///     Indicates a request for memory allocation.
@@ -110,7 +110,7 @@ namespace Opportunity::ChakraBridge::WinRT
     /// <summary>
     ///     The JavaScript type of a JsValueRef.
     /// </summary>
-    public enum class JsValueType
+    public enum class[[nodiscard]] JsValueType
     {
         /// <summary>
         ///     The value is the <c>undefined</c> value.

@@ -31,7 +31,7 @@ uint32 JsContext::Idle()
 void JsContext::SetException(IJsError^ exception)
 {
     NULL_CHECK(exception);
-    RawContext::SetException(to_impl(exception)->Reference);
+    RawContext::SetException(get_ref(exception));
 }
 
 RawValue JsContext::LastJsError;
@@ -53,7 +53,7 @@ IJsError^ JsContext::LastError::get()
     return dynamic_cast<IJsError^>(JsValue::CreateTyped(LastJsError));
 }
 
-void JsContext::ProjectWinRTNamespace(string ^ namespaceName)
+void JsContext::ProjectWinRTNamespace(string^ namespaceName)
 {
     NULL_CHECK(namespaceName);
     RawContext::ProjectWinRTNamespace(namespaceName->Data());
