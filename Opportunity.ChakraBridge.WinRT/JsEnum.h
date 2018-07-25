@@ -165,4 +165,9 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         DataView = 12,
     };
+
+    using JsRA = ::Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes;
+    using JsType = ::Opportunity::ChakraBridge::WinRT::JsValueType;
+    using JsArrayType = Opportunity::ChakraBridge::WinRT::JsTypedArrayType;
+    using JsMEType = Opportunity::ChakraBridge::WinRT::JsMemoryEventType;
 }

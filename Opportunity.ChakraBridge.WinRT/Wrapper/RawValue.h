@@ -384,7 +384,7 @@ static RawValue methodName(const RawValue& message)         \
 
 #pragma endregion
 
-#pragma region Funtion Call
+#pragma region Function Call
 
         RawValue New(const RawValue*callerAndArgs, unsigned int len) const
         {

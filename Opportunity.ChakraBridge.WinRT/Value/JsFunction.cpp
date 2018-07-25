@@ -84,37 +84,6 @@ void getArgs(IJsValue^ caller, vector_view<IJsValue>^ arguments, std::vector<Raw
     }
 }
 
-void JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(const JsValueRef ref, void *const callbackState)
-{
-    __try
-    {
-        JsObjectImpl::JsObjectBeforeCollectCallbackImpl(ref, callbackState);
-    }
-    __finally
-    {
-        FunctionTable.erase(RawValue(ref));
-    }
-}
-
-JsFunctionImpl::JsOBCC^ JsFunctionImpl::ObjectCollectingCallback::get()
-{
-    return JsObjectImpl::ObjectCollectingCallback;
-}
-
-void JsFunctionImpl::ObjectCollectingCallback::set(JsOBCC^ value)
-{
-    if (FunctionTable.find(Reference) == FunctionTable.end())
-    {
-        JsObjectImpl::ObjectCollectingCallback = value;
-        return;
-    }
-    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr, JsFunctionBeforeCollectCallbackImpl));
-    if (value == nullptr)
-        OBCCMap.erase(Reference);
-    else
-        OBCCMap[Reference] = value;
-}
-
 IJsValue^ JsFunctionImpl::Invoke(IJsValue^ caller, vector_view<IJsValue>^ arguments)
 {
     std::vector<RawValue> args;
@@ -193,8 +162,13 @@ IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, string^ name)
     return func;
 }
 
+void JsFunctionImpl::CollectNativeFunction(const RawValue& ref)
+{
+    FunctionTable.erase(ref);
+}
+
 void JsFunctionImpl::InitForNativeFunc(std::unique_ptr<FW> function)
 {
     FunctionTable[Reference] = std::move(function);
-    this->ObjectCollectingCallback = nullptr;
+    this->RegisterInternalBeforeCollectCallback(CollectNativeFunction);
 }

@@ -71,6 +71,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_RW_PROPERTY(Proto, IJsObject^, IJsObject);
         INHERIT_INTERFACE_METHOD(PreventExtension, void, IJsObject);
         INHERIT_INTERFACE_R_PROPERTY(IsExtensionAllowed, bool, IJsObject);
+        INHERIT_INTERFACE_RW_PROPERTY(ObjectCollectingCallback, JsOBCC^, IJsObject);
 
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, IStrMap, string^);
         INHERIT_INTERFACE_METHOD_PARAM1(Lookup, IJsValue^, ISymMap, IJsSymbol^);
@@ -98,7 +99,7 @@ namespace Opportunity::ChakraBridge::WinRT
 
         static std::unordered_map<RawValue, std::unique_ptr<JsFunctionImpl::FW>> FunctionTable;
         static RawValue JsNativeFunctionImpl(const RawValue& callee, const RawValue& caller, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, const FWP& nativeFunc);
-        static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ JsValueRef ref, _In_opt_ void * callbackState);
+        static void CollectNativeFunction(const RawValue& ref);
         void InitForNativeFunc(std::unique_ptr<FW> function);
 
     public:
@@ -108,7 +109,6 @@ namespace Opportunity::ChakraBridge::WinRT
         virtual DECL_R_PROPERTY(int32, Length);
         virtual DECL_RW_PROPERTY(IJsObject^, Prototype);
         virtual string^ ToString() override;
-        virtual property JsOBCC^ ObjectCollectingCallback { JsOBCC^ get() override; void set(JsOBCC^ value) override; }
     };
 
     /// <summary>

@@ -3,6 +3,7 @@
 #include "JsValue.h"
 #include "JsEnum.h"
 #include "JsSymbol.h"
+#include <memory>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
@@ -59,14 +60,29 @@ namespace Opportunity::ChakraBridge::WinRT
         using ISymIterable = iterable<ISymKVP>;
 
         using JsOBCC = ::Opportunity::ChakraBridge::WinRT::JsObjectBeforeCollectCallback;
+        using IBCC = void(const RawValue&);
+        using OWP = struct OW
+        {
+            JsOBCC^ BeforeCollectCallback;
+            weak_ref Object;
+            IBCC* InternalBeforeCollectCallback;
+            OW(JsValueImpl^const thisObj, JsOBCC^const callback, IBCC*const callback2)
+                :Object(thisObj),BeforeCollectCallback(callback), InternalBeforeCollectCallback(callback2){}
+
+            bool InUse()
+            {
+                return BeforeCollectCallback != nullptr || InternalBeforeCollectCallback != nullptr;
+            }
+        }*;
 
         JsObjectImpl(RawValue ref);
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
-        static std::unordered_map<RawValue, JsOBCC^> OBCCMap;
-        static void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsValueRef ref, _In_opt_ void * callbackState);
+        static std::unordered_map<RawValue, std::unique_ptr<OW>> OBCCMap;
+        static void JsObjectBeforeCollectCallbackImpl(const RawValue& ref, const OWP& callbackState);
+        void RegisterInternalBeforeCollectCallback(IBCC*const callback);
 
     public:
         virtual Platform::String^ ToString() override;

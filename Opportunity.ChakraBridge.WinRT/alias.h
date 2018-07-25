@@ -10,9 +10,6 @@ namespace Opportunity::ChakraBridge::WinRT
 
     using IBuffer = ::Windows::Storage::Streams::IBuffer;
 
-    using JsType = ::Opportunity::ChakraBridge::WinRT::JsValueType;
-    using JsArrayType = Opportunity::ChakraBridge::WinRT::JsTypedArrayType;
-
     template<typename T>
     using remove_hat_t = typename ::Platform::Details::__remove_hat<T>::type;
 

@@ -31,6 +31,7 @@ namespace Opportunity::ChakraBridge::WinRT
         return reinterpret_cast<void_ptr*>(&data);
     }
 
+    struct RawRuntime;
     struct RawContext;
     struct RawValue;
     struct RawPropertyId;

@@ -59,7 +59,6 @@ namespace Test
                 var js = new FileInfo(@"test.js");
                 using (var runtime = JsRuntime.Create())
                 {
-                    var rt = JsRuntime.GetRuntimes().ToList();
                     runtime.AllocatingMemory += this.Runtime_MemoryEvent;
                     runtime.CollectingGarbage += this.Runtime_CollectingGarbage;
                     using (runtime.CreateContext().Use(true))

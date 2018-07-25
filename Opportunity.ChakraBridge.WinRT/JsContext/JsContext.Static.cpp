@@ -14,8 +14,11 @@ JsContext^ JsContext::Get(const RawContext& reference)
     if (!reference.IsValid())
         return nullptr;
     const auto rth = reference.Runtime();
-    auto rt = JsRuntime::RuntimeDictionary[rth];
-    return rt->Contexts[reference];
+    const auto rt = JsRuntime::RuntimeDictionary[rth].Resolve<JsRuntime>();
+    _ASSERTE(rt != nullptr);
+    const auto ctx = rt->Contexts[reference].Resolve<JsContext>();
+    _ASSERTE(ctx != nullptr);
+    return ctx;
 }
 
 void JsContext::StartDebugging()
@@ -66,13 +69,16 @@ JsContext^ JsContext::Current::get()
 
 void JsContext::Current::set(JsContext^ value)
 {
-    LastJsError = nullptr;
-    const RawContext v = value == nullptr ? nullptr : value->Reference;
-    RawContext::Current(v);
-    if (v.IsValid())
+    if (value == nullptr)
+        RawContext::Current(nullptr);
+    else
     {
-        RawContext::SetPromiseContinuationCallback<RawContext, JsPromiseContinuationCallbackImpl>(v);
+        value->ThrowIfDestoried();
+        const auto ref = value->Reference;
+        RawContext::Current(ref);
+        RawContext::SetPromiseContinuationCallback<RawContext, JsPromiseContinuationCallbackImpl>(ref);
     }
+    LastJsError = nullptr;
 }
 
 bool JsContext::HasException::get()

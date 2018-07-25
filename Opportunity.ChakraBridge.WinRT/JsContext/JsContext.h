@@ -37,7 +37,10 @@ namespace Opportunity::ChakraBridge::WinRT
 #pragma region Instance
     internal:
         RawContext Reference;
-        JsContext(const RawContext ref);
+        JsRuntime^ Rt;
+        JsContext(const RawContext ref, JsRuntime^const runtime);
+        void PreDestory();
+        void ThrowIfDestoried();
     public:
         virtual ~JsContext();
 

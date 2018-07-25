@@ -3,12 +3,28 @@
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-JsContext::JsContext(const RawContext ref)
-    :Reference(std::move(ref))
+JsContext::JsContext(const RawContext ref, JsRuntime^const runtime)
+    :Reference(std::move(ref)), Rt(runtime)
 {
-    if(!Reference.IsValid())
-        Throw(E_HANDLE, L"ref for JsContext is JS_INVALID_REFERENCE");
+    _ASSERTE(runtime != nullptr);
+    _ASSERTE(Reference.IsValid());
+    _ASSERTE(Reference.Runtime() == runtime->Handle);
+
     Reference.AddRef();
+}
+
+void JsContext::ThrowIfDestoried()
+{
+    if (!Reference.IsValid())
+        Throw(RPC_E_DISCONNECTED, L"The context has been disposed.");
+}
+
+void JsContext::PreDestory()
+{
+    if (!Reference.IsValid())
+        return;
+    Reference = nullptr;
+    Rt = nullptr;
 }
 
 /// <summary>
@@ -21,14 +37,16 @@ JsContext::~JsContext()
         return;
     if (RawContext::Current() == Reference)
         RawContext::Current(nullptr);
-    this->Runtime->Contexts.erase(Reference);
+    Rt->Contexts.erase(Reference);
     Reference.Release();
+    PreDestory();
 }
 
 JsRuntime^ JsContext::Runtime::get()
 {
-    const auto rth = Reference.Runtime();
-    return JsRuntime::RuntimeDictionary[rth];
+    ThrowIfDestoried();
+    _ASSERTE(Rt != nullptr);
+    return Rt;
 }
 
 /// <summary>
@@ -49,5 +67,6 @@ JsRuntime^ JsContext::Runtime::get()
 /// </remarks>
 JsContextScope^ JsContext::Use(bool disposeContext)
 {
+    ThrowIfDestoried();
     return ref new JsContextScope(this, disposeContext);
 }

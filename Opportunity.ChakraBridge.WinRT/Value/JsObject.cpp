@@ -171,17 +171,83 @@ void JsObjectImpl::Proto::set(IJsObject^ value)
         Reference.ObjProto(to_impl(value)->Reference);
 }
 
-std::unordered_map<RawValue, JsObjectImpl::JsOBCC^> JsObjectImpl::OBCCMap;
+std::unordered_map<RawValue, std::unique_ptr<JsObjectImpl::OW>> JsObjectImpl::OBCCMap;
 
-void CALLBACK JsObjectImpl::JsObjectBeforeCollectCallbackImpl(const JsValueRef ref, void *const callbackState)
+void JsObjectImpl::JsObjectBeforeCollectCallbackImpl(const RawValue& ref, const OWP& callbackState)
 {
-    const auto r = RawValue(ref);
-    auto v = OBCCMap.find(r);
-    if (v == OBCCMap.end())
-        return;
-    auto f = v->second;
-    OBCCMap.erase(r);
-    f(safe_cast<IJsObject^>(JsValue::CreateTyped(r)));
+    _ASSERTE(callbackState != nullptr);
+    const auto state = std::move(OBCCMap.at(ref));
+    OBCCMap.erase(ref);
+    _ASSERTE(callbackState == state.get());
+    try
+    {
+        if (state->InternalBeforeCollectCallback)
+            state->InternalBeforeCollectCallback(ref);
+    }
+    catch (...)
+    {
+        _ASSERT_EXPR(false, "Unexpected exception!");
+    }
+    const auto cbfunc = state->BeforeCollectCallback;
+    if (cbfunc != nullptr)
+    {
+        auto obj = callbackState->Object.Resolve<JsObjectImpl>();
+        if (obj == nullptr)
+            obj = safe_cast<JsObjectImpl^>(JsValue::CreateTyped(ref));
+        cbfunc(obj);
+    }
+}
+
+void JsObjectImpl::RegisterInternalBeforeCollectCallback(IBCC*const callback)
+{
+    auto v = OBCCMap.find(Reference);
+    const auto hasValue = (v != OBCCMap.end());
+
+    if (hasValue)
+    {
+        v->second->Object = this;
+        v->second->InternalBeforeCollectCallback = callback;
+
+        if (!v->second->InUse())
+        {
+            Reference.ObjBeforeCollectCallback(nullptr);
+            OBCCMap.erase(Reference);
+        }
+    }
+    else
+    {
+        if (callback == nullptr)
+            return;
+        auto newValue = std::make_unique<OW>(this, nullptr, callback);
+        Reference.ObjBeforeCollectCallback<OWP, JsObjectBeforeCollectCallbackImpl>(newValue.get());
+        OBCCMap[Reference] = std::move(newValue);
+    }
+}
+
+void JsObjectImpl::ObjectCollectingCallback::set(JsOBCC^ value)
+{
+    auto v = OBCCMap.find(Reference);
+    const auto hasValue = (v != OBCCMap.end());
+
+    if (hasValue)
+    {
+        v->second->Object = this;
+        v->second->BeforeCollectCallback = value;
+
+        if (!v->second->InUse())
+        {
+            Reference.ObjBeforeCollectCallback(nullptr);
+            OBCCMap.erase(Reference);
+        }
+    }
+    else
+    {
+        if (value == nullptr)
+            return;
+        auto newValue = std::make_unique<OW>(this, value, nullptr);
+        Reference.ObjBeforeCollectCallback<OWP, JsObjectBeforeCollectCallbackImpl>(newValue.get());
+        OBCCMap[Reference] = std::move(newValue);
+    }
 }
 
 JsObjectImpl::JsOBCC^ JsObjectImpl::ObjectCollectingCallback::get()
@@ -189,19 +255,8 @@ JsObjectImpl::JsOBCC^ JsObjectImpl::ObjectCollectingCallback::get()
     auto v = OBCCMap.find(Reference);
     if (v == OBCCMap.end())
         return nullptr;
-    return v->second;
-}
-
-void JsObjectImpl::ObjectCollectingCallback::set(JsOBCC^ value)
-{
-    if (value == nullptr)
-    {
-        CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr, nullptr));
-        OBCCMap.erase(Reference);
-        return;
-    }
-    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr,JsObjectImpl::JsObjectBeforeCollectCallbackImpl));
-    OBCCMap[Reference] = value;
+    v->second->Object = this;
+    return v->second->BeforeCollectCallback;
 }
 
 IJsObject^ JsObject::Create()

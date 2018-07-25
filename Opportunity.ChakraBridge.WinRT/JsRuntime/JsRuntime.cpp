@@ -1,16 +1,12 @@
 #include "pch.h"
 #include "JsRuntime.h"
 #include <mutex>
-#include <windows.h>
-#include <tchar.h>
-#include <strsafe.h>
-#include <concrt.h>
 #include <limits>
 #include "JsContext\JsContext.h"
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-std::unordered_map<RawRuntime, JsRuntime^> JsRuntime::RuntimeDictionary;
+std::unordered_map<RawRuntime, weak_ref> JsRuntime::RuntimeDictionary;
 std::mutex mx;
 
 bool JsRuntime::JsThreadServiceCallbackImpl(const JsBackgroundWorkItemCallback callback, void * const callbackState)
@@ -24,38 +20,43 @@ bool JsRuntime::JsThreadServiceCallbackImpl(const JsBackgroundWorkItemCallback c
     return true;
 }
 
-void CALLBACK JsRuntime::JsBeforeCollectCallbackImpl(_In_opt_ void *callbackState)
+void JsRuntime::BeforeCollectCallback(const RWP&callbackState)
 {
-    const auto rth = RawRuntime(callbackState);
-    auto rt = JsRuntime::RuntimeDictionary[rth];
+    const auto rt = callbackState->Runtme.Resolve<JsRuntime>();
+    _ASSERTE(rt != nullptr);
     rt->CollectingGarbage(rt, nullptr);
 }
 
-bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackState, _In_::JsMemoryEventType allocationEvent, _In_ size_t allocationSize)
+bool JsRuntime::MemoryAllocationCallback(const RWP& callbackState, const JsMEType allocationEvent, const size_t allocationSize)
 {
-    const auto rth = RawRuntime(callbackState);
-    auto rt = JsRuntime::RuntimeDictionary[rth];
+    const auto rt = callbackState->Runtme.Resolve<JsRuntime>();
+    _ASSERTE(rt != nullptr);
     auto args = ref new JsMemoryEventArgs(allocationEvent, allocationSize);
     rt->AllocatingMemory(rt, args);
     return true;// !args->IsRejected;
 }
 
 JsRuntime::JsRuntime(RawRuntime handle)
-    : Handle(std::move(handle))
+    : Handle(std::move(handle)), Ptr(std::make_unique<RW>())
 {
-    if (!Handle.IsValid())
-        Throw(E_HANDLE, L"handle for JsRuntime is JS_INVALID_RUNTIME_HANDLE");
-    std::lock_guard<std::mutex> lock(mx);
+    _ASSERTE(Handle.IsValid());
+    Ptr->Runtme = this;
 
-    RuntimeDictionary.insert(std::make_pair(Handle, this));
-    const auto& rawH = Handle.Ref;
-    CHAKRA_CALL(JsSetRuntimeBeforeCollectCallback(rawH, rawH, JsBeforeCollectCallbackImpl));
-    CHAKRA_CALL(JsSetRuntimeMemoryAllocationCallback(rawH, rawH, JsMemoryAllocationCallbackImpl));
+    {
+        std::lock_guard<std::mutex> lock(mx);
+        RuntimeDictionary.insert(std::make_pair(Handle, this));
+    }
+
+    Handle.BeforeCollectCallback<RWP, BeforeCollectCallback>(Ptr.get());
+    Handle.MemoryAllocationCallback<RWP, MemoryAllocationCallback>(Ptr.get());
 }
 
 JsRuntime::~JsRuntime()
 {
-    std::lock_guard<std::mutex> lock(mx);
+    {
+        std::lock_guard<std::mutex> lock(mx);
+        RuntimeDictionary.erase(Handle);
+    }
 
     const auto cc = RawContext::Current();
     if (cc.IsValid())
@@ -64,9 +65,13 @@ JsRuntime::~JsRuntime()
         if (cr == Handle)
             RawContext::Current(nullptr);
     }
-    CHAKRA_CALL(JsDisposeRuntime(Handle.Ref));
-    RuntimeDictionary.erase(Handle);
-    std::for_each(this->Contexts.begin(), this->Contexts.end(), [](auto& item) { item.second->Reference = nullptr; });
+    Handle.Dispose();
+    std::for_each(this->Contexts.begin(), this->Contexts.end(), [](auto& item)
+    {
+        const auto ctx = item.second.Resolve<JsContext>();
+        if (ctx)
+            ctx->PreDestory();
+    });
     this->Contexts.clear();
 }
 
@@ -78,20 +83,12 @@ void JsRuntime::CollectGarbage()
 JsContext^ JsRuntime::CreateContext()
 {
     const auto ref = RawContext(Handle);
-    auto context = ref new JsContext(ref);
-    Contexts.insert(std::make_pair(ref, context));
+    auto context = ref new JsContext(ref, this);
+    Contexts[ref] = context;
     return context;
 }
 
-Windows::Foundation::Collections::IIterable<JsContext^>^ JsRuntime::GetContexts()
-{
-    std::vector<JsContext^> vec;
-    for (auto& v : Contexts)
-        vec.push_back(v.second);
-    return ref new Platform::Collections::VectorView<JsContext^>(std::move(vec));
-}
-
-JsRuntime^ JsRuntime::Create(JsRtAttr attributes)
+JsRuntime^ JsRuntime::Create(JsRA attributes)
 {
     return ref new JsRuntime(RawRuntime(attributes, JsThreadServiceCallbackImpl));
 }
@@ -121,12 +118,4 @@ bool JsRuntime::IsEnabled::get()
 void JsRuntime::IsEnabled::set(bool value)
 {
     Handle.Enabled(value);
-}
-
-Windows::Foundation::Collections::IIterable<JsRuntime^>^ JsRuntime::GetRuntimes()
-{
-    std::vector<JsRuntime^> vec;
-    for (auto& v : RuntimeDictionary)
-        vec.push_back(v.second);
-    return ref new Platform::Collections::VectorView<JsRuntime^>(std::move(vec));
 }

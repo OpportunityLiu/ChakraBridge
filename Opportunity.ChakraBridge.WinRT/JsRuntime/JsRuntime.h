@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <memory>
 #include <unordered_map>
 #include "JsEnum.h"
 #include "Value\JsFunction.h"
@@ -28,7 +29,7 @@ namespace Opportunity::ChakraBridge::WinRT
     ref struct JsMemoryEventArgs sealed : IJsAllocatingMemoryEventArgs
     {
     public:
-        virtual property JsMemoryEventType EventType { JsMemoryEventType get() { return _EventType; } }
+        virtual property JsMEType EventType { JsMEType get() { return _EventType; } }
         virtual property uint64 AllocationSize { uint64 get() { return _AllocationSize; } }
 
     internal:
@@ -38,14 +39,14 @@ namespace Opportunity::ChakraBridge::WinRT
         ///// The value is ignored for other allocation events.
         ///// </summary>
         //property bool IsRejected;
-        JsMemoryEventArgs(::JsMemoryEventType eventType, size_t allocationSize)
-            :_EventType(static_cast<JsMemoryEventType>(eventType)), _AllocationSize(static_cast<uint64>(allocationSize))
+        JsMemoryEventArgs(JsMEType eventType, size_t allocationSize)
+            :_EventType(eventType), _AllocationSize(static_cast<uint64>(allocationSize))
         {
             //IsRejected = false;
         }
 
     private:
-        const JsMemoryEventType _EventType;
+        const JsMEType _EventType;
         const uint64 _AllocationSize;
     };
 
@@ -76,14 +77,19 @@ namespace Opportunity::ChakraBridge::WinRT
     public ref class JsRuntime sealed : [Default] IJsRuntime
     {
     private:
-        static void CALLBACK JsBeforeCollectCallbackImpl(_In_opt_ void *callbackState);
-        static bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackState, _In_::JsMemoryEventType allocationEvent, _In_ size_t allocationSize);
+        using RWP = struct RW
+        {
+            weak_ref Runtme;
+        }*;
+        const std::unique_ptr<RW> Ptr;
+        static void BeforeCollectCallback(const RWP&callbackState);
+        static bool MemoryAllocationCallback(const RWP&callbackState, const JsMEType allocationEvent, const size_t allocationSize);
 
     internal:
         const RawRuntime Handle;
         JsRuntime(RawRuntime handle);
-        std::unordered_map<RawContext, JsContext^> Contexts;
-        static std::unordered_map<RawRuntime, JsRuntime^> RuntimeDictionary;
+        std::unordered_map<RawContext, weak_ref> Contexts;
+        static std::unordered_map<RawRuntime, weak_ref> RuntimeDictionary;
 
         static bool CALLBACK JsThreadServiceCallbackImpl(_In_ JsBackgroundWorkItemCallback callback, _In_opt_ void *callbackState);
 
@@ -102,12 +108,6 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </remarks>
         /// <returns>The created script context.</returns>
         JsContext^ CreateContext();
-
-        /// <summary>
-        /// Gets created contexts.
-        /// </summary>
-        /// <returns>Collection of contexts.</returns>
-        Windows::Foundation::Collections::IIterable<JsContext^>^ GetContexts();
 
         /// <summary>
         /// Disposes a runtime.
@@ -146,26 +146,19 @@ namespace Opportunity::ChakraBridge::WinRT
         /// </summary>
         DECL_RW_PROPERTY(bool, IsEnabled);
 
-        using JsRtAttr = ::Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes;
-
         /// <summary>
         /// Creates a new runtime.
         /// </summary>
         /// <param name="attributes">The attributes of the runtime to be created.</param>
         /// <returns>The runtime created.</returns>
         [Overload("CreateWithAttributes")]
-        static JsRuntime^ Create(JsRtAttr attributes);
+        static JsRuntime^ Create(JsRA attributes);
         /// <summary>
         /// Creates a new runtime.
         /// </summary>
         /// <returns>The runtime created.</returns>
         [Overload("Create")]
         [DefaultOverload]
-        static JsRuntime^ Create() { return Create(JsRtAttr::None); }
-        /// <summary>
-        /// Gets created runtimes.
-        /// </summary>
-        /// <returns>Collection of runtimes.</returns>
-        static Windows::Foundation::Collections::IIterable<JsRuntime^>^ GetRuntimes();
+        static JsRuntime^ Create() { return Create(JsRA::None); }
     };
 };
