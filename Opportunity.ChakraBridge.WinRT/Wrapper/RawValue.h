@@ -1,15 +1,23 @@
 ﻿#pragma once
+#include "PreDeclear.h"
 #include "RawRef.h"
 #include "RawPropertyId.h"
 #include <cstring>
+#include <string>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    struct RawContext;
+    template<typename T>
+    using RawNativeFunction = RawValue(const RawValue& callee, const RawValue& caller, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, const T& callbackState);
 
-    struct[[nodiscard]] RawValue sealed :public RawRcRef
+    template<typename T>
+    using RawFinalizeCallback = void(const T& data);
+
+    template<typename T>
+    using RawObjectBeforeCollectCallback = void(const RawValue& ref, const T& callbackState);
+
+    struct[[nodiscard]] RawValue sealed :public RawRcRef<JsValueRef>
     {
-
 #pragma region Static Objects
 
         static RawValue GlobalObject()
@@ -51,11 +59,9 @@ namespace Opportunity::ChakraBridge::WinRT
 
 #pragma region Basic Construction
 
-        static constexpr RawValue Invalid() { return RawValue(); }
-
         constexpr RawValue() :RawRcRef(JS_INVALID_REFERENCE) {}
-
-        constexpr RawValue(JsValueRef ref) : RawRcRef(std::move(ref)) {}
+        constexpr RawValue(std::nullptr_t) : RawRcRef(JS_INVALID_REFERENCE) {}
+        explicit constexpr RawValue(JsValueRef ref) : RawRcRef(std::move(ref)) {}
 
 #pragma endregion
 
@@ -66,6 +72,39 @@ namespace Opportunity::ChakraBridge::WinRT
             RawValue obj;
             CHAKRA_CALL(JsCreateObject(&obj.Ref));
             return obj;
+        }
+
+        template<typename T, RawFinalizeCallback<T> finalizeCallback>
+        static void CALLBACK JsrtFinalizeCallback(_In_opt_ void *data)
+        {
+            finalizeCallback(DataFromJsrt<T>(data));
+        }
+
+        template<typename T, RawFinalizeCallback<T> finalizeCallback>
+        static RawValue CreateExternalObject(const T& data)
+        {
+            RawValue obj;
+            CHAKRA_CALL(JsCreateExternalObject(DataToJsrt(data), JsrtFinalizeCallback<T, finalizeCallback>, &obj.Ref));
+            return obj;
+        }
+
+        template<typename T, RawNativeFunction<T> function>
+        static JsValueRef CALLBACK RawNativeFunctionCall(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void *callbackState);
+
+        template<typename T, RawNativeFunction<T> function>
+        static RawValue CreateFunction(const T& callbackState)
+        {
+            RawValue r;
+            CHAKRA_CALL(JsCreateFunction(RawNativeFunctionCall<T, function>, DataToJsrt(callbackState), &r.Ref));
+            return r;
+        }
+
+        template<typename T, RawNativeFunction<T> function>
+        static RawValue CreateFunction(const RawValue& name, const T& callbackState)
+        {
+            RawValue r;
+            CHAKRA_CALL(JsCreateNamedFunction(name.Ref, RawNativeFunctionCall<T, function>, DataToJsrt(callbackState), &r.Ref));
+            return r;
         }
 
         static RawValue CreateSymbol(const RawValue& description)
@@ -153,19 +192,14 @@ static RawValue methodName(const RawValue& message)         \
             CHAKRA_CALL(JsPointerToString(v, len, &Ref));
         }
 
+        explicit RawValue(const std::wstring& v)
+        {
+            CHAKRA_CALL(JsPointerToString(v.c_str(), v.length(), &Ref));
+        }
+
         explicit RawValue(IInspectable*const v)
         {
             CHAKRA_CALL(JsInspectableToObject(v, &Ref));
-        }
-
-        explicit RawValue(::JsNativeFunction nativeFunction, void* callbackState)
-        {
-            CHAKRA_CALL(JsCreateFunction(nativeFunction, callbackState, &Ref));
-        }
-
-        explicit RawValue(const RawValue& name, ::JsNativeFunction nativeFunction, void* callbackState)
-        {
-            CHAKRA_CALL(JsCreateNamedFunction(name.Ref, nativeFunction, callbackState, &Ref));
         }
 
 #pragma endregion
@@ -295,25 +329,57 @@ static RawValue methodName(const RawValue& message)         \
             CHAKRA_CALL(JsSetPrototype(Ref, value.Ref));
         }
 
-        bool ObjInstanceOf(const RawValue& constructor)
+        bool ObjInstanceOf(const RawValue& constructor) const
         {
             bool r;
             CHAKRA_CALL(JsInstanceOf(Ref, constructor.Ref, &r));
             return r;
         }
 
-        RawValue ObjGetOwnPropertyNames()
+        RawValue ObjOwnPropertyNames() const
         {
             RawValue r;
             CHAKRA_CALL(JsGetOwnPropertyNames(Ref, &r.Ref));
             return r;
         }
 
-        RawValue ObjGetOwnPropertySymbols()
+        RawValue ObjOwnPropertySymbols() const
         {
             RawValue r;
             CHAKRA_CALL(JsGetOwnPropertySymbols(Ref, &r.Ref));
             return r;
+        }
+
+        template<typename T, RawObjectBeforeCollectCallback<T> callback>
+        static void CALLBACK JsObjectBeforeCollectCallback(_In_ JsValueRef ref, _In_opt_ void *callbackState)
+        {
+            callback(RawValue(ref), DataFromJsrt<T>(callbackState));
+        }
+
+        template<typename T, RawObjectBeforeCollectCallback<T> callback>
+        void ObjBeforeCollectCallback(const T& callbackState) const
+        {
+            CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Ref, DataToJsrt(callbackState), JsObjectBeforeCollectCallback<T, callback>));
+        }
+
+        void ObjBeforeCollectCallback(nullptr_t) const
+        {
+            CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Ref, nullptr, nullptr));
+        }
+
+        template<typename T>
+        T ExtObjExternalData() const
+        {
+            T v;
+            CHAKRA_CALL(JsGetExternalData(Ref, DataToJsrtPtr(v)));
+            return v;
+        }
+        template<typename T>
+        void ExtObjExternalData(const T&) const
+        {
+            T v;
+            CHAKRA_CALL(JsSetExternalData(Ref, DataToJsrt(v)));
+            return v;
         }
 
 #pragma endregion
@@ -348,7 +414,7 @@ static RawValue methodName(const RawValue& message)         \
 
         RawValue New() const
         {
-            RawValue argsv = RawValue::Invalid();
+            RawValue argsv;
             RawValue r;
             CHAKRA_CALL(JsConstructObject(Ref, reinterpret_cast<JsValueRef*>(&argsv), 1, &r.Ref));
             return r;
@@ -381,10 +447,11 @@ static RawValue methodName(const RawValue& message)         \
 
 #pragma endregion
 
-
 #pragma region Object Property Operation
 
+        struct PropertyStub;
         struct IndexedPropertyStub;
+
         struct[[nodiscard]] PropertyStub sealed
         {
             PropertyStub(const PropertyStub&) = delete;

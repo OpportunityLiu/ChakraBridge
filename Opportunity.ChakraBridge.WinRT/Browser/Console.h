@@ -48,7 +48,7 @@ namespace Opportunity::ChakraBridge::WinRT::Browser
         Console() { }
 
     internal:
-        static _Ret_maybenull_ JsValueRef Console::OnLogging(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void *callbackState);
+        static RawValue Console::OnLogging(const RawValue& callee, const RawValue& caller, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, const nullptr_t&);
 
     public:
         /// <summary>

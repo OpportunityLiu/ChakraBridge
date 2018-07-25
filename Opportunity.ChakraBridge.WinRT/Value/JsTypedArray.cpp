@@ -11,7 +11,7 @@ IJsArrayBuffer^ JsTypedArrayImpl::Buffer::get()
 {
     JsValueRef buf;
     CHAKRA_CALL(JsGetTypedArrayInfo(Reference.Ref, nullptr, &buf, nullptr, nullptr));
-    return safe_cast<IJsArrayBuffer^>(JsValue::CreateTyped(buf));
+    return safe_cast<IJsArrayBuffer^>(JsValue::CreateTyped(RawValue(buf)));
 }
 
 IBuffer^ JsTypedArrayImpl::Data::get()
@@ -107,12 +107,12 @@ uint32 GetSize(JsArrayType arrType)
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType)
 {
-    return CreateTyped(RawValue::CreateTypedArray(arrayType, RawValue::Invalid(), 0, 0));
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, nullptr, 0, 0));
 }
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, uint32 length)
 {
-    return CreateTyped(RawValue::CreateTypedArray(arrayType, RawValue::Invalid(), 0, length));
+    return CreateTyped(RawValue::CreateTypedArray(arrayType, nullptr, 0, length));
 }
 
 IJsTypedArray^ JsTypedArray::Create(JsArrayType arrayType, IJsValue^ arrayLike)

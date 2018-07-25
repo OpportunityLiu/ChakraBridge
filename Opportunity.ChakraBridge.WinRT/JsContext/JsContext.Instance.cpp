@@ -20,7 +20,7 @@ JsContext::~JsContext()
         // has been set to invalid by JsRuntime::~JsRuntime
         return;
     if (RawContext::Current() == Reference)
-        RawContext::Current(RawContext::Invalid());
+        RawContext::Current(nullptr);
     this->Runtime->Contexts.erase(Reference);
     Reference.Release();
 }

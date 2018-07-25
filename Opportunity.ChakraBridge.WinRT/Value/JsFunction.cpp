@@ -5,61 +5,44 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <memory>
 
 using namespace Opportunity::ChakraBridge::WinRT;
 
-std::unordered_map<RawValue, JsFunctionDelegate^> JsFunctionImpl::FunctionTable;
+std::unordered_map<RawValue, std::unique_ptr<JsFunctionImpl::FW>> JsFunctionImpl::FunctionTable;
 
-JsValueRef CALLBACK JsFunctionImpl::JsNativeFunctionImpl(
-    const JsValueRef callee, const bool isConstructCall, JsValueRef*const arguments, const unsigned short argumentCount, void* callbackState)
+RawValue JsFunctionImpl::JsNativeFunctionImpl(const RawValue& callee, const RawValue& caller, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, const FWP& nativeFunc)
 {
-    auto& ftable = JsFunctionImpl::FunctionTable;
-    auto funciter = ftable.find(callee);
-    if (funciter == ftable.end())
-    {
-        const auto error = RawValue::CreateError(RawValue(L"Specific native function is not found."));
-        RawContext::SetException(error);
-        return RawValue::Invalid().Ref;
-    }
     try
     {
-        auto func = funciter->second;
-        IJsObject^ callObj;
-        if (argumentCount == 0)
-            callObj = JsValue::GlobalObject;
-        else
+        _ASSERTE(nativeFunc != nullptr);
+        const auto func = nativeFunc->Function;
+        _ASSERTE(func != nullptr);
+        auto callerv = JsValue::CreateTyped(caller);
+        auto callObj = dynamic_cast<IJsObject^>(callerv);
+        if (callObj == nullptr)
         {
-            auto caller = JsValue::CreateTyped(arguments[0]);
-            callObj = dynamic_cast<IJsObject^>(caller);
-            if (callObj == nullptr)
-            {
-                const auto type = caller->Type;
-                if (type == JsType::Null || type == JsType::Undefined)
-                    callObj = JsValue::GlobalObject;
-                else
-                    callObj = JsValue::ToJsObject(caller);
-            }
+            const auto type = caller.Type();
+            if (type == JsType::Null || type == JsType::Undefined)
+                callObj = JsValue::GlobalObject;
+            else
+                callObj = JsValue::ToJsObject(callerv);
         }
-        auto args = std::vector<IJsValue^>(argumentCount - 1);
-        for (short i = 0; i < argumentCount - 1; i++)
+
+        auto args = std::vector<IJsValue^>(argumentCount);
+        for (unsigned short i = 0; i < argumentCount; i++)
         {
-            args[i] = JsValue::CreateTyped(arguments[i + 1]);
+            args[i] = JsValue::CreateTyped(arguments[i]);
         }
         auto result = func(ref new JsFunctionImpl(callee), callObj, isConstructCall, ref new Platform::Collections::VectorView<IJsValue^>(std::move(args)));
-        return get_ref(result).Ref;
+        return get_ref(result);
     }
     catch (Platform::Exception^ ex)
     {
         const auto mes = ex->Message;
         const auto error = RawValue::CreateError(RawValue(mes->Data(), mes->Length()));
         RawContext::SetException(error);
-        return RawValue::Invalid().Ref;
-    }
-    catch (...)
-    {
-        const auto error = RawValue::CreateError(RawValue(L"Unknown exception in native function."));
-        RawContext::SetException(error);
-        return RawValue::Invalid().Ref;
+        return nullptr;
     }
 }
 
@@ -76,7 +59,7 @@ void getArgs(IJsValue^ caller, vector_view<IJsValue>^ arguments, std::vector<Raw
     if (arguments->Size > std::numeric_limits<unsigned short>::max() - 1u)
         Throw(E_INVALIDARG, L"Too many arguments");
 
-    RawValue undef;
+    RawValue undef = nullptr;
 
     for (const auto var : arguments)
     {
@@ -109,7 +92,7 @@ void JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(const JsValueRef ref, v
     }
     __finally
     {
-        FunctionTable.erase(ref);
+        FunctionTable.erase(RawValue(ref));
     }
 }
 
@@ -179,9 +162,10 @@ string^ JsFunctionImpl::ToString()
 IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function)
 {
     NULL_CHECK(function);
-    const auto ref = RawValue(JsFunctionImpl::JsNativeFunctionImpl, nullptr);
+    auto ptr = std::make_unique<JsFunctionImpl::FW>(function);
+    const auto ref = RawValue::CreateFunction<JsFunctionImpl::FWP, JsFunctionImpl::JsNativeFunctionImpl>(ptr.get());
     auto func = ref new JsFunctionImpl(ref);
-    func->InitForNativeFunc(function);
+    func->InitForNativeFunc(std::move(ptr));
     return func;
 }
 
@@ -190,9 +174,10 @@ IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, IJsString^ name)
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
-    const auto ref = RawValue(get_ref(name), JsFunctionImpl::JsNativeFunctionImpl, nullptr);
+    auto ptr = std::make_unique<JsFunctionImpl::FW>(function);
+    const auto ref = RawValue::CreateFunction<JsFunctionImpl::FWP, JsFunctionImpl::JsNativeFunctionImpl>(get_ref(name), ptr.get());
     auto func = ref new JsFunctionImpl(ref);
-    func->InitForNativeFunc(function);
+    func->InitForNativeFunc(std::move(ptr));
     return func;
 }
 
@@ -201,14 +186,15 @@ IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, string^ name)
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
-    const auto ref = RawValue(RawValue(name->Data(), name->Length()), JsFunctionImpl::JsNativeFunctionImpl, nullptr);
+    auto ptr = std::make_unique<JsFunctionImpl::FW>(function);
+    const auto ref = RawValue::CreateFunction<JsFunctionImpl::FWP, JsFunctionImpl::JsNativeFunctionImpl>(RawValue(name->Data(), name->Length()), ptr.get());
     auto func = ref new JsFunctionImpl(ref);
-    func->InitForNativeFunc(function);
+    func->InitForNativeFunc(std::move(ptr));
     return func;
 }
 
-void JsFunctionImpl::InitForNativeFunc(JsFunctionDelegate^ function)
+void JsFunctionImpl::InitForNativeFunc(std::unique_ptr<FW> function)
 {
-    FunctionTable[Reference] = function;
+    FunctionTable[Reference] = std::move(function);
     this->ObjectCollectingCallback = nullptr;
 }

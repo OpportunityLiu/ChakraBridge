@@ -23,7 +23,7 @@ namespace Opportunity::ChakraBridge::WinRT
     inline std::enable_if_t<std::is_base_of_v<IJsValue, T>, RawValue> get_ref(T^const inter)
     {
         if (inter == nullptr)
-            return RawValue::Invalid();
+            return nullptr;
         return safe_cast<JsValueImpl^>(inter)->Reference;
     }
 

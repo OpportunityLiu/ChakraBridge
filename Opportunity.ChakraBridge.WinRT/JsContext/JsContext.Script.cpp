@@ -7,24 +7,26 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSourceContext JsContext::SourceContext = 0;
 
-void JsContext::JsPromiseContinuationCallbackImpl(const JsValueRef task, void*const callbackState)
+void JsContext::JsPromiseContinuationCallbackImpl(const RawValue& task, const RawContext& callbackState)
 {
     const auto current = Get(callbackState);
-    const auto tt = RawValue(task);
-    tt.AddRef();
-    current->PromiseContinuationQueue.push(tt);
+    task.AddRef();
+    current->PromiseContinuationQueue.push(std::move(task));
 }
 
 void JsContext::HandlePromiseContinuation()
 {
     const auto current = Current;
+    auto& queue = current->PromiseContinuationQueue;
+    if (queue.empty())
+        return;
     const RawValue global = RawValue::GlobalObject();
-    while (!current->PromiseContinuationQueue.empty())
+    while (!queue.empty())
     {
-        auto task = current->PromiseContinuationQueue.front();
-        current->PromiseContinuationQueue.pop();
-        void(task.Invoke(global));
+        auto task = queue.front();
+        queue.pop();
         task.Release();
+        void(task.Invoke(global));
     }
 }
 

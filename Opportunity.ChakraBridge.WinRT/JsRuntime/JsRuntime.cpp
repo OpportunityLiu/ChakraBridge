@@ -26,14 +26,14 @@ bool JsRuntime::JsThreadServiceCallbackImpl(const JsBackgroundWorkItemCallback c
 
 void CALLBACK JsRuntime::JsBeforeCollectCallbackImpl(_In_opt_ void *callbackState)
 {
-    JsRuntimeHandle rth = static_cast<JsRuntimeHandle>(callbackState);
+    const auto rth = RawRuntime(callbackState);
     auto rt = JsRuntime::RuntimeDictionary[rth];
     rt->CollectingGarbage(rt, nullptr);
 }
 
 bool CALLBACK JsRuntime::JsMemoryAllocationCallbackImpl(_In_opt_ void *callbackState, _In_::JsMemoryEventType allocationEvent, _In_ size_t allocationSize)
 {
-    JsRuntimeHandle rth = static_cast<JsRuntimeHandle>(callbackState);
+    const auto rth = RawRuntime(callbackState);
     auto rt = JsRuntime::RuntimeDictionary[rth];
     auto args = ref new JsMemoryEventArgs(allocationEvent, allocationSize);
     rt->AllocatingMemory(rt, args);
@@ -62,11 +62,11 @@ JsRuntime::~JsRuntime()
     {
         RawRuntime cr = cc.Runtime();
         if (cr == Handle)
-            RawContext::Current(RawContext::Invalid());
+            RawContext::Current(nullptr);
     }
     CHAKRA_CALL(JsDisposeRuntime(Handle.Ref));
     RuntimeDictionary.erase(Handle);
-    std::for_each(this->Contexts.begin(), this->Contexts.end(), [](auto& item) { item.second->Reference = RawContext::Invalid(); });
+    std::for_each(this->Contexts.begin(), this->Contexts.end(), [](auto& item) { item.second->Reference = nullptr; });
     this->Contexts.clear();
 }
 
@@ -77,10 +77,9 @@ void JsRuntime::CollectGarbage()
 
 JsContext^ JsRuntime::CreateContext()
 {
-    RawContext ref;
-    CHAKRA_CALL(JsCreateContext(Handle.Ref, &ref.Ref));
+    const auto ref = RawContext(Handle);
     auto context = ref new JsContext(ref);
-    this->Contexts.insert(std::make_pair(ref, context));
+    Contexts.insert(std::make_pair(ref, context));
     return context;
 }
 
@@ -94,9 +93,7 @@ Windows::Foundation::Collections::IIterable<JsContext^>^ JsRuntime::GetContexts(
 
 JsRuntime^ JsRuntime::Create(JsRtAttr attributes)
 {
-    JsRuntimeHandle handle;
-    CHAKRA_CALL(JsCreateRuntime(static_cast<::JsRuntimeAttributes>(attributes), JsThreadServiceCallbackImpl, &handle));
-    return ref new JsRuntime(handle);
+    return ref new JsRuntime(RawRuntime(attributes, JsThreadServiceCallbackImpl));
 }
 
 uint64 JsRuntime::MemoryUsage::get()

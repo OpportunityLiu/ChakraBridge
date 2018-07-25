@@ -52,7 +52,7 @@ namespace Opportunity::ChakraBridge::WinRT
 
 #pragma region Static
     internal:
-        static JsContext^ Get(RawContext reference);
+        static JsContext^ Get(const RawContext& reference);
         static RawValue LastJsError;
         static void GetAndClearExceptionCore();
 
@@ -165,7 +165,7 @@ namespace Opportunity::ChakraBridge::WinRT
         static JsSourceContext SourceContext;
 
         std::queue<RawValue> PromiseContinuationQueue;
-        static void CALLBACK JsPromiseContinuationCallbackImpl(_In_ JsValueRef task, _In_opt_ void* callbackState);
+        static void JsContext::JsPromiseContinuationCallbackImpl(const RawValue& task, const RawContext& callbackState);
     internal:
         static void HandlePromiseContinuation();
 

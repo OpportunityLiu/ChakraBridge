@@ -7,6 +7,7 @@ JsContextScope::JsContextScope(JsContext^ jsContext, bool disposeContext)
     : previous(JsContext::Current), current(jsContext), disposeContext(disposeContext)
 {
     _ASSERTE(jsContext != nullptr);
+    JsContext::Current = jsContext;
 }
 
 JsContextScope::~JsContextScope()

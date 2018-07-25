@@ -66,11 +66,16 @@ namespace Test
                     {
                         try
                         {
+                            var obj = JsExternalObject.Create(this);
+                            obj.ExternalData = 12;
+                            obj.ExternalData = 100;
                             JsContext.StartDebugging();
+                            var func = JsFunction.Create(saf);
                             var console = Console.GetOrCreate();
                             console.Logging += Con_Logging;
                             var c2 = Console.GetOrCreate();
-                            JsContext.RunScript(js.OpenText().ReadToEnd(), js.Name);
+                            JsValue.GlobalObject["func"] = func;
+                            JsContext.RunScript("console.log(1,'2',{});func(1,'2',{});new func();", js.Name);
                         }
                         catch (Exception)
                         {

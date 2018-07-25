@@ -9,7 +9,7 @@ using namespace Opportunity::ChakraBridge::WinRT;
 /// </summary>
 /// <param name="reference">The reference.</param>
 /// <returns>The instance of the <see cref="JsContext"/></returns>
-JsContext^ JsContext::Get(RawContext reference)
+JsContext^ JsContext::Get(const RawContext& reference)
 {
     if (!reference.IsValid())
         return nullptr;
@@ -34,12 +34,12 @@ void JsContext::SetException(IJsError^ exception)
     RawContext::SetException(get_ref(exception));
 }
 
-RawValue JsContext::LastJsError;
+RawValue JsContext::LastJsError = nullptr;
 
 void JsContext::GetAndClearExceptionCore()
 {
     if (JsGetAndClearException(&LastJsError.Ref) != ::JsNoError)
-        LastJsError = RawValue::Invalid();
+        LastJsError = nullptr;
 }
 
 IJsError^ JsContext::GetAndClearException()
@@ -66,14 +66,12 @@ JsContext^ JsContext::Current::get()
 
 void JsContext::Current::set(JsContext^ value)
 {
-    LastJsError = RawValue::Invalid();
-    RawContext v;
-    if (value != nullptr)
-        v = value->Reference;
+    LastJsError = nullptr;
+    const RawContext v = value == nullptr ? nullptr : value->Reference;
     RawContext::Current(v);
     if (v.IsValid())
     {
-        CHAKRA_CALL(JsSetPromiseContinuationCallback(JsPromiseContinuationCallbackImpl, v.Ref));
+        RawContext::SetPromiseContinuationCallback<RawContext, JsPromiseContinuationCallbackImpl>(v);
     }
 }
 

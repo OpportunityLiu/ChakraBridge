@@ -30,8 +30,8 @@
     <ClCompile Include="Native\NativeBuffer.cpp" />
     <ClCompile Include="Value\JsTypedArray.cpp" />
     <ClCompile Include="Native\BufferPointer.cpp" />
-    <ClCompile Include="pch.cpp" />
     <ClCompile Include="Browser\Console.cpp" />
+    <ClCompile Include="pch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -67,6 +67,7 @@
     <ClInclude Include="Wrapper\RawRuntime.h" />
     <ClInclude Include="Wrapper\RawRef.h" />
     <ClInclude Include="Wrapper\RawPropertyId.h" />
+    <ClInclude Include="Wrapper\PreDeclear.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

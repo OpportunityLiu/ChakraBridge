@@ -64,8 +64,6 @@ namespace Opportunity::ChakraBridge::WinRT
     internal:
         JsFunctionImpl(RawValue ref) :JsObjectImpl(std::move(ref)) {}
 
-        void InitForNativeFunc(JsFunctionDelegate^ function);
-
         INHERIT_INTERFACE_R_PROPERTY(Type, JsType, IJsValue);
         INHERIT_INTERFACE_R_PROPERTY(Context, JsContext^, IJsValue);
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
@@ -91,9 +89,17 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
-        static std::unordered_map<RawValue, JsFunctionDelegate^> FunctionTable;
-        static _Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef* arguments, _In_ unsigned short argumentCount, _In_opt_ void* callbackState);
+        using FWP = struct FW
+        {
+            JsFunctionDelegate^const Function;
+
+            FW(JsFunctionDelegate^const function) :Function(function) {}
+        }*;
+
+        static std::unordered_map<RawValue, std::unique_ptr<JsFunctionImpl::FW>> FunctionTable;
+        static RawValue JsNativeFunctionImpl(const RawValue& callee, const RawValue& caller, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, const FWP& nativeFunc);
         static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ JsValueRef ref, _In_opt_ void * callbackState);
+        void InitForNativeFunc(std::unique_ptr<FW> function);
 
     public:
         virtual IJsValue^ Invoke(IJsValue^ caller, vector_view<IJsValue>^ arguments);

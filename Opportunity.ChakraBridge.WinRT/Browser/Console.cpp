@@ -7,15 +7,14 @@ using namespace Opportunity::ChakraBridge::WinRT::Browser;
 
 #define RT_EXT_CONSOLE_NAME L"__rt_external_console__"
 
-_Ret_maybenull_ JsValueRef Console::OnLogging(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void *callbackState)
+RawValue Console::OnLogging(const RawValue& callee, const RawValue& caller, const bool isConstructCall, const RawValue*const arguments, const unsigned short argumentCount, const nullptr_t&)
 {
-    _ASSERTE(argumentCount == 4);
-    const RawValue caller = arguments[0];
+    _ASSERTE(argumentCount == 3);
     auto con = reinterpret_cast<Console^>(caller[RT_EXT_CONSOLE_NAME]().ToInspectable());
     auto args = ref new ConsoleLoggingEventArgs();
-    args->Verb = RawValue(arguments[1]).ToString();
-    args->Data = (ref new JsArrayImpl(arguments[2]))->ArrayGetView();
-    auto callstack = RawValue(arguments[3]).ToString();
+    args->Verb = arguments[0].ToString();
+    args->Data = (ref new JsArrayImpl(arguments[1]))->ArrayGetView();
+    auto callstack = arguments[2].ToString();
     auto callstackptr = callstack.Data();
     auto lf = 0;
     while (*callstackptr != L'\0' && lf < 3)
@@ -45,7 +44,7 @@ Console^ Console::GetOrCreate()
     catch (...) {}
     auto con = ref new Console();
     auto jsCon = RawValue(reinterpret_cast<IInspectable*>(con));
-    auto callback = RawValue(OnLogging, nullptr);
+    auto callback = RawValue::CreateFunction<nullptr_t, OnLogging>(nullptr);
     const auto func = RawContext::RunScript(LR"=(
     (function() {
         let logging = Symbol('LoggingCallback');

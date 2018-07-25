@@ -1,14 +1,16 @@
 ﻿#pragma once
+#include "PreDeclear.h"
 #include "RawRef.h"
 #include "RawRuntime.h"
 #include "RawValue.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
-    struct[[nodiscard]] RawContext sealed : public RawRcRef
-    {
-        static constexpr RawContext Invalid() { return RawContext(); }
+    template<typename T>
+    using RawPromiseContinuationCallback = void(const RawValue& task, const T& callbackState);
 
+    struct[[nodiscard]] RawContext sealed : public RawRcRef<JsContextRef>
+    {
         static RawContext Current()
         {
             RawContext ref;
@@ -48,6 +50,20 @@ namespace Opportunity::ChakraBridge::WinRT
         static void ProjectWinRTNamespace(const wchar_t*const namespaceName)
         {
             CHAKRA_CALL(JsProjectWinRTNamespace(namespaceName));
+        }
+
+        template<typename T, RawPromiseContinuationCallback<T> promiseContinuationCallback>
+        static void CALLBACK JsPromiseContinuationCallbackRawImpl(_In_ JsValueRef task, _In_opt_ void *callbackState)
+        {
+            promiseContinuationCallback(RawValue(task), DataFromJsrt<T>(callbackState));
+        }  
+
+        template<typename T, RawPromiseContinuationCallback<T> promiseContinuationCallback>
+        static void SetPromiseContinuationCallback(const T& callbackState)
+        {
+            CHAKRA_CALL(JsSetPromiseContinuationCallback(
+                JsPromiseContinuationCallbackRawImpl<T, promiseContinuationCallback>
+                , DataToJsrt(callbackState)));
         }
 
         static RawValue RunScript(const wchar_t*const script, const JsSourceContext sourceContext, const wchar_t *sourceUrl)
@@ -117,8 +133,10 @@ namespace Opportunity::ChakraBridge::WinRT
             return r;
         }
 
-        constexpr RawContext() :RawRcRef() {}
-        constexpr RawContext(JsContextRef ref) : RawRcRef(std::move(ref)) {}
+        explicit RawContext(RawRuntime runtime)
+        {
+            CHAKRA_CALL(JsCreateContext(runtime.Ref, &Ref));
+        }
 
         RawRuntime Runtime() const
         {
@@ -127,6 +145,9 @@ namespace Opportunity::ChakraBridge::WinRT
             return r;
         }
 
+        constexpr RawContext(nullptr_t) : RawRcRef(JS_INVALID_REFERENCE) {}
+        constexpr RawContext() : RawRcRef(JS_INVALID_REFERENCE) {}
+        explicit constexpr RawContext(JsContextRef ref) : RawRcRef(std::move(ref)) {}
     };
 
     static_assert(sizeof(RawContext) == sizeof(JsContextRef));

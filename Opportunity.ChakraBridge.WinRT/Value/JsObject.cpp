@@ -69,7 +69,7 @@ void JsObjectImpl::Remove(IJsSymbol^ key)
 
 void JsObjectImpl::StrClear()
 {
-    const auto arr = Reference.ObjGetOwnPropertyNames();
+    const auto arr = Reference.ObjOwnPropertyNames();
     const auto n = arr[L"length"]().ToInt();
     for (int i = 0; i < n; i++)
     {
@@ -79,7 +79,7 @@ void JsObjectImpl::StrClear()
 
 void JsObjectImpl::SymClear()
 {
-    const auto arr = Reference.ObjGetOwnPropertySymbols();
+    const auto arr = Reference.ObjOwnPropertySymbols();
     const auto n = arr[L"length"]().ToInt();
     for (int i = 0; i < n; i++)
     {
@@ -99,7 +99,7 @@ JsObjectImpl::ISymIterator^ JsObjectImpl::SymFirst()
 
 JsObjectImpl::IStrMapView^ JsObjectImpl::GetStrView()
 {
-    const auto arr = Reference.ObjGetOwnPropertyNames();
+    const auto arr = Reference.ObjOwnPropertyNames();
     const auto n = arr[L"length"]().ToInt();
     auto view = ref new Platform::Collections::UnorderedMap<string^, IJsValue^>(static_cast<size_t>(n));
     for (int i = 0; i < n; i++)
@@ -113,7 +113,7 @@ JsObjectImpl::IStrMapView^ JsObjectImpl::GetStrView()
 
 JsObjectImpl::ISymMapView^ JsObjectImpl::GetSymView()
 {
-    const auto arr = Reference.ObjGetOwnPropertySymbols();
+    const auto arr = Reference.ObjOwnPropertySymbols();
     const auto n = arr[L"length"]().ToInt();
     auto view = ref new Platform::Collections::UnorderedMap<IJsSymbol^, IJsValue^>(static_cast<size_t>(n));
     for (int i = 0; i < n; i++)
@@ -126,12 +126,12 @@ JsObjectImpl::ISymMapView^ JsObjectImpl::GetSymView()
 
 uint32 JsObjectImpl::StrSize::get()
 {
-    return static_cast<uint32>(Reference.ObjGetOwnPropertyNames()[L"length"]().ToInt());
+    return static_cast<uint32>(Reference.ObjOwnPropertyNames()[L"length"]().ToInt());
 }
 
 uint32 JsObjectImpl::SymSize::get()
 {
-    return static_cast<uint32>(Reference.ObjGetOwnPropertySymbols()[L"length"]().ToInt());
+    return static_cast<uint32>(Reference.ObjOwnPropertySymbols()[L"length"]().ToInt());
 }
 
 string^ JsObjectImpl::ToString()
@@ -175,12 +175,13 @@ std::unordered_map<RawValue, JsObjectImpl::JsOBCC^> JsObjectImpl::OBCCMap;
 
 void CALLBACK JsObjectImpl::JsObjectBeforeCollectCallbackImpl(const JsValueRef ref, void *const callbackState)
 {
-    auto v = OBCCMap.find(ref);
+    const auto r = RawValue(ref);
+    auto v = OBCCMap.find(r);
     if (v == OBCCMap.end())
         return;
     auto f = v->second;
-    OBCCMap.erase(ref);
-    f(safe_cast<IJsObject^>(JsValue::CreateTyped(ref)));
+    OBCCMap.erase(r);
+    f(safe_cast<IJsObject^>(JsValue::CreateTyped(r)));
 }
 
 JsObjectImpl::JsOBCC^ JsObjectImpl::ObjectCollectingCallback::get()
@@ -274,13 +275,13 @@ bool JsObject::DefineProperty(IJsObject^ obj, IJsSymbol^ propertyId, IJsObject^ 
 IJsArray^ JsObject::GetOwnPropertyNames(IJsObject^ obj)
 {
     NULL_CHECK(obj);
-    return ref new JsArrayImpl(get_ref(obj).ObjGetOwnPropertyNames());
+    return ref new JsArrayImpl(get_ref(obj).ObjOwnPropertyNames());
 }
 
 IJsArray^ JsObject::GetOwnPropertySymbols(IJsObject^ obj)
 {
     NULL_CHECK(obj);
-    return ref new JsArrayImpl(get_ref(obj).ObjGetOwnPropertySymbols());
+    return ref new JsArrayImpl(get_ref(obj).ObjOwnPropertySymbols());
 }
 
 IJsObject^ InnerGetOwnPropertyDescriptor(IJsObject^ obj, RawPropertyId propertyId)

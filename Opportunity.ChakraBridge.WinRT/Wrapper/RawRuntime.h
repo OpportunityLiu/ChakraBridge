@@ -1,15 +1,19 @@
 ﻿#pragma once
+#include "PreDeclear.h"
 #include "RawRef.h"
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+    using RawThreadServiceCallback = bool (CALLBACK *)(_In_ JsBackgroundWorkItemCallback callback, _In_opt_ void *callbackState);
+
     struct[[nodiscard]] RawRuntime sealed :public RawRef<JsRuntimeHandle>
     {
-        static constexpr RawRuntime Invalid() { return RawRuntime(); }
+        using JsRtAttr = ::Opportunity::ChakraBridge::WinRT::JsRuntimeAttributes;
 
-        constexpr RawRuntime() :RawRef(JS_INVALID_RUNTIME_HANDLE) {}
-        constexpr RawRuntime(JsRuntimeHandle handle) : RawRef(std::move(handle)) {}
-        constexpr bool IsValid() const { return Ref != JS_INVALID_RUNTIME_HANDLE; };
+        explicit RawRuntime(const JsRtAttr attributes, const RawThreadServiceCallback threadService)
+        {
+            CHAKRA_CALL(JsCreateRuntime(static_cast<::JsRuntimeAttributes>(attributes), threadService, &Ref));
+        }
 
         void CollectGarbage() const
         {
@@ -49,6 +53,10 @@ namespace Opportunity::ChakraBridge::WinRT
             else
                 CHAKRA_CALL(JsDisableRuntimeExecution(Ref));
         }
+
+        explicit constexpr RawRuntime(JsRuntimeHandle handle) : RawRef(std::move(handle)) {}
+        constexpr RawRuntime(std::nullptr_t) : RawRef(JS_INVALID_RUNTIME_HANDLE) {}
+        constexpr RawRuntime() :RawRef(JS_INVALID_REFERENCE) {}
     };
 
     static_assert(sizeof(RawRuntime) == sizeof(JsRuntimeHandle));

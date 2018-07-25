@@ -41,7 +41,7 @@ IJsSymbol^ JsSymbol::Create(string^ description)
 
 IJsSymbol^ JsSymbol::Create()
 {
-    return InnerCreate(RawValue::Invalid());
+    return InnerCreate(nullptr);
 }
 
 template<JsType TExpacted>
@@ -60,7 +60,7 @@ RawValue GetSymbolProperty(const wchar_t* name)
         goto GET_FALLBACK;
     }
 GET_FALLBACK:
-    const auto sym = RawValue::CreateSymbol(RawValue::Invalid()).ToJsObjet();
+    const auto sym = RawValue::CreateSymbol(nullptr).ToJsObjet();
     return sym[L"constructor"][name];
 }
 
@@ -68,20 +68,20 @@ IJsSymbol^ JsSymbol::For(IJsValue^ key)
 {
     NULL_CHECK(key);
     const auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
-    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(RawValue::Invalid(), to_impl(key)->Reference)));
+    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(nullptr, to_impl(key)->Reference)));
 }
 
 IJsSymbol^ JsSymbol::For(string^ key)
 {
     const auto forFunc = GetSymbolProperty<JsType::Function>(L"for");
-    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(RawValue::Invalid(), RawValue(key->Data(), key->Length()))));
+    return safe_cast<IJsSymbol^>(JsValue::CreateTyped(forFunc.Invoke(nullptr, RawValue(key->Data(), key->Length()))));
 }
 
 IJsString^ JsSymbol::KeyFor(IJsSymbol^ symbol)
 {
     NULL_CHECK(symbol);
     const auto keyforFunc = GetSymbolProperty<JsType::Function>(L"keyFor");
-    const auto key = keyforFunc.Invoke(RawValue::Invalid(), to_impl(symbol)->Reference);
+    const auto key = keyforFunc.Invoke(nullptr, to_impl(symbol)->Reference);
     if (key.Type() != JsType::String)
         return nullptr;
     return ref new JsStringImpl(key);

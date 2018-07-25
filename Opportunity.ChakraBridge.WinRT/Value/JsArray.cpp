@@ -144,5 +144,5 @@ IJsArray^ JsArray::Create(IJsValue^ arrayLike)
 {
     NULL_CHECK(arrayLike);
     const auto fromFunc = GetArrayProperty<JsType::Function>(L"from");
-    return safe_cast<IJsArray^>(JsValue::CreateTyped(fromFunc.Invoke(RawValue::Invalid(), get_ref(arrayLike))));
+    return safe_cast<IJsArray^>(JsValue::CreateTyped(fromFunc.Invoke(nullptr, get_ref(arrayLike))));
 }

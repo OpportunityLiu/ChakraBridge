@@ -48,8 +48,6 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD_EXPLICT(First, StrFirst, IStrIterator^, IStrIterable);
         INHERIT_INTERFACE_METHOD_EXPLICT(First, SymFirst, ISymIterator^, ISymIterable);
 
-        static void CALLBACK JsFinalizeCallbackImpl(_In_opt_ void *data);
-
     public:
         virtual DECL_RW_PROPERTY(object^, ExternalData);
     };
