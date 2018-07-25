@@ -42,13 +42,13 @@ namespace Opportunity::ChakraBridge::WinRT::Browser
     /// <summary>
     /// WinRT implementation of js Console object.
     /// </summary>
-    public ref class Console sealed : [Default] IConsole
+    public ref class Console sealed: [Default] IConsole
     {
     private:
         Console() { }
 
     internal:
-        static IJsValue^ OnLogging(IJsFunction^ callee, IJsObject^ caller, bool isConstructCall, vector_view<IJsValue>^ arguments);
+        static _Ret_maybenull_ JsValueRef Console::OnLogging(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void *callbackState);
 
     public:
         /// <summary>

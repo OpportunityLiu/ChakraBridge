@@ -93,7 +93,7 @@ namespace Opportunity::ChakraBridge::WinRT
 
         static std::unordered_map<RawValue, JsFunctionDelegate^> FunctionTable;
         static _Ret_maybenull_ JsValueRef CALLBACK JsNativeFunctionImpl(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef* arguments, _In_ unsigned short argumentCount, _In_opt_ void* callbackState);
-        static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ const RawValue ref, _In_opt_ void *const callbackState);
+        static void CALLBACK JsFunctionBeforeCollectCallbackImpl(_In_ JsValueRef ref, _In_opt_ void * callbackState);
 
     public:
         virtual IJsValue^ Invoke(IJsValue^ caller, vector_view<IJsValue>^ arguments);

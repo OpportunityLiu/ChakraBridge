@@ -4,12 +4,9 @@
 using namespace Opportunity::ChakraBridge::WinRT;
 
 JsContextScope::JsContextScope(JsContext^ jsContext, bool disposeContext)
-    : current(jsContext), disposeContext(disposeContext)
+    : previous(JsContext::Current), current(jsContext), disposeContext(disposeContext)
 {
-    CHAKRA_CALL(JsGetCurrentContext(&this->previous));
-    JsContext::Current = jsContext;
-    if (this->previous != JS_INVALID_REFERENCE)
-        CHAKRA_CALL(JsAddRef(this->previous, nullptr));
+    _ASSERTE(jsContext != nullptr);
 }
 
 JsContextScope::~JsContextScope()
@@ -18,10 +15,8 @@ JsContextScope::~JsContextScope()
     this->current = nullptr;
     if (c == nullptr)
         return;
-    CHAKRA_CALL(JsSetCurrentContext(this->previous));
+    JsContext::Current = this->previous;
     if (this->disposeContext)
         delete c;
-    if (this->previous != JS_INVALID_REFERENCE)
-        CHAKRA_CALL(JsRelease(this->previous, nullptr));
-    this->previous = JS_INVALID_REFERENCE;
+    this->previous = nullptr;
 }

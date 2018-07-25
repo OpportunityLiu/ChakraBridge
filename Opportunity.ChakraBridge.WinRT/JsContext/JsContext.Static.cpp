@@ -73,7 +73,7 @@ void JsContext::Current::set(JsContext^ value)
     RawContext::Current(v);
     if (v.IsValid())
     {
-        CHAKRA_CALL(JsSetPromiseContinuationCallback(reinterpret_cast<JsPromiseContinuationCallback>(JsPromiseContinuationCallbackImpl), v.Ref));
+        CHAKRA_CALL(JsSetPromiseContinuationCallback(JsPromiseContinuationCallbackImpl, v.Ref));
     }
 }
 

@@ -66,7 +66,7 @@ namespace Opportunity::ChakraBridge::WinRT
         INHERIT_INTERFACE_METHOD(ToInspectable, object^, IJsValue);
 
         static std::unordered_map<RawValue, JsOBCC^> OBCCMap;
-        static void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ const RawValue ref, _In_opt_ void * const callbackState);
+        static void CALLBACK JsObjectBeforeCollectCallbackImpl(_In_ JsValueRef ref, _In_opt_ void * callbackState);
 
     public:
         virtual Platform::String^ ToString() override;

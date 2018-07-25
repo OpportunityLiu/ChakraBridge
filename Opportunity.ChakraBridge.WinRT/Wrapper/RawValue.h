@@ -1,11 +1,12 @@
 ﻿#pragma once
 #include "RawRef.h"
-#include "RawContext.h"
 #include "RawPropertyId.h"
 #include <cstring>
 
 namespace Opportunity::ChakraBridge::WinRT
 {
+    struct RawContext;
+
     struct[[nodiscard]] RawValue sealed :public RawRcRef
     {
 
@@ -157,6 +158,16 @@ static RawValue methodName(const RawValue& message)         \
             CHAKRA_CALL(JsInspectableToObject(v, &Ref));
         }
 
+        explicit RawValue(::JsNativeFunction nativeFunction, void* callbackState)
+        {
+            CHAKRA_CALL(JsCreateFunction(nativeFunction, callbackState, &Ref));
+        }
+
+        explicit RawValue(const RawValue& name, ::JsNativeFunction nativeFunction, void* callbackState)
+        {
+            CHAKRA_CALL(JsCreateNamedFunction(name.Ref, nativeFunction, callbackState, &Ref));
+        }
+
 #pragma endregion
 
 #pragma region Inner Convertion
@@ -240,12 +251,7 @@ static RawValue methodName(const RawValue& message)         \
             return type;
         }
 
-        RawContext Context() const
-        {
-            RawContext ref;
-            CHAKRA_CALL(JsGetContextOfObject(Ref, &ref.Ref));
-            return ref;
-        }
+        RawContext Context() const;
 
 #pragma endregion
 

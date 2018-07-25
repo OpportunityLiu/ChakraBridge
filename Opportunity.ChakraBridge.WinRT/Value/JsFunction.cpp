@@ -10,7 +10,7 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 std::unordered_map<RawValue, JsFunctionDelegate^> JsFunctionImpl::FunctionTable;
 
-JsValueRef JsFunctionImpl::JsNativeFunctionImpl(
+JsValueRef CALLBACK JsFunctionImpl::JsNativeFunctionImpl(
     const JsValueRef callee, const bool isConstructCall, JsValueRef*const arguments, const unsigned short argumentCount, void* callbackState)
 {
     auto& ftable = JsFunctionImpl::FunctionTable;
@@ -101,7 +101,7 @@ void getArgs(IJsValue^ caller, vector_view<IJsValue>^ arguments, std::vector<Raw
     }
 }
 
-void JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(const RawValue ref, void *const callbackState)
+void JsFunctionImpl::JsFunctionBeforeCollectCallbackImpl(const JsValueRef ref, void *const callbackState)
 {
     __try
     {
@@ -125,7 +125,7 @@ void JsFunctionImpl::ObjectCollectingCallback::set(JsOBCC^ value)
         JsObjectImpl::ObjectCollectingCallback = value;
         return;
     }
-    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr, reinterpret_cast<::JsObjectBeforeCollectCallback>(JsFunctionBeforeCollectCallbackImpl)));
+    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr, JsFunctionBeforeCollectCallbackImpl));
     if (value == nullptr)
         OBCCMap.erase(Reference);
     else
@@ -179,8 +179,7 @@ string^ JsFunctionImpl::ToString()
 IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function)
 {
     NULL_CHECK(function);
-    JsValueRef ref;
-    CHAKRA_CALL(JsCreateFunction(reinterpret_cast<::JsNativeFunction>(JsFunctionImpl::JsNativeFunctionImpl), nullptr, &ref));
+    const auto ref = RawValue(JsFunctionImpl::JsNativeFunctionImpl, nullptr);
     auto func = ref new JsFunctionImpl(ref);
     func->InitForNativeFunc(function);
     return func;
@@ -191,8 +190,7 @@ IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, IJsString^ name)
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
-    JsValueRef ref;
-    CHAKRA_CALL(JsCreateNamedFunction(get_ref(name).Ref, reinterpret_cast<::JsNativeFunction>(JsFunctionImpl::JsNativeFunctionImpl), nullptr, &ref));
+    const auto ref = RawValue(get_ref(name), JsFunctionImpl::JsNativeFunctionImpl, nullptr);
     auto func = ref new JsFunctionImpl(ref);
     func->InitForNativeFunc(function);
     return func;
@@ -203,8 +201,7 @@ IJsFunction^ JsFunction::Create(JsFunctionDelegate^ function, string^ name)
     if (name == nullptr)
         return Create(function);
     NULL_CHECK(function);
-    JsValueRef ref;
-    CHAKRA_CALL(JsCreateNamedFunction(RawValue(name->Data(), name->Length()).Ref, reinterpret_cast<::JsNativeFunction>(JsFunctionImpl::JsNativeFunctionImpl), nullptr, &ref));
+    const auto ref = RawValue(RawValue(name->Data(), name->Length()), JsFunctionImpl::JsNativeFunctionImpl, nullptr);
     auto func = ref new JsFunctionImpl(ref);
     func->InitForNativeFunc(function);
     return func;

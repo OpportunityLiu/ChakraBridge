@@ -66,10 +66,11 @@ namespace Test
                     {
                         try
                         {
+                            JsContext.StartDebugging();
                             var console = Console.GetOrCreate();
                             console.Logging += Con_Logging;
                             var c2 = Console.GetOrCreate();
-                            JsContext.RunScript("console.log(1)");
+                            JsContext.RunScript(js.OpenText().ReadToEnd(), js.Name);
                         }
                         catch (Exception)
                         {

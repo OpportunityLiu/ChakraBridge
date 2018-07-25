@@ -165,7 +165,7 @@ namespace Opportunity::ChakraBridge::WinRT
         static JsSourceContext SourceContext;
 
         std::queue<RawValue> PromiseContinuationQueue;
-        static void CALLBACK JsPromiseContinuationCallbackImpl(_In_ RawValue task, _In_opt_ RawContext callbackState);
+        static void CALLBACK JsPromiseContinuationCallbackImpl(_In_ JsValueRef task, _In_opt_ void* callbackState);
     internal:
         static void HandlePromiseContinuation();
 

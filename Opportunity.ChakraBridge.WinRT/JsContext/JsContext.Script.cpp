@@ -7,16 +7,17 @@ using namespace Opportunity::ChakraBridge::WinRT;
 
 JsSourceContext JsContext::SourceContext = 0;
 
-void JsContext::JsPromiseContinuationCallbackImpl(const RawValue task, const RawContext callbackState)
+void JsContext::JsPromiseContinuationCallbackImpl(const JsValueRef task, void*const callbackState)
 {
-    auto current = Get(callbackState);
-    task.AddRef();
-    current->PromiseContinuationQueue.push(task);
+    const auto current = Get(callbackState);
+    const auto tt = RawValue(task);
+    tt.AddRef();
+    current->PromiseContinuationQueue.push(tt);
 }
 
 void JsContext::HandlePromiseContinuation()
 {
-    auto current = Current;
+    const auto current = Current;
     const RawValue global = RawValue::GlobalObject();
     while (!current->PromiseContinuationQueue.empty())
     {
@@ -30,48 +31,40 @@ void JsContext::HandlePromiseContinuation()
 IBuffer^ JsContext::SerializeScript(string^ script)
 {
     NULL_CHECK(script);
-    unsigned long bufferSize = 0;
-    CHAKRA_CALL(JsSerializeScript(script->Data(), nullptr, &bufferSize));
-    auto buf = ref new Windows::Storage::Streams::Buffer(bufferSize);
-    CHAKRA_CALL(JsSerializeScript(script->Data(), GetPointerOfBuffer(buf), &bufferSize));
-    buf->Length = bufferSize;
+    const auto bufferSize = RawContext::SerializeScript(script->Data());
+    const auto buf = ref new Windows::Storage::Streams::Buffer(bufferSize);
+    buf->Length = RawContext::SerializeScript(script->Data(), GetPointerOfBuffer(buf));
     return buf;
 }
 
 IJsFunction^ JsContext::ParseScript(string^ script, IBuffer^ buffer, string^ sourceName)
 {
-    unsigned int buflen;
-    auto pointer = GetPointerOfBuffer(buffer, &buflen);
-    JsValueRef result;
-    CHAKRA_CALL(JsParseSerializedScript(script->Data(), pointer, SourceContext++, sourceName->Data(), &result));
-    return ref new JsFunctionImpl(result);
+    const auto pointer = GetPointerOfBuffer(buffer);
+    const auto r = RawContext::ParseScript(script->Data(), pointer, SourceContext++, sourceName->Data());
+    return ref new JsFunctionImpl(r);
 }
 
 IJsValue^ JsContext::RunScript(string^ script, IBuffer^ buffer, string^ sourceName)
 {
-    unsigned int buflen;
-    auto pointer = GetPointerOfBuffer(buffer, &buflen);
-    JsValueRef result;
-    CHAKRA_CALL(JsRunSerializedScript(script->Data(), pointer, SourceContext++, sourceName->Data(), &result));
+    const auto pointer = GetPointerOfBuffer(buffer);
+    const auto r = RawContext::RunScript(script->Data(), pointer, SourceContext++, sourceName->Data());
     HandlePromiseContinuation();
-    return JsValue::CreateTyped(result);
+    return JsValue::CreateTyped(r);
 }
 
 IJsFunction^ JsContext::ParseScript(string^ script, string^ sourceName)
 {
     NULL_CHECK(script);
-    JsValueRef result;
-    CHAKRA_CALL(JsParseScript(script->Data(), SourceContext++, sourceName->Data(), &result));
-    return ref new JsFunctionImpl(result);
+    const auto r = RawContext::ParseScript(script->Data(), SourceContext++, sourceName->Data());
+    return ref new JsFunctionImpl(r);
 }
 
 IJsValue^ JsContext::RunScript(string^ script, string^ sourceName)
 {
     NULL_CHECK(script);
-    JsValueRef result;
-    CHAKRA_CALL(JsRunScript(script->Data(), SourceContext++, sourceName->Data(), &result));
+    const auto r = RawContext::RunScript(script->Data(), SourceContext++, sourceName->Data());
     HandlePromiseContinuation();
-    return JsValue::CreateTyped(result);
+    return JsValue::CreateTyped(r);
 }
 
 std::unordered_map<JsSourceContext, Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^> LoadSource;
@@ -112,20 +105,18 @@ void CALLBACK JsSerializedScriptUnloadCallbackImpl(_In_ JsSourceContext sourceCo
 IJsFunction^ JsContext::ParseScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, string^ sourceUrl)
 {
     NULL_CHECK(scriptLoadCallback);
-    auto pointer = GetPointerOfBuffer(buffer, nullptr);
+    const auto pointer = GetPointerOfBuffer(buffer);
     LoadSource[SourceContext] = scriptLoadCallback;
-    JsValueRef result;
-    CHAKRA_CALL(JsParseSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackImpl, JsSerializedScriptUnloadCallbackImpl, pointer, SourceContext++, sourceUrl->Data(), &result));
-    return ref new JsFunctionImpl(result);
+    const auto r = RawContext::ParseScript(JsSerializedScriptLoadSourceCallbackImpl, JsSerializedScriptUnloadCallbackImpl, pointer, SourceContext++, sourceUrl->Data());
+    return ref new JsFunctionImpl(r);
 }
 
 IJsValue^ JsContext::RunScript(Opportunity::ChakraBridge::WinRT::JsSerializedScriptLoadSourceCallback^ scriptLoadCallback, IBuffer^ buffer, string^ sourceUrl)
 {
     NULL_CHECK(scriptLoadCallback);
-    auto pointer = GetPointerOfBuffer(buffer, nullptr);
+    const auto pointer = GetPointerOfBuffer(buffer);
     LoadSource[SourceContext] = scriptLoadCallback;
-    JsValueRef result;
-    CHAKRA_CALL(JsRunSerializedScriptWithCallback(JsSerializedScriptLoadSourceCallbackImpl, JsSerializedScriptUnloadCallbackImpl, pointer, SourceContext++, sourceUrl->Data(), &result));
+    const auto r = RawContext::RunScript(JsSerializedScriptLoadSourceCallbackImpl, JsSerializedScriptUnloadCallbackImpl, pointer, SourceContext++, sourceUrl->Data());
     HandlePromiseContinuation();
-    return JsValue::CreateTyped(result);
+    return JsValue::CreateTyped(r);
 }

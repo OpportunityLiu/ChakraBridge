@@ -7,11 +7,6 @@
 
 namespace Opportunity::ChakraBridge::WinRT 
 {
-    inline void RawContext::SetException(const RawValue& exception)
-    {
-        CHAKRA_CALL(JsSetException(exception.Ref));
-    }
-
     inline RawPropertyId::RawPropertyId(const RawValue& symbol)
     {
         CHAKRA_CALL(JsGetPropertyIdFromSymbol(symbol.Ref, &Ref));
@@ -22,5 +17,12 @@ namespace Opportunity::ChakraBridge::WinRT
         RawValue r;
         CHAKRA_CALL(JsGetSymbolFromPropertyId(Ref, &r.Ref));
         return r;
+    }
+
+    inline RawContext RawValue::Context() const
+    {
+        RawContext ref;
+        CHAKRA_CALL(JsGetContextOfObject(Ref, &ref.Ref));
+        return ref;
     }
 }

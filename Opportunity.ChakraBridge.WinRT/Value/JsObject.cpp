@@ -173,7 +173,7 @@ void JsObjectImpl::Proto::set(IJsObject^ value)
 
 std::unordered_map<RawValue, JsObjectImpl::JsOBCC^> JsObjectImpl::OBCCMap;
 
-void CALLBACK JsObjectImpl::JsObjectBeforeCollectCallbackImpl(RawValue ref, void *const callbackState)
+void CALLBACK JsObjectImpl::JsObjectBeforeCollectCallbackImpl(const JsValueRef ref, void *const callbackState)
 {
     auto v = OBCCMap.find(ref);
     if (v == OBCCMap.end())
@@ -199,8 +199,7 @@ void JsObjectImpl::ObjectCollectingCallback::set(JsOBCC^ value)
         OBCCMap.erase(Reference);
         return;
     }
-    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr,
-        reinterpret_cast<::JsObjectBeforeCollectCallback>(JsObjectImpl::JsObjectBeforeCollectCallbackImpl)));
+    CHAKRA_CALL(JsSetObjectBeforeCollectCallback(Reference.Ref, nullptr,JsObjectImpl::JsObjectBeforeCollectCallbackImpl));
     OBCCMap[Reference] = value;
 }
 

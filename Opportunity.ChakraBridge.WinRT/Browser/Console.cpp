@@ -7,13 +7,24 @@ using namespace Opportunity::ChakraBridge::WinRT::Browser;
 
 #define RT_EXT_CONSOLE_NAME L"__rt_external_console__"
 
-IJsValue^ Console::OnLogging(IJsFunction^ callee, IJsObject^ caller, bool isConstructCall, vector_view<IJsValue>^ arguments)
+_Ret_maybenull_ JsValueRef Console::OnLogging(_In_ JsValueRef callee, _In_ bool isConstructCall, _In_ JsValueRef *arguments, _In_ unsigned short argumentCount, _In_opt_ void *callbackState)
 {
-    auto con = safe_cast<Console^>(to_impl(caller)->Lookup("rtConsole")->ToInspectable());
+    _ASSERTE(argumentCount == 4);
+    const RawValue caller = arguments[0];
+    auto con = reinterpret_cast<Console^>(caller[RT_EXT_CONSOLE_NAME]().ToInspectable());
     auto args = ref new ConsoleLoggingEventArgs();
-    args->Verb = arguments->GetAt(0)->ToString();
-    args->Data = safe_cast<vector<IJsValue>^>(arguments->GetAt(1))->GetView();
-    args->CallStack = ref new string(arguments->GetAt(2)->ToString()->Data() + sizeof("Error\n   at Console.prototype[getStack] (Unknown script code:12:52)\n   at Console.prototype.error (Unknown script code:20:52)\n"));
+    args->Verb = RawValue(arguments[1]).ToString();
+    args->Data = (ref new JsArrayImpl(arguments[2]))->ArrayGetView();
+    auto callstack = RawValue(arguments[3]).ToString();
+    auto callstackptr = callstack.Data();
+    auto lf = 0;
+    while (*callstackptr != L'\0' && lf < 3)
+    {
+        if (*callstackptr == L'\n')
+            lf++;
+        callstackptr++;
+    }
+    args->CallStack = ref new string(callstackptr, unsigned int(callstack.Data() + callstack.Length() - callstackptr));
 
     con->Logging(con, args);
     return nullptr;
@@ -26,16 +37,16 @@ Console^ Console::GetOrCreate()
         auto oldConsole = dynamic_cast<JsObjectImpl^>(to_impl(JsValue::GlobalObject)->Lookup(L"console"));
         if (oldConsole != nullptr)
         {
-            auto con = dynamic_cast<JsExternalObjectImpl^>(oldConsole->Lookup(RT_EXT_CONSOLE_NAME));
+            auto con = safe_cast<Console^>(to_impl(oldConsole)->Lookup(RT_EXT_CONSOLE_NAME)->ToInspectable());
             if (con != nullptr)
-                return safe_cast<Console^>(con->ExternalData);
+                return con;
         }
     }
     catch (...) {}
     auto con = ref new Console();
-    auto jsCon = JsExternalObject::Create(con);
-    auto callback = JsFunction::Create(ref new JsNativeFunction(OnLogging));
-    auto func = safe_cast<JsFunctionImpl^>(JsContext::RunScript(LR"(
+    auto jsCon = RawValue(reinterpret_cast<IInspectable*>(con));
+    auto callback = RawValue(OnLogging, nullptr);
+    const auto func = RawContext::RunScript(LR"=(
     (function() {
         let logging = Symbol('LoggingCallback');
         let getStack = Symbol('GetStack');
@@ -43,7 +54,7 @@ Console^ Console::GetOrCreate()
         {
             constructor(console, callback)
             {
-                this.)" RT_EXT_CONSOLE_NAME LR"( = console;
+                Object.defineProperty(this, ')=" RT_EXT_CONSOLE_NAME LR"=(', { get() { return console }, configurable: false, enumerable: false });
                 Object.defineProperty(this, logging, { get() { return callback }, configurable: false, enumerable: false });
             }
             assert(cond, ...data)
@@ -78,8 +89,8 @@ Console^ Console::GetOrCreate()
         Object.preventExtensions(Console.prototype);
         return Console;
     })()
-)"));
-    auto console = get_ref(func).New(get_ref(jsCon), get_ref(callback));
+)=", JS_SOURCE_CONTEXT_NONE, __FILEW__);
+    auto console = func.New(jsCon, callback);
     RawValue::GlobalObject()[L"console"] = console;
     return con;
 }

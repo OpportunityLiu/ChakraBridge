@@ -12,7 +12,7 @@ namespace Opportunity::ChakraBridge::WinRT {
     public ref class JsContextScope sealed
     {
     private:
-        JsContextRef previous;
+        JsContext^ previous;
         JsContext^ current;
         const bool disposeContext;
     internal:
