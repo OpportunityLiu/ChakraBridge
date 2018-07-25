@@ -3,33 +3,37 @@
 #include <algorithm>
 
 using namespace Opportunity::ChakraBridge::WinRT;
-using ObjPtr = std::pair<object^, nullptr_t>;
+
+using EOP = struct EO
+{
+    object^ Object;
+}*;
 
 void JsExternalObjectImpl::JsFinalizeCallbackImpl(void* data)
 {
-    auto ptr = static_cast<ObjPtr*>(data);
+    auto ptr = static_cast<EOP>(data);
     delete ptr;
 }
 
 object^ JsExternalObjectImpl::ExternalData::get()
 {
-    ObjPtr* ptr;
+    EOP ptr = nullptr;
     CHAKRA_CALL(JsGetExternalData(Reference.Ref, reinterpret_cast<void**>(&ptr)));
-    return ptr->first;
+    return ptr->Object;
 }
 
 void JsExternalObjectImpl::ExternalData::set(object^ value)
 {
-    ObjPtr* ptr;
+    EOP ptr = nullptr;
     CHAKRA_CALL(JsGetExternalData(Reference.Ref, reinterpret_cast<void**>(&ptr)));
-    ptr->first = value;
+    ptr->Object = value;
 }
 
 IJsExternalObject^ JsExternalObject::Create(object^ data)
 {
     JsValueRef obj;
-    auto ptr = new ObjPtr();
-    ptr->first = data;
+    auto ptr = new EO();
+    ptr->Object = data;
     CHAKRA_CALL(JsCreateExternalObject(ptr, JsExternalObjectImpl::JsFinalizeCallbackImpl, &obj));
     return ref new JsExternalObjectImpl(obj);
 }
