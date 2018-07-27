@@ -8,7 +8,6 @@
 
   <Target Name="InjectReference" BeforeTargets="ResolveAssemblyReferences">
     <ItemGroup Condition=" '$(Platform)' == 'x86' or '$(Platform)' == 'x64' or '$(Platform)' == 'ARM'">
-      <Reference Remove="Opportunity.ChakraBridge.WinRT"/>
       <Reference Include="Opportunity.ChakraBridge.WinRT">
         <HintPath>$(MSBuildThisFileDirectory)$(Platform)\Opportunity.ChakraBridge.WinRT.winmd</HintPath>
       </Reference>
