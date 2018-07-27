@@ -81,7 +81,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -110,6 +117,7 @@
       <DisableSpecificWarnings>28204</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +152,7 @@
       <DisableSpecificWarnings>28204</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -178,6 +187,7 @@
       <DisableSpecificWarnings>28204</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

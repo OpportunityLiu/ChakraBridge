@@ -11,6 +11,8 @@
     <DisplayString>{{Ref={Reference}}}</DisplayString>
     <Expand>
       <Item Name="Reference">Reference</Item>
+      <Item Name="Reference">Reference.Ref</Item>
+      <Item Name="Number" Optional="true" Condition="(size_t(Reference.Ref) &gt;&gt; 32) == 0x00010000" >int(size_t(Reference.Ref) &amp; 0xFFFFFFFF)</Item>
     </Expand>
   </Type>
   <Type Name="Opportunity::ChakraBridge::WinRT::JsContext">

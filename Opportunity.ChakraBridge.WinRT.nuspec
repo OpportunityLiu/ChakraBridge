@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata minClientVersion="2.5">
+    <id>Opportunity.ChakraBridge.WinRT</id>
+    <version>0.1.4</version>
+    <title>Opportunity.ChakraBridge.WinRT</title>
+    <authors>Opportunity</authors>
+    <owners>Opportunity</owners>
+    <licenseUrl>https://github.com/OpportunityLiu/ChakraBridge/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/OpportunityLiu/ChakraBridge</projectUrl>
+    <description>Windows runtime library warpper for chakra engine.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Opportunity 2018</copyright>
+    <tags>UWP winmd javascript edge charka</tags>
+    <references>
+      <group targetFramework="UAP10.0">
+        <reference file="Opportunity.ChakraBridge.WinRT.winmd" />
+      </group>
+    </references>
+  </metadata>
+  <files>
+    <file src="nugetfiles\*" target="build\UAP10.0"/>
+
+    <file src="Win32\Release\Opportunity.ChakraBridge.WinRT\*.xml" target="lib\UAP10.0"/>
+    <file src="Win32\Release\Opportunity.ChakraBridge.WinRT\*.winmd" target="lib\UAP10.0"/>
+
+    <file src="Win32\Release\Opportunity.ChakraBridge.WinRT\*.winmd" target="build\UAP10.0\x86"/>
+    <file src="Win32\Release\Opportunity.ChakraBridge.WinRT\*.dll" target="build\UAP10.0\x86"/>
+    <file src="Win32\Release\Opportunity.ChakraBridge.WinRT\*.pri" target="build\UAP10.0\x86"/>
+    <file src="Win32\Release\Opportunity.ChakraBridge.WinRT\*.lib" target="build\UAP10.0\x86"/>
+
+    <file src="x64\Release\Opportunity.ChakraBridge.WinRT\*.winmd" target="build\UAP10.0\x64"/>
+    <file src="x64\Release\Opportunity.ChakraBridge.WinRT\*.dll" target="build\UAP10.0\x64"/>
+    <file src="x64\Release\Opportunity.ChakraBridge.WinRT\*.pri" target="build\UAP10.0\x64"/>
+    <file src="x64\Release\Opportunity.ChakraBridge.WinRT\*.lib" target="build\UAP10.0\x64"/>
+
+    <file src="ARM\Release\Opportunity.ChakraBridge.WinRT\*.winmd" target="build\UAP10.0\ARM"/>
+    <file src="ARM\Release\Opportunity.ChakraBridge.WinRT\*.dll" target="build\UAP10.0\ARM"/>
+    <file src="ARM\Release\Opportunity.ChakraBridge.WinRT\*.pri" target="build\UAP10.0\ARM"/>
+    <file src="ARM\Release\Opportunity.ChakraBridge.WinRT\*.lib" target="build\UAP10.0\ARM"/>
+  </files>
+</package>
