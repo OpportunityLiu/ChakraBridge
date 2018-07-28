@@ -70,9 +70,9 @@ namespace Test
                             obj.ExternalData = 100;
                             JsContext.StartDebugging();
                             var func = JsFunction.Create(saf);
-                            var console = Console.GetOrCreate();
+                            var console = Opportunity.ChakraBridge.WinRT.Browser.Console.GetOrCreate();
                             console.Logging += Con_Logging;
-                            var c2 = Console.GetOrCreate();
+                            var c2 = Opportunity.ChakraBridge.WinRT.Browser.Console.GetOrCreate();
                             JsValue.GlobalObject["func"] = func;
                             JsContext.RunScript("console.log(1,'2',{});func(1,'2',{});new func();", js.Name);
                         }
@@ -111,7 +111,7 @@ new Promise(
             return true;
         }
 
-        private void Con_Logging(Console sender, IConsoleLoggingEventArgs args)
+        private void Con_Logging(Opportunity.ChakraBridge.WinRT.Browser.Console sender, IConsoleLoggingEventArgs args)
         {
         }
 
