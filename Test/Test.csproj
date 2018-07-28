@@ -143,15 +143,9 @@
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.1.5</Version>
     </PackageReference>
-    <PackageReference Include="Opportunity.ChakraBridge.WinRT">
-      <Version>0.1.5</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)' == 'x64'">
     <Reference Remove="Opportunity.ChakraBridge.WinRT" />
-    <Reference Include="Opportunity.ChakraBridge.WinRT">
-      <HintPath>..\x64\Opportunity.ChakraBridge.WinRT.winmd</HintPath>
-    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
