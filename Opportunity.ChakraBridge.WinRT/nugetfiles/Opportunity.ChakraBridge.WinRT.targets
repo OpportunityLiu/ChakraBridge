@@ -9,6 +9,6 @@
   </ItemGroup>
   <Target Name="Opportunity_ChakraBridge_WinRT_PlatformCheck" 
           Condition=" ( ('$(Platform)' != 'x86') AND ('$(Platform)' != 'ARM') AND  ('$(Platform)' != 'x64') )" >
-    <Error Text="$(MSBuildThisFileName) does not work correctly on '$(Platform)' platform. You need to specify platform (x86 / x64 or ARM)." />
+    <Error Text="$(MSBuildThisFileName) does not work correctly on '$(Platform)'. Its supported platforms include 'x86', 'x64' and 'ARM'." />
   </Target>
 </Project>

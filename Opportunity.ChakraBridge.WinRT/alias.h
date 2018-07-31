@@ -13,23 +13,21 @@ namespace Opportunity::ChakraBridge::WinRT
     template<typename T>
     using remove_hat_t = typename ::Platform::Details::__remove_hat<T>::type;
 
-    template<typename T>
+    template<typename T, typename = std::void_t<>>
     struct __add_hat_if_winrt
     {
         using type = remove_hat_t<T>^;
     };
-    template<> struct __add_hat_if_winrt<bool> { using type = bool; };
-    template<> struct __add_hat_if_winrt<::default::char16> { using type = ::default::char16; };
-    template<> struct __add_hat_if_winrt<::default::int8> { using type = ::default::int8; };
-    template<> struct __add_hat_if_winrt<::default::int16> { using type = ::default::int16; };
-    template<> struct __add_hat_if_winrt<::default::int32> { using type = ::default::int32; };
-    template<> struct __add_hat_if_winrt<::default::int64> { using type = ::default::int64; };
-    template<> struct __add_hat_if_winrt<::default::uint8> { using type = ::default::uint8; };
-    template<> struct __add_hat_if_winrt<::default::uint16> { using type = ::default::uint16; };
-    template<> struct __add_hat_if_winrt<::default::uint32> { using type = ::default::uint32; };
-    template<> struct __add_hat_if_winrt<::default::uint64> { using type = ::default::uint64; };
-    template<> struct __add_hat_if_winrt<::default::float32> { using type = ::default::float32; };
-    template<> struct __add_hat_if_winrt<::default::float64> { using type = ::default::float64; };
+    template<typename T>
+    struct __add_hat_if_winrt<T, std::enable_if_t<std::is_fundamental_v<T>>>
+    {
+        using type = remove_hat_t<T>;
+    };
+    template<typename T>
+    struct __add_hat_if_winrt<T, std::enable_if_t<std::is_enum_v<T>>>
+    {
+        using type = remove_hat_t<T>;
+    };
 
     template<typename T>
     using add_hat_t = typename __add_hat_if_winrt<T>::type;
